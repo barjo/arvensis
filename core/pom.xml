@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Project's parent -->
+	<parent>
+		<groupId>org.ow2.chameleon</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>0.2.2</version>
+	</parent>
+
+	<!-- Description of the project -->
+	<groupId>org.ow2.chameleon.rose</groupId>
+	<artifactId>org.ow2.chameleon.rose.core</artifactId>
+	<name>OW2::Chameleon::ROSE::Core</name>
+	<version>0.2.4-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+	<description>OW2 Chameleon ROSE Core bundle, contains the ROSE service specification.</description>
+
+	<properties>
+		<!-- Dependencies version -->
+		<ipojo.version>1.8.0</ipojo.version>
+		<osgi.version>4.2.0</osgi.version>
+		<bundle.plugin.version>2.3.4</bundle.plugin.version>
+		<compiler.plugin.version>2.1</compiler.plugin.version>
+		
+		<!-- Encoding -->
+    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<!-- Project dependencies -->
+	<dependencies>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<version>${osgi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.enterprise</artifactId>
+			<version>${osgi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo</artifactId>
+			<version>${ipojo.version}</version>
+		</dependency>
+	</dependencies>
+
+	<!-- Build configuration -->
+	<build>
+		<plugins>
+  			<plugin>
+    			<groupId>org.apache.felix</groupId>
+			    <artifactId>maven-bundle-plugin</artifactId>
+				<version>${bundle.plugin.version}</version>
+ 				<extensions>true</extensions>
+    				<configuration>
+      					<instructions>
+						<Bundle-SymbolicName>
+							${project.artifactId}
+						</Bundle-SymbolicName>
+        					<Export-Package>
+							org.ow2.chameleon.rose;version=${project.version},
+							org.osgi.service.remoteserviceadmin;version=${osgi.version}
+						</Export-Package>
+      					</instructions>
+    				</configuration>
+  			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${compiler.plugin.version}</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+

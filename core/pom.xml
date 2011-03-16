@@ -12,7 +12,7 @@
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose</groupId>
-	<artifactId>org.ow2.chameleon.rose.core</artifactId>
+	<artifactId>rose-core</artifactId>
 	<name>OW2::Chameleon::ROSE::Core</name>
 	<version>0.2.4-SNAPSHOT</version>
 	<packaging>bundle</packaging>

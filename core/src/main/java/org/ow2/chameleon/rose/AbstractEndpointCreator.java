@@ -1,14 +1,17 @@
 package org.ow2.chameleon.rose;
 
+import static org.osgi.service.log.LogService.LOG_WARNING;
+
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.felix.ipojo.ComponentFactory;
+import org.apache.felix.ipojo.ComponentInstance;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -17,15 +20,19 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+import org.ow2.chameleon.rose.internal.BadExportRegistration;
 import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 
 /**
- * Abstract implementation of an endpoint-creator component, the endpoint-creator must provide an ExporterService.
+ * Abstract implementation of an endpoint-creator {@link ComponentFactory} which provides an {@link ExporterService}.
+ * 
+ * @version 0.2.0
  * @author barjo
  */
 public abstract class AbstractEndpointCreator implements ExporterService {
 	protected final Map<ServiceReference, MyExportReference> references;
 	protected final ConcurrentMapOfSet<MyExportReference, MyExportRegistration> registrations;
+	private volatile boolean isValid = false;
 	
 	private final BundleContext context;
 	
@@ -40,17 +47,17 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 *--------------------------*/
 	
 	/**
-	 * Create an endpoint for the service linked to the given ServiceReference. 
+	 * Create an endpoint for the service linked to {@code sref}. 
 	 * If the service has already an endpoint with compatible properties, 
-	 * return the existing EndpointDescription, otherwise an exception must be thrown.
-	 * @param sref
-	 * @return The EndpointDescription of the created endpoint.
+	 * return the existing {@link EndpointDescription}, otherwise an exception must be thrown.
+	 * @param sref The {@link ServiceReference}
+	 * @return The {@link EndpointDescription} of the created endpoint.
 	 */
 	protected abstract EndpointDescription createEndpoint(ServiceReference sref,Map<String,Object> extraProperties);
 	
 	/**
-	 * Destroy the endpoint of given EndpointDescription.
-	 * @param endesc
+	 * Destroy the endpoint of {@code endesc} description.
+	 * @param endesc The {@link EndpointDescription}
 	 */
 	protected abstract void destroyEndpoint(EndpointDescription endesc);
 	
@@ -58,7 +65,36 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 * Close all endpoints.
 	 */
 	 protected void stop(){
+		registrations.clear();
 		
+		synchronized (references) {
+			Collection<MyExportReference> endrefs = references.values();
+		
+			for (Iterator<MyExportReference> iterator = endrefs.iterator(); iterator.hasNext();) {
+				MyExportReference myref = iterator.next();
+				myref.close();
+			}
+			
+			references.clear();
+			isValid = false;
+		}
+	 }
+	 
+	 protected void start(){
+		 synchronized (references) {
+			isValid = true;
+			
+			if (references.size() > 0 || registrations.size() > 0){
+				getLogService().log(LOG_WARNING, "Internal structures have not been cleared while stopping the instance.");
+			}
+		 }
+	 }
+	 
+	 /**
+	  * @return <code>true</code> if the {@link ComponentInstance} is in a valid state, <code>false</code> otherwise.
+	  */
+	 protected final boolean isValid(){
+			return isValid;
 	 }
 	
 	/*--------------------------------------------*
@@ -66,12 +102,12 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 *--------------------------------------------*/
 	
 	/**
-	 * @return The LogService.
+	 * @return The {@link LogService} service.
 	 */
 	protected abstract LogService getLogService();
 	
 	/**
-	 * @return The EventAdmin service.
+	 * @return The {@link EventAdmin} service.
 	 */
 	protected abstract EventAdmin getEventAdmin();
 	
@@ -89,12 +125,21 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	public final ExportRegistration exportService(ServiceReference sref,Map<String,Object> extraProperties) {
 		final ExportRegistration xreg;
 		
-		if (references.containsKey(sref)) {
-			xreg = new MyExportRegistration(references.get(sref), null);
-		} else {
-			EndpointDescription enddesc = createEndpoint(sref,extraProperties);
-			MyExportReference xref = new MyExportReference(sref, enddesc,context);
-			xreg = new MyExportRegistration(xref, null);
+		synchronized (references) {
+			
+			if (!isValid){
+				return new BadExportRegistration(new Throwable("This ExporterService is no more available. !"));
+			}
+			
+			if (references.containsKey(sref)) {
+				xreg = new MyExportRegistration(references.get(sref), null);
+			} else {
+				EndpointDescription enddesc = createEndpoint(sref,
+						extraProperties);
+				MyExportReference xref = new MyExportReference(sref, enddesc,
+						context);
+				xreg = new MyExportRegistration(xref, null);
+			}
 		}
 		
 		return xreg;
@@ -122,7 +167,9 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 *--------------------------------*/
 	
 	/**
-	 * Implementation of an ExportReference.
+	 * Implementation of an {@link ExportReference}.
+	 * 
+	 * When {@link MyExportReference#close()} is called, the endpoint is destroyed and unregistered. 
 	 * @author barjo
 	 */
 	private final class MyExportReference implements ExportReference {
@@ -130,8 +177,14 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		private EndpointDescription desc;
 		private ServiceRegistration regis;
 		private volatile boolean closed = false;
-		private ReadWriteLock rwlock = new ReentrantReadWriteLock();
 		
+		/**
+		 * Register the {@code pEndesc} thanks to {@code context}.
+		 * 
+		 * @param pSref
+		 * @param pEnddesc
+		 * @param context
+		 */
 		public MyExportReference(ServiceReference pSref,EndpointDescription pEnddesc,BundleContext context) {
 			sref = pSref;
 			desc = pEnddesc;
@@ -139,33 +192,34 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 			
 			//add the export reference to the references.
 			references.put(sref, this);
-
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.osgi.service.remoteserviceadmin.ExportReference#getExportedService()
+		 */
 		public ServiceReference getExportedService() {
-			rwlock.readLock().lock();
-			try{
 				return sref;
-			}finally {
-				rwlock.readLock().unlock();
-			}
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.osgi.service.remoteserviceadmin.ExportReference#getExportedEndpoint()
+		 */
 		public EndpointDescription getExportedEndpoint() {
-			rwlock.readLock().lock();
-			try{
 				return desc;
-			}finally {
-				rwlock.readLock().unlock();
-			}
 		}
-		
+
+		/**
+		 * Unregister the {@link EndpointDescription} and destroy the endpoint,
+		 * by calling
+		 * {@link AbstractEndpointCreator#destroyEndpoint(EndpointDescription)}.
+		 */
 		public void close() {
-			rwlock.writeLock().lock();
-			try {
+			synchronized (references) {
 				if (!closed) {
 					//remove the reference of the references
-					references.remove(this);
+					references.remove(sref);
 					
 					// unregister the endpointDescription and destroy the
 					// endpoint
@@ -176,50 +230,52 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 					desc = null;
 					closed = true; //is now closed
 				}
-			} finally {
-				rwlock.writeLock().unlock();
 			}
 		}
 	}
 	
 	/**
-	 * Implementation of an ExportRegistration.
+	 * Implementation of an {@link ExportRegistration}.
+	 * 
 	 * @author barjo
 	 */
 	private final class MyExportRegistration implements ExportRegistration {
-		private MyExportReference xref;
-		private Throwable exception;
-		
-		private volatile boolean closed = false;
-
+		private volatile MyExportReference xref;
 		
 		private MyExportRegistration(MyExportReference pXref,Throwable pException) {
 			xref=pXref;
-			exception = pException;
-			
 			//Add the registration to the registrations mapOfSet
 			registrations.add(xref, this);
 		}
 		
-		public synchronized MyExportReference getExportReference() {
+		/*
+		 * (non-Javadoc)
+		 * @see org.osgi.service.remoteserviceadmin.ExportRegistration#getExportReference()
+		 */
+		public ExportReference getExportReference() {
 			return xref;
 		}
 
-		public synchronized void close() {
-			if (!closed) {
-				
-				//Last registration, close the ExportReference
+		/*
+		 * (non-Javadoc)
+		 * @see org.osgi.service.remoteserviceadmin.ExportRegistration#close()
+		 */
+		public void close() {
+			if (xref != null) {
+				// Last registration, close the ExportReference
 				if (registrations.remove(xref, this)) {
 					xref.close();
 				}
-				xref = null;
-				exception = null;
-				closed = true; //is now closed
+				xref = null; // is now closed
 			}
 		}
 
-		public synchronized Throwable getException() {
-			return exception;
+		/*
+		 * (non-Javadoc)
+		 * @see org.osgi.service.remoteserviceadmin.ExportRegistration#getException()
+		 */
+		public Throwable getException() {
+			return null;
 		}
 	}
 	

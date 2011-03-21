@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- Project's parent -->
-	<!-- <parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.2.2</version>
-	</parent> -->
+	<!-- <parent> <groupId>org.ow2.chameleon</groupId> <artifactId>parent-pom</artifactId> 
+		<version>0.2.2</version> </parent> -->
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose</groupId>
@@ -24,9 +22,11 @@
 		<osgi.version>4.2.0</osgi.version>
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
 		<compiler.plugin.version>2.1</compiler.plugin.version>
-		
+
+		<!-- Interface Version -->
+		<rose.core.version>0.2.0</rose.core.version>
 		<!-- Encoding -->
-    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<!-- Project dependencies -->
@@ -46,29 +46,48 @@
 			<artifactId>org.apache.felix.ipojo</artifactId>
 			<version>${ipojo.version}</version>
 		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.8.5</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<!-- Build configuration -->
 	<build>
 		<plugins>
-  			<plugin>
-    			<groupId>org.apache.felix</groupId>
-			    <artifactId>maven-bundle-plugin</artifactId>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
 				<version>${bundle.plugin.version}</version>
- 				<extensions>true</extensions>
-    				<configuration>
-      					<instructions>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
 						<Bundle-SymbolicName>
 							${project.artifactId}
 						</Bundle-SymbolicName>
-        					<Export-Package>
-								org.ow2.chameleon.rose;version=${project.version},
-								org.ow2.chameleon.rose.util;version=${project.version},
-								org.osgi.service.remoteserviceadmin;version=${osgi.version}
-							</Export-Package>
-      					</instructions>
-    				</configuration>
-  			</plugin>
+						<Export-Package>
+							org.ow2.chameleon.rose;version=${rose.core.version},
+							org.ow2.chameleon.rose.util;version=${rose.core.version},
+							org.osgi.service.remoteserviceadmin;version=${osgi.version}
+						</Export-Package>
+						<Private-Package>
+							org.ow2.chameleon.rose.internal
+						</Private-Package>
+					</instructions>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

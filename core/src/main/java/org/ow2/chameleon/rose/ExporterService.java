@@ -8,32 +8,33 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 
 /**
- * The ExporterService service are provided by the endpoint-creator component.
- * It allows for supervisor component to create the endpoint thanks to the ServiceReference.
- * For each request to export a service, an ExportRegistration is returned.
+ * The {@link ExporterService} service are provided by the endpoint-creator component.
+ * It allows for supervisor component to create the endpoint thanks to the {@link ServiceReference}.
+ * For each request to export a service, an {@link ExportRegistration} is returned.
  * 
  * @author barjo
+ * @version 0.2.0
  **/
 public interface ExporterService {
 	
 	/**
-	 * Create an endpoint for the service of given ServiceReference.
+	 * Create an endpoint for the service of reference {@code sref}.
 	 * 
-	 * @param sref The ServiceReference of the service which must be exported.
-	 * @param properties Additional properties provided by the framework rather that the service itself.
-	 * @return An ExportRegistration
+	 * @param sref The {@link ServiceReference} of the service which must be exported
+	 * @param properties Additional properties provided by the framework rather than the one provided by {@code sref}
+	 * @return An {@link ExportRegistration}.
 	 */
 	ExportRegistration exportService(ServiceReference sref, Map<String, Object> properties);
 	
 	/**
-	 * @return All ExportReference of services exported through this service. 
+	 * @return All {@link ExportReference} of services exported through this service. 
 	 */
 	Collection<ExportReference> getAllExportReference();
 	
 	/**
-	 * @param sref
-	 * @return Return the ExportReference linked to the given ServiceReference 
-	 *  or null if the service does not have an endpoint created through the service.
+	 * @param sref The {@link ServiceReference}
+	 * @return Return the {@link ExportReference} linked to {@code sref} 
+	 *  or {@code null} if the service does not have an endpoint created through the service.
 	 */
 	ExportReference getExportReference(ServiceReference sref);
 }

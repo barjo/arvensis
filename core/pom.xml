@@ -22,6 +22,11 @@
 		<osgi.version>4.2.0</osgi.version>
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
 		<compiler.plugin.version>2.1</compiler.plugin.version>
+		
+		<!-- Test dependencies version -->
+		<mockito.version>1.8.5</mockito.version>
+		<junit.version>4.8.2</junit.version>
+			
 
 		<!-- Interface Version -->
 		<rose.core.version>0.2.0</rose.core.version>
@@ -51,14 +56,14 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
+			<version>${junit.version}</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<version>1.8.5</version>
+			<version>${mockito.version}</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>

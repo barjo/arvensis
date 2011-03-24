@@ -3,8 +3,8 @@
 	<component name="rose.export-supervisor"
 			classname="org.ow2.chameleon.rose.supervisor.ExportSupervisor">
 
-		<properties>
-			<property name="export.filter" field="filter" />
+		<properties propagation="true">
+			<property name="export.filter" method="setExportFilter" mandatory="true"/>
 		</properties>
 
 		<requires field="logger" optional="true" />

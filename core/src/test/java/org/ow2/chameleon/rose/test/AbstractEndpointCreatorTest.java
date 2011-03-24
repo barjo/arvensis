@@ -34,7 +34,7 @@ import org.ow2.chameleon.rose.ExporterService;
  * @author barjo
  */
 public class AbstractEndpointCreatorTest {
-	private static final int EXPORT_MAX = 10;
+	private static final int EXPORT_MAX = 10; //Number max of export to be tested within a single test.
 	
 	//Mock object
 	@Mock LogService logservice;

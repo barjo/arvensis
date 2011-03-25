@@ -61,8 +61,10 @@
 						<Import-Package>
 							org.ow2.chameleon.rose,
 							org.ow2.chameleon.rose.util,
+							org.osgi.framework;version=${osgi.version},
+							org.osgi.service.log;version=${osgi.version},
 							org.osgi.service.remoteserviceadmin;version=${osgi.version},
-							org.osgi.service.log
+							org.osgi.util.tracker;version=${osgi.version}
 						</Import-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.supervisor

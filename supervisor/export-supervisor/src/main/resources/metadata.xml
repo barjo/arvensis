@@ -3,18 +3,20 @@
 	<component name="rose.export-supervisor"
 			classname="org.ow2.chameleon.rose.supervisor.ExportSupervisor">
 
+		<!-- Track and export the service which match this filter. -->
 		<properties propagation="true">
 			<property name="export.filter" method="setExportFilter" mandatory="true"/>
 		</properties>
 
+		<!-- LogService -->
 		<requires field="logger" optional="true" />
 
+		<!-- ExporterService used by this export-supervisor -->
+		<requires optional="false" id="exporter-service" field="exporter"/>
+		
+		<!-- LifeCycle call back -->
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />
-
-		<requires optional="false" id="exporter-service">
-			<callback type="bind" method="bindExporterService"/>
-		</requires>
 	</component>
 </ipojo>
 

@@ -20,13 +20,18 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.8.0</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
-
+		<mockito.version>1.8.5</mockito.version>
+		
 		<!-- Tested version-->
 		<export-supervisor.version>0.1.0-SNAPSHOT</export-supervisor.version>
+		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
+		
 
 		<!-- Plugins version-->
 		<compiler.plugin.version>2.1</compiler.plugin.version>
+		
+		
+		
 		
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -133,6 +138,13 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.2</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
 			<type>jar</type>
 			<scope>test</scope>
 		</dependency>

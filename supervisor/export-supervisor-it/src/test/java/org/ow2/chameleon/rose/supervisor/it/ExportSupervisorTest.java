@@ -52,7 +52,7 @@ public class ExportSupervisorTest {
     private static final int NB_MOCK = 10;
 
     //Properties used to track the service to be exported
-	private static final String EXPORT_PROPERTY = "export.service";
+    private static final String EXPORT_PROPERTY = "export.service";
 
     @Inject
     private BundleContext context;
@@ -137,7 +137,8 @@ public class ExportSupervisorTest {
 		//Goodbye ExporterService
 		reg.unregister();
     }
-    
+
+    @Test 
     public void testServiceExport(){
     	createInstance();
     	registerExporterService();
@@ -150,10 +151,6 @@ public class ExportSupervisorTest {
     	//Check is the exported has been successfully called
     	verify(exporter).exportService(reg.getReference(), null);
     }
-    
-    
-    
-    
     
     private ComponentInstance createInstance(){
     	Dictionary<String, String> properties = new Hashtable<String, String>();
@@ -179,5 +176,5 @@ public class ExportSupervisorTest {
     	Object service = mock(clazz);
     	return context.registerService(clazz.getName(), service , properties);
     }
-
 }
+

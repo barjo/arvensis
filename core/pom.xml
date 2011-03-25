@@ -85,7 +85,7 @@
 						<Export-Package>
 							org.ow2.chameleon.rose;version=${rose.core.version},
 							org.ow2.chameleon.rose.util;version=${rose.core.version},
-							org.osgi.service.remoteserviceadmin;version=${osgi.version}
+							org.osgi.service.remoteserviceadmin
 						</Export-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.internal

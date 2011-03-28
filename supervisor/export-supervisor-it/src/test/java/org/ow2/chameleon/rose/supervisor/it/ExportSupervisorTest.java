@@ -4,7 +4,6 @@ import static org.apache.felix.ipojo.ComponentInstance.INVALID;
 import static org.apache.felix.ipojo.ComponentInstance.VALID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Answers.RETURNS_MOCKS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,30 +14,21 @@ import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.provision;
 import static org.ow2.chameleon.rose.supervisor.it.ITTools.waitForIt;
 
-import java.awt.HeadlessException;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.apache.felix.ipojo.ComponentInstance;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.Answer;
-import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
 import org.ops4j.pax.exam.junit.JUnitOptions;
-import org.ops4j.pax.swissbox.tinybundles.core.TinyBundles;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
@@ -66,7 +56,7 @@ public class ExportSupervisorTest {
     
     private IPOJOHelper ipojo;
     
-    @Mock(answer=RETURNS_MOCKS) private ExporterService exporter; //Mock ExporterService
+    @Mock private ExporterService exporter; //Mock ExporterService
     @Mock private ExportRegistration expreg; //Mock export registration
 
     @Before

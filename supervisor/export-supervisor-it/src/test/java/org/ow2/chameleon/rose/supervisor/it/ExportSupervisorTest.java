@@ -3,6 +3,7 @@ package org.ow2.chameleon.rose.supervisor.it;
 import static org.apache.felix.ipojo.ComponentInstance.INVALID;
 import static org.apache.felix.ipojo.ComponentInstance.VALID;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -38,8 +39,10 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.device.Device;
 import org.osgi.service.log.LogService;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.introspect.ExportSupervisorIntrospection;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
@@ -64,6 +67,7 @@ public class ExportSupervisorTest {
     
     @Mock private ExporterService exporter; //Mock ExporterService
     @Mock private ExportRegistration expreg; //Mock export registration
+    @Mock private ExportReference expref;
 
     @Before
     public void setUp() {
@@ -390,6 +394,55 @@ public class ExportSupervisorTest {
     	verify(expreg).close();
     
     	//Dispose the instance
+    	instance.dispose();
+    }
+    
+    /**
+     * Test dynamic change of the export.filter property.
+     */
+	@Test
+    public void testIntrospectionService(){
+    	
+    	registerExporterService();
+    	
+    	//Export one service
+    	ServiceRegistration reg = createAndRegisterServiceToBeExported(LogService.class);
+    	
+    	//define the behavior of the exporter and registration
+    	when(exporter.exportService(reg.getReference(), null)).thenReturn(expreg);
+    	when(expreg.getExportReference()).thenReturn(expref);
+    	
+    	//create the instance
+    	ComponentInstance instance = createInstance();
+    	
+    	waitForIt(200);
+    	
+    	//Get the introspection service
+    	ExportSupervisorIntrospection service = (ExportSupervisorIntrospection) osgi.getServiceObject(ExportSupervisorIntrospection.class.getName(), "(instance.name="+instance.getInstanceName()+")");
+    	
+    	//Check that the service has been provided
+    	assertNotNull(service);
+    	
+    	waitForIt(200);
+    	
+    	//Verify the export
+    	verify(exporter).exportService(reg.getReference(),null);
+    	
+    	//Check getAllExportReference have one element
+    	assertEquals(1,service.getAllExportReference().size());
+    	
+    	//Check getExportReference
+    	assertEquals(expref, service.getExportReference(reg.getReference()));
+    	
+    	//Unregister the exported service
+    	reg.unregister();
+    	
+    	waitForIt(200);
+    	
+    	//Check getAllExportReference is now empty
+    	assertEquals(0,service.getAllExportReference().size());
+    	
+    	//dispose the instance
     	instance.dispose();
     }
     

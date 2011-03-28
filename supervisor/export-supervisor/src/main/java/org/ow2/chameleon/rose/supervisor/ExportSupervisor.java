@@ -5,6 +5,9 @@ import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.apache.felix.ipojo.ComponentFactory;
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.handlers.dependency.Dependency;
@@ -13,10 +16,12 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.introspect.ExportSupervisorIntrospection;
 
 /**
  * Implementation of an <code>export-supervisor</code> {@link ComponentFactory}.
@@ -26,7 +31,7 @@ import org.ow2.chameleon.rose.ExporterService;
  * 
  * A specific {@link ExporterService} could be selected via configuring the <code>exporter-service</code> {@link Dependency}.
  */
-public class ExportSupervisor implements ServiceTrackerCustomizer{
+public class ExportSupervisor implements ServiceTrackerCustomizer,ExportSupervisorIntrospection{
 
 	private LogService logger; //The log service
 	private ExporterService exporter; //The exporter service
@@ -118,11 +123,12 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 							registration.getException());
 				}		
 			}
-			return registration;
+			
 		} catch(Exception e){ //defensive catch, e.g registration == null
 			logger.log(LOG_ERROR,"Cannot export the service of id: "+valueOf(reference.getProperty(SERVICE_ID)+", the ExporterService failed"),e);
-			return null;
 		}
+		
+		return registration;
 	}
 
 	/*
@@ -140,6 +146,40 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 	public void removedService(ServiceReference reference, Object service) {
 		//Close the registration
 		((ExportRegistration) service).close();
+	}
+	
+	/*-------------------------*
+	 * Introspection Service   *
+	 *-------------------------*/
+
+	public Collection<ExportReference> getAllExportReference() {
+		Collection<ExportReference> exrefs = new HashSet<ExportReference>();
+		Object[] registrations = (Object[]) tracker.getServices();
+
+		if (registrations == null){
+			return exrefs;
+		}
+		
+		for (Object exReg : registrations) {
+			ExportReference ref = ((ExportRegistration) exReg).getExportReference();
+			if(ref != null) exrefs.add(ref);
+		}
+		
+		return exrefs;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.introspect.ExportSupervisorService#getExportReference(org.osgi.framework.ServiceReference)
+	 */
+	public ExportReference getExportReference(ServiceReference sref) {
+		ExportRegistration reg = (ExportRegistration) tracker.getService(sref);
+		
+		if (reg == null){
+			return null;
+		}
+		
+		return reg.getExportReference();
 	}
 }
 

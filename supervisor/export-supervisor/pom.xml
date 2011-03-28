@@ -60,6 +60,7 @@
 						</Bundle-SymbolicName>
 						<Import-Package>
 							org.ow2.chameleon.rose,
+							org.ow2.chameleon.rose.introspect,
 							org.ow2.chameleon.rose.util,
 							org.osgi.framework,
 							org.osgi.service.log,

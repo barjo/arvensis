@@ -1,0 +1,30 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.ow2.chameleon.rose</groupId>
+	<artifactId>rose-reactor</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Rose Reactor</name>
+	<packaging>pom</packaging>	
+	<modules>
+		<module>core</module>
+		<module>supervisor/export-supervisor</module>
+		<module>supervisor/export-supervisor-it</module>
+	</modules>
+
+	<profiles>
+		<profile>
+			<id>core</id>
+			<modules>
+				<module>core</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>supervisor</id>
+			<modules>
+				<module>supervisor/export-supervisor</module>
+				<module>supervisor/export-supervisor-it</module>
+			</modules>
+		</profile>
+	</profiles>
+
+</project>

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.AbstractEndpointCreator;
 import org.ow2.chameleon.rose.ExporterService;
@@ -91,6 +93,9 @@ public class AbstractEndpointCreatorTest {
 		assertNull(reg.getException()); //No Exception
 		
 		assertEquals(reg.getExportReference(), creator.getExportReference(sref)); //no strange side effect on the reference
+		
+		//Check that the ExportReference is published
+		verify(context).registerService(ExportReference.class.getName(), reg.getExportReference(), new Hashtable<String, Object>());
 		
 		reg.close(); //Unexport !
 		assertNull(reg.getExportReference()); //Now that is has been closed
@@ -193,11 +198,11 @@ public class AbstractEndpointCreatorTest {
 		@Override
 		protected EndpointDescription createEndpoint(ServiceReference sref,
 				Map<String, Object> extraProperties) {
-			EndpointDescription desc = Mockito.mock(EndpointDescription.class);
+			EndpointDescription desc = mock(EndpointDescription.class);
 			descs.add(desc);
 			
-			//Return a mock ServiceRegistration when the registerService method is called with that endpoint Description.
-			when(context.registerService(EndpointDescription.class.getName(), desc, new Hashtable<String,Object>())).thenReturn(sreg);
+			//Return a mock ServiceRegistration when the registerService method is called with an ExportReference
+			when(context.registerService(Mockito.eq(ExportReference.class.getName()), Mockito.any(ExportReference.class), Mockito.any(Dictionary.class))).thenReturn(sreg);
 			return desc;
 		}
 

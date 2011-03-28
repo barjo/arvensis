@@ -188,7 +188,7 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		public MyExportReference(ServiceReference pSref,EndpointDescription pEnddesc,BundleContext context) {
 			sref = pSref;
 			desc = pEnddesc;
-			regis = context.registerService(EndpointDescription.class.getName(),pEnddesc, toDico(pEnddesc));
+			regis = context.registerService(ExportReference.class.getName(),this, toDico(pEnddesc));
 			
 			//add the export reference to the references.
 			references.put(sref, this);

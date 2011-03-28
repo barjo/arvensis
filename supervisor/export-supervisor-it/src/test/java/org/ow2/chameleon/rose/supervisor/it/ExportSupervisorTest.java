@@ -7,6 +7,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.Answers.RETURNS_MOCKS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.ops4j.pax.exam.CoreOptions.felix;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
@@ -28,12 +30,15 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
+import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
 import org.ops4j.pax.exam.junit.JUnitOptions;
+import org.ops4j.pax.swissbox.tinybundles.core.TinyBundles;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
@@ -62,7 +67,7 @@ public class ExportSupervisorTest {
     private IPOJOHelper ipojo;
     
     @Mock(answer=RETURNS_MOCKS) private ExporterService exporter; //Mock ExporterService
-    @Mock private ExportRegistration expreg;
+    @Mock private ExportRegistration expreg; //Mock export registration
 
     @Before
     public void setUp() {
@@ -70,7 +75,7 @@ public class ExportSupervisorTest {
         ipojo = new IPOJOHelper(context);
         
         //initialise the annoted mock object
-        MockitoAnnotations.initMocks(this);
+        initMocks(this);
     }
 
     @After
@@ -89,7 +94,7 @@ public class ExportSupervisorTest {
                 mavenBundle().groupId("org.osgi").artifactId("org.osgi.compendium").versionAsInProject(),
                 mavenBundle().groupId("org.slf4j").artifactId("slf4j-api").versionAsInProject(),
                 mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple").versionAsInProject(),
-        		// The target
+                // The target
                 mavenBundle().groupId("org.ow2.chameleon.rose.supervisor").artifactId("export-supervisor").versionAsInProject())); 
 
         Option[] r = OptionUtils.combine(platform, bundles);
@@ -138,9 +143,13 @@ public class ExportSupervisorTest {
 		reg.unregister();
     }
 
+    /**
+     * Test if the ExporterService is called once we track a service which require to 
+     * be exported.
+     */
     @Test 
     public void testServiceExport(){
-    	createInstance();
+    	ComponentInstance instance = createInstance();
     	registerExporterService();
     	
     	//register a mock lock service which must be exported
@@ -150,6 +159,50 @@ public class ExportSupervisorTest {
     	
     	//Check is the exported has been successfully called
     	verify(exporter).exportService(reg.getReference(), null);
+    	
+    	//Unregister the tracked service
+    	reg.unregister();
+    	waitForIt(200);
+    	
+    	//Check that the instance is still valid
+    	assertEquals(VALID, instance.getState());
+    	
+    	//dispose the instance
+    	instance.dispose();
+    }
+    
+    /**
+     * Test that the ExportRegistration is closed once the service has been unregistered
+     */
+    @Test 
+    public void testServiceExportAndClosed(){
+    	//register an ExporterService
+    	registerExporterService();
+    	
+    	//Register a mock log service which must be exported
+    	ServiceRegistration reg = createAndRegisterServiceToBeExported(LogService.class);
+
+    	//define the behavior of the exporter
+    	when(exporter.exportService(reg.getReference(), null)).thenReturn(expreg);
+
+    	//create the export-supervisor instance
+    	ComponentInstance instance = createInstance();
+    	
+    	waitForIt(200);
+    	
+    	//Unregister the tracked service
+    	reg.unregister();
+    	
+    	waitForIt(200);
+    	
+    	//Check that the ExportRegistration has been closed
+    	verify(expreg).close();
+    	
+    	//Check that the instance is still valid
+    	assertEquals(VALID, instance.getState());
+    	
+    	//dispose the instance
+    	instance.dispose();
     }
     
     private ComponentInstance createInstance(){

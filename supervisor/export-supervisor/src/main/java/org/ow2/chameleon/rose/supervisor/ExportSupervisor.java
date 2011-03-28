@@ -142,12 +142,10 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 				// XXX track even if the registration has thrown an exception ?
 			}
 			return registration;
-		}
-		catch(Exception e){
+		} catch(Exception e){ //defensive catch, e.g registration == null
 			logger.log(LOG_ERROR,"Cannot export the service of id: "+String.valueOf(reference.getProperty(SERVICE_ID)+", the ExporterService failed"),e);
 			return null;
-		} 
-		finally {
+		} finally {
 			rwlock.readLock().unlock();
 		}
 	}

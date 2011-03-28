@@ -1,12 +1,9 @@
 package org.ow2.chameleon.rose.supervisor;
 
+import static java.lang.String.valueOf;
 import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.felix.ipojo.ComponentFactory;
 import org.apache.felix.ipojo.ComponentInstance;
@@ -41,14 +38,8 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 	 * {@link ComponentInstance#VALID valid} state, <code>false</code>
 	 * otherwise.
 	 */
-	private boolean valid = false;
+	private volatile boolean valid = false;
 
-	/**
-	 * {@link ReadWriteLock}, write {@link Lock lock} while stopping and
-	 * starting, read {@link Lock lock} while exporting a service/
-	 */
-	private ReadWriteLock rwlock = new ReentrantReadWriteLock();
-	
 	/**
 	 * Constructor, the {@link BundleContext} is injected by iPOJO.
 	 * @param pContext
@@ -61,18 +52,12 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 	 * This callback is call while the instance is starting.
 	 * It starts the {@link ServiceTracker} which track the service to be exported.
 	 */
-	private void start(){
-		rwlock.writeLock().lock();
-		try{
-			//Start the tracker if the component has been stopped
-			//TODO close all ExportRegistration thanks to tracker.getObjects() ????
-			if (tracker != null) {
-				tracker.open(); //start the tracker
-			}
-		
-			valid=true; //we are now valid !
-		}finally{
-			rwlock.writeLock().unlock();
+	@SuppressWarnings("unused")
+	private synchronized void start(){
+		// Start the tracker
+		valid = true; // we are now valid !
+		if (tracker != null) {
+			tracker.open(); // start the tracker
 		}
 	}
 
@@ -80,16 +65,12 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 	 * This callback is called while the instance is stopping.
 	 * It close all {@link ExportRegistration} and the {@link ServiceTracker} which track the service to be exported.
 	 */
-	private void stop(){
-		rwlock.writeLock().lock();
-		try{
-			valid = false;
+	@SuppressWarnings("unused")
+	private synchronized void stop(){
+		valid = false;
 
-			if (tracker != null) {
-				tracker.close(); // stop the tracker
-			}
-		}finally{
-			rwlock.writeLock().unlock();
+		if (tracker != null) {
+			tracker.close(); // stop the tracker
 		}
 	}
 
@@ -99,16 +80,20 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 	 * @throws InvalidSyntaxException if the <code>export.filter</code> property is not a valid ldap expression.
 	 */
 	@SuppressWarnings("unused")
-	private void setExportFilter(String filter) {
-		//XXX is this method called while the instance is in a valid state ?
-		stop();
+	private synchronized void setExportFilter(String filter) {
 		try {
+			if (valid) {
+				tracker.close();
+			}
+
 			Filter filterobj = context.createFilter(filter);
 			tracker = new ServiceTracker(context, filterobj, this);
-			start();
+
+			if (valid) {
+				tracker.open();
+			}
 		} catch (InvalidSyntaxException e) {
-			logger.log(LOG_ERROR,
-					"Cannot start the export supervisor component.", e);
+			logger.log(LOG_ERROR, "Cannot change the export.filter.", e);
 		}
 	}
 	
@@ -124,29 +109,19 @@ public class ExportSupervisor implements ServiceTrackerCustomizer{
 	 */
 	public Object addingService(ServiceReference reference) {
 		ExportRegistration registration = null;
-		rwlock.readLock().lock();
 		try {
 			if (valid){
-				registration = exporter.exportService(
-						reference, null);
-
-				if (registration.getException() == null) { // cannot export
-					logger.log(
-							LOG_WARNING,
-							"Cannot export the service of id: "
-									+ String.valueOf(reference
-											.getProperty(SERVICE_ID)),
+				registration = exporter.exportService(reference, null);
+				if (registration.getException() != null) { // exception while endpoint creation, WARNING
+					logger.log(LOG_WARNING,
+							"An exception occured while creating and endpoint for the service of id: "+ valueOf(reference.getProperty(SERVICE_ID)),
 							registration.getException());
-					registration.close();
-				}
-				// XXX track even if the registration has thrown an exception ?
+				}		
 			}
 			return registration;
 		} catch(Exception e){ //defensive catch, e.g registration == null
-			logger.log(LOG_ERROR,"Cannot export the service of id: "+String.valueOf(reference.getProperty(SERVICE_ID)+", the ExporterService failed"),e);
+			logger.log(LOG_ERROR,"Cannot export the service of id: "+valueOf(reference.getProperty(SERVICE_ID)+", the ExporterService failed"),e);
 			return null;
-		} finally {
-			rwlock.readLock().unlock();
 		}
 	}
 

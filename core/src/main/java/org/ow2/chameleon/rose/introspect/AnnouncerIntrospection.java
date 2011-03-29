@@ -8,14 +8,22 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 /**
  * This service provides minimal introspection about the
  * {@link EndpointDescription} created by the local gateway which are published
- * through the component providing this service.
+ * through the <code>announcer</code> providing this service.
  * 
  * @author barjo
  */
 public interface AnnouncerIntrospection {
 
+	/**
+	 * @return The collection of All {@link ExportReference} tracked by the
+	 *         <code>announcer</code> providing this service.
+	 */
 	Collection<ExportReference> getAllExportReference();
 
+	/**
+	 * @return The collection of All {@link EndpointDescription} published by
+	 *         the <code>announcer</code> providing this service.
+	 */
 	Collection<EndpointDescription> getAllEndpointDescription();
-	
+
 }

@@ -67,7 +67,7 @@ public class ExportSupervisorTest {
     
     @Mock private ExporterService exporter; //Mock ExporterService
     @Mock private ExportRegistration expreg; //Mock export registration
-    @Mock private ExportReference expref;
+    @Mock private ExportReference expref; //Mock ExportReference
 
     @Before
     public void setUp() {

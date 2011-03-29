@@ -30,8 +30,8 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
  * @author barjo
  */
 public abstract class AbstractEndpointCreator implements ExporterService {
-	protected final Map<ServiceReference, MyExportReference> references;
-	protected final ConcurrentMapOfSet<MyExportReference, MyExportRegistration> registrations;
+	private final Map<ServiceReference, MyExportReference> references;
+	private final ConcurrentMapOfSet<MyExportReference, MyExportRegistration> registrations;
 	private volatile boolean isValid = false;
 	
 	private final BundleContext context;

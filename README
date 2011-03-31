@@ -5,3 +5,14 @@ This folder contains the code source of the OW2 Chameleon project.
  Source hierarchy: 
 
   -core: This project contains the ROSE API.  
+
+Realsead Version semantic: 
+
+ A.B.C 
+
+A changed if and only if the core API has been modified, i.e. signature of exported class/interfaces has been modified. (no more retro compatibility).
+B changed when new feature are added to the core, i.e. new class/interface in the exported package.
+C changed if and only if the internal behavior of the component/class has been modified (e.g. bug fixed).
+
+
+

@@ -1,6 +1,6 @@
 
 <ipojo>
-	<component name="rose.export-supervisor"
+	<component name="rose.export.supervisor"
 			classname="org.ow2.chameleon.rose.supervisor.ExportSupervisor">
 		<provides specifications="org.ow2.chameleon.rose.introspect.ExportSupervisorIntrospection"/>
 

@@ -48,7 +48,7 @@ import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
 @RunWith(JUnit4TestRunner.class)
 public class ExportSupervisorTest {
-    private static final String EXPORT_SUPERVISOR_FACTORY = "rose.export-supervisor";
+    private static final String EXPORT_SUPERVISOR_FACTORY = "rose.export.supervisor";
 
     /*
      * Number of mock object by test.

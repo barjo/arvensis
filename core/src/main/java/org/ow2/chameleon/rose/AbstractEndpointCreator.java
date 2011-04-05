@@ -1,12 +1,12 @@
 package org.ow2.chameleon.rose;
 
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.util.RoseTools.computeEndpointExtraProperties;
+import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -111,6 +111,13 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 */
 	protected abstract EventAdmin getEventAdmin();
 	
+	/**
+	 * @return The {@link BundleContext}.
+	 */
+	protected BundleContext getBundleContext(){
+		return context;
+	}
+	
 	/*---------------------------------*
 	 *  ExporterService implementation *
 	 *---------------------------------*/
@@ -121,7 +128,6 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 * @param extraProperties
 	 * @return
 	 */
-	
 	public final ExportRegistration exportService(ServiceReference sref,Map<String,Object> extraProperties) {
 		final ExportRegistration xreg;
 		
@@ -132,13 +138,13 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 			}
 			
 			if (references.containsKey(sref)) {
-				xreg = new MyExportRegistration(references.get(sref), null);
+				xreg = new MyExportRegistration(references.get(sref));
 			} else {
 				EndpointDescription enddesc = createEndpoint(sref,
-						extraProperties);
+						computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix()));
 				MyExportReference xref = new MyExportReference(sref, enddesc,
 						context);
-				xreg = new MyExportRegistration(xref, null);
+				xreg = new MyExportRegistration(xref);
 			}
 		}
 		
@@ -188,7 +194,7 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		public MyExportReference(ServiceReference pSref,EndpointDescription pEnddesc,BundleContext context) {
 			sref = pSref;
 			desc = pEnddesc;
-			regis = context.registerService(ExportReference.class.getName(),this, toDico(pEnddesc));
+			regis = context.registerService(ExportReference.class.getName(),this, endDescToDico(pEnddesc));
 			
 			//add the export reference to the references.
 			references.put(sref, this);
@@ -242,7 +248,7 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	private final class MyExportRegistration implements ExportRegistration {
 		private volatile MyExportReference xref;
 		
-		private MyExportRegistration(MyExportReference pXref,Throwable pException) {
+		private MyExportRegistration(MyExportReference pXref) {
 			xref=pXref;
 			//Add the registration to the registrations mapOfSet
 			registrations.add(xref, this);
@@ -279,12 +285,4 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		}
 	}
 	
-	/**
-	 * Return a Dictionary representation of the EndpointDescription.
-	 * @param enddesc
-	 * @return a Dictionary representation of the EndpointDescription.
-	 */
-	private static Dictionary<String, Object> toDico(EndpointDescription enddesc){
-		return new Hashtable<String, Object>(enddesc.getProperties());
-	}
 }

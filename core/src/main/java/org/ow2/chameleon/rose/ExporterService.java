@@ -15,7 +15,7 @@ import org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection;
  * @version 0.2.0
  **/
 public interface ExporterService extends EndpointCreatorIntrospection{
-	
+
 	/**
 	 * Create an endpoint for the service of reference {@code sref}.
 	 * 

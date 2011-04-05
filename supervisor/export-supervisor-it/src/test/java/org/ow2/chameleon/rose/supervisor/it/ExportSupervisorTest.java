@@ -170,6 +170,9 @@ public class ExportSupervisorTest {
     	//dispose the instance
     	instance.dispose();
     	
+    	//getConfigPrefix is called by the supervisor in order to set the config property
+    	verify(exporter).getConfigPrefix();
+    	
     	//Check that there is no unexpected behavior
     	verifyNoMoreInteractions(exporter);
     }
@@ -207,6 +210,9 @@ public class ExportSupervisorTest {
     	
     	//dispose the instance
     	instance.dispose();
+    	
+    	//getConfigPrefix has been called by the supervisor in order to set the config property
+    	verify(exporter).getConfigPrefix();
     	
     	//Check that there is no unexpected behavior
     	verifyNoMoreInteractions(exporter);
@@ -374,6 +380,9 @@ public class ExportSupervisorTest {
     	//Verify that the log service has been exported
     	verify(exporter).exportService(regLog.getReference(), null);
     	
+    	//getConfigPrefix has been called by the supervisor in order to set the config property
+    	verify(exporter).getConfigPrefix();
+    	
     	//Check that only the LogService has been exported
     	verifyNoMoreInteractions(exporter);
     	
@@ -386,6 +395,9 @@ public class ExportSupervisorTest {
     	
     	//Check that the device service has been exported
     	verify(exporter).exportService(regDev.getReference(), null);
+    	
+    	//getConfigPrefix has been called by the supervisor in order to set the config property
+    	verify(exporter).getConfigPrefix();
     	
     	//Check that only the Device has been exported
     	verifyNoMoreInteractions(exporter);

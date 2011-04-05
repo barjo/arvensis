@@ -7,6 +7,7 @@
 		<!-- Track and export the service which match this filter. -->
 		<properties propagation="true">
 			<property name="export.filter" method="setExportFilter" mandatory="true"/>
+			<property name="rose.endpoint-creator.configs" field="configs"/>
 		</properties>
 
 		<!-- LogService -->

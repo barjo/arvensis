@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
@@ -220,6 +221,10 @@ public class AbstractEndpointCreatorTest {
 		protected EventAdmin getEventAdmin() {
 			return eventadmin;
 		}		
+		
+		public List<String> getConfigPrefix() {
+			return null;
+		}
 		
 		public void start() {
 			super.start();

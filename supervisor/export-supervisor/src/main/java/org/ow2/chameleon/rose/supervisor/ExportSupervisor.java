@@ -7,6 +7,7 @@ import static org.osgi.service.log.LogService.LOG_WARNING;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 import org.apache.felix.ipojo.ComponentFactory;
 import org.apache.felix.ipojo.ComponentInstance;
@@ -37,6 +38,9 @@ public class ExportSupervisor implements ServiceTrackerCustomizer,ExportSupervis
 	private ExporterService exporter; //The exporter service
 	private ServiceTracker tracker; //use to track the service to be exported
 	private BundleContext context; //BundleContext, set in the constructor
+	
+	@SuppressWarnings("unused") //property field
+	private List<String> configs; //configuration of the exporter, 
 
 	/**
 	 * <code>true</code> if the instance is in the
@@ -59,6 +63,8 @@ public class ExportSupervisor implements ServiceTrackerCustomizer,ExportSupervis
 	 */
 	@SuppressWarnings("unused")
 	private synchronized void start(){
+		configs = exporter.getConfigPrefix(); //Set the config property. 
+		
 		// Start the tracker
 		valid = true; // we are now valid !
 		if (tracker != null) {

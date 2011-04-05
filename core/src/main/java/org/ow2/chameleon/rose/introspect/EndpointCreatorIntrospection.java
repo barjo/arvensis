@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose.introspect;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportReference;
@@ -10,8 +11,13 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
  * <code>endpoint-creator</core> component providing this service.
  * 
  * @author barjo
+ * @version 0.2.0
  */
 public interface EndpointCreatorIntrospection {
+	/**
+	 * The name of the property related to {@link EndpointCreatorIntrospection#getConfigPrefix()}.
+	 */
+	String ENDPOINT_CONFIG_PREFIX = "rose.endpoint-creator.configs";
 
 	/**
 	 * @return All {@link ExportReference} of services exported through this
@@ -26,5 +32,10 @@ public interface EndpointCreatorIntrospection {
 	 *         through this component.
 	 */
 	ExportReference getExportReference(ServiceReference sref);
+	
+	/**
+	 * @return The configuration prefix used or defined by the endpoint-creator. (i.e <code>json-rpc,org.jabsorb,jax-rs</code>.
+	 */
+	List<String> getConfigPrefix();
 
 }

@@ -9,6 +9,7 @@
 		<module>core</module>
 		<module>supervisor/export-supervisor</module>
 		<module>supervisor/export-supervisor-it</module>
+		<module>json-rpc/jabsorb-endpoint-creator</module>
 	</modules>
 
 	<profiles>
@@ -16,6 +17,12 @@
 			<id>core</id>
 			<modules>
 				<module>core</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>json-rpc</id>
+			<modules>
+				<module>json-rpc/jabsorb-endpoint-creator</module>
 			</modules>
 		</profile>
 		<profile>

@@ -9,9 +9,9 @@
 		<version>0.2.2</version> </parent> -->
 
 	<!-- Description of the project -->
-	<groupId>org.ow2.chameleon.rose.export.jsonrpc</groupId>
+	<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
 	<artifactId>jabsorb-endpoint-creator</artifactId>
-	<name>OW2::Chameleon::ROSE::Export::JSON-RPC</name>
+	<name>OW2::Chameleon::ROSE::JSON-RPC::EndpointCreator</name>
 	<version>0.1.4-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<description>OW2 Chameleon ROSE JSON-RPC Endpoint-Creator bundle, contains the ROSE endpoint-creator component based on the jabsorb.org library.</description>

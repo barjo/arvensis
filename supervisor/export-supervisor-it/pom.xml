@@ -25,19 +25,15 @@
 		<!-- Tested version-->
 		<export-supervisor.version>0.1.0-SNAPSHOT</export-supervisor.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
-		
 
 		<!-- Plugins version-->
 		<compiler.plugin.version>2.1</compiler.plugin.version>
-		
-		
-		
 		
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	
-		<!--Project Test Repository -->
+	<!--Project Test Repository -->
 	<repositories>
 		<repository>
 			<id>apache.snapshots</id>

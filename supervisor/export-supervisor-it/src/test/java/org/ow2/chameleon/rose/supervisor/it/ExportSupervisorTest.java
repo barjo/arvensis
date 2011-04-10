@@ -81,6 +81,7 @@ public class ExportSupervisorTest {
     @After
     public void tearDown() {
         osgi.dispose();
+        ipojo.dispose();
     }
 
     @Configuration

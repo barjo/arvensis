@@ -2,7 +2,6 @@ package org.ow2.chameleon.rose.jsonrpc;
 
 import static java.util.Arrays.asList;
 import static org.osgi.service.log.LogService.LOG_ERROR;
-import static org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection.ENDPOINT_CONFIG_PREFIX;
 
 import java.util.Dictionary;
 import java.util.HashSet;
@@ -13,10 +12,11 @@ import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.apache.felix.ipojo.annotations.StaticServiceProperty;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.jabsorb.JSONRPCBridge;
 import org.jabsorb.JSONRPCServlet;
 import org.osgi.framework.BundleContext;
@@ -29,10 +29,9 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.AbstractEndpointCreator;
 import org.ow2.chameleon.rose.ExporterService;
 
-@Component(name="rose.jsonrpc.endpointcreator.factory")
-@Instantiate(name="rose.jsonrpc.endpointcreator-jabsorb")
+@Component(name="RoSe.endpoint_creator.jsonrpc")
 @Provides(specifications=ExporterService.class)
-@StaticServiceProperty(mandatory=true,name=ENDPOINT_CONFIG_PREFIX,type="String[]",value="{json-rpc,jsonrpc,org.jabsorb}")
+@Instantiate(name="RoSe.endpoint_creator.jsonrpc-default")
 public class EndpointCreator extends AbstractEndpointCreator implements ExporterService {
 	
 	/**
@@ -43,7 +42,8 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
 	/**
 	 * Configuration supported by this component
 	 */
-	private final static List<String> configs = asList("json-rpc","jsonrpc","org.jabsorb");
+	@ServiceProperty(name=ENDPOINT_CONFIG_PREFIX,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
+	private String[] configs;
 	
     /**
      * Name of the Property needed by JSONRPCServlet, the gzip threshold.
@@ -92,7 +92,12 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
 	 *  Component LifeCycle     *
 	 *--------------------------*/
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.AbstractEndpointCreator#start()
+	 */
 	@Override
+	@Validate
 	protected void start() {
 		super.start();
 
@@ -113,6 +118,11 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
         jsonbridge = JSONRPCBridge.getGlobalBridge();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.AbstractEndpointCreator#stop()
+	 */
+	@Invalidate
 	@Override
 	protected void stop() {
 		super.stop();
@@ -211,7 +221,7 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
 	 * @see org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection#getConfigPrefix()
 	 */
 	public List<String> getConfigPrefix() {
-		return configs;
+		return asList(configs);
 	}
 }
 

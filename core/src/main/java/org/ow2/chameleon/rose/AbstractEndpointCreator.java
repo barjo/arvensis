@@ -62,6 +62,8 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	protected abstract void destroyEndpoint(EndpointDescription endesc);
 	
 	/**
+	 * Stop the endpoint-creator, iPOJO Invalidate instance callback.
+	 * Must be override !
 	 * Close all endpoints.
 	 */
 	 protected void stop(){
@@ -80,6 +82,10 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		}
 	 }
 	 
+	 /**
+	  * Start the endpoint-creator component, iPOJO Validate instance callback.
+	  * Must be override !
+	  */
 	 protected void start(){
 		 synchronized (references) {
 			isValid = true;

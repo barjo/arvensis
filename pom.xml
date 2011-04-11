@@ -7,31 +7,11 @@
 	<packaging>pom</packaging>	
 	<modules>
 		<module>core</module>
+		<module>testing</module>
 		<module>supervisor/export-supervisor</module>
 		<module>supervisor/export-supervisor-it</module>
 		<module>json-rpc/jabsorb-endpoint-creator</module>
+		<module>json-rpc/jabsorb-endpoint-creator-it</module>
 	</modules>
-
-	<profiles>
-		<profile>
-			<id>core</id>
-			<modules>
-				<module>core</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>json-rpc</id>
-			<modules>
-				<module>json-rpc/jabsorb-endpoint-creator</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>supervisor</id>
-			<modules>
-				<module>supervisor/export-supervisor</module>
-				<module>supervisor/export-supervisor-it</module>
-			</modules>
-		</profile>
-	</profiles>
-
 </project>
+

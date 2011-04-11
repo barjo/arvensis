@@ -12,7 +12,7 @@ import static org.ops4j.pax.exam.CoreOptions.provision;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection.ENDPOINT_CONFIG_PREFIX;
-import static org.ow2.chameleon.rose.jsonrpc.ITTools.waitForIt;
+import static org.ow2.chameleon.rose.jsonrpc.RoSeHelper.waitForIt;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
@@ -38,6 +37,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.device.Device;
 import org.osgi.service.log.LogService;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
@@ -66,6 +66,8 @@ public class EndpointCreatorTest {
     
     private IPOJOHelper ipojo;
     
+    private RoSeHelper rose;
+    
     @Mock private LogService logService; //Mock LogService
     @Mock private Device device; //Mock Device
 
@@ -73,13 +75,14 @@ public class EndpointCreatorTest {
     public void setUp() {
         osgi = new OSGiHelper(context);
         ipojo = new IPOJOHelper(context);
+        rose = new RoSeHelper(context);
         
         //initialise the annoted mock object
         initMocks(this);
         
         //init the url
         try {
-			JSONRPC_URI = new URI("http://localhost:" + HTTP_PORT + "/JSON-RPC");
+			JSONRPC_URI = new URI("http://localhost:" + HTTP_PORT + "/JSONRPC");
 		} catch (URISyntaxException e) {
 		}
     }
@@ -149,7 +152,7 @@ public class EndpointCreatorTest {
         ExporterService exporter = getExporterService(); //get the service
         
         //Register a mock LogService
-        ServiceRegistration regLog = registerService(logService);
+        ServiceRegistration regLog = rose.registerService(logService,LogService.class);
         
         //export the logService 
         ExportRegistration xreg = exporter.exportService(regLog.getReference(), null);
@@ -166,6 +169,12 @@ public class EndpointCreatorTest {
         //check that the ServiceReference is equal to the logService one
         assertEquals(regLog.getReference(), xreg.getExportReference().getExportedService());
         
+        //Check that the ExportReference has been published
+        ExportReference xref = rose.getServiceObject(ExportReference.class);
+        
+        //Check that the published ExportReference is equal to the ExportRegistration one
+        assertEquals(xreg.getExportReference(), xref);
+        
         //get a proxy
         LogService proxy = getProxy(xreg,LogService.class);
         
@@ -177,27 +186,48 @@ public class EndpointCreatorTest {
             proxy.log(LOG_WARNING, "YEAHH!!"+i);
             verify(logService).log(LOG_WARNING, "YEAHH!!"+i);
         }
+    }
+    
+    /**
+     * Test the {@link ExportRegistration#close()}. (destroy the endpoint)
+     */
+    @Test
+    public void testCloseExportRegistration() {
+        //wait for the service to be available.
+        waitForIt(100);
         
-        //check that there is no side effects calling the service
-        Mockito.verifyNoMoreInteractions(logService);
+        ExporterService exporter = getExporterService(); //get the service
+        
+        //Register a mock LogService
+        ServiceRegistration regLog = rose.registerService(logService,LogService.class);
+        
+        //export the logService 
+        ExportRegistration xreg = exporter.exportService(regLog.getReference(), null);
+        
+        //Close the endpoint
+        xreg.close();
+        
+        //Check that the ExportRegistration has been successfully closed
+        assertNull(xreg.getExportReference());
+        assertNull(xreg.getException());
+        
+        //Check that the ExportReference has been succesfully destroyed
+        assertNull(exporter.getExportReference(regLog.getReference()));
     }
     
     @SuppressWarnings("unchecked")
 	private <T> T getProxy(ExportRegistration xreg,Class<T> itface) {
     	T proxy = null;
-            Session session = new HTTPSession(JSONRPC_URI);
-            Client client = new Client(session);
-            proxy = (T) client.openProxy(xreg.getExportReference().getExportedEndpoint().getId(), itface);
+        Session session = new HTTPSession(JSONRPC_URI);
+        Client client = new Client(session);
+        proxy = (T) client.openProxy(xreg.getExportReference().getExportedEndpoint().getId(), itface);
     	
 		return proxy;
 	}
 
 	private ExporterService getExporterService(){
-    	return (ExporterService) osgi.getServiceObject(ExporterService.class.getName(), FILTER);
+    	return rose.getServiceObject(ExporterService.class, FILTER);
     }
     
-    private <T> ServiceRegistration registerService(T service){
-    	return context.registerService(((T) service).getClass().getName(), service, null);
-    }
 }
 

@@ -26,10 +26,7 @@
 		<!-- Test dependencies version -->
 		<mockito.version>1.8.5</mockito.version>
 		<junit.version>4.8.2</junit.version>
-			
 
-		<!-- Interface Version -->
-		<rose.core.version>0.2.0</rose.core.version>
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -83,9 +80,9 @@
 							${project.artifactId}
 						</Bundle-SymbolicName>
 						<Export-Package>
-							org.ow2.chameleon.rose;version=${rose.core.version},
-							org.ow2.chameleon.rose.util;version=${rose.core.version},
-							org.ow2.chameleon.rose.introspect;version=${rose.core.version},
+							org.ow2.chameleon.rose;version=${project.version},
+							org.ow2.chameleon.rose.util;version=${project.version},
+							org.ow2.chameleon.rose.introspect;version=${project.version},
 							org.osgi.service.remoteserviceadmin
 						</Export-Package>
 						<Private-Package>

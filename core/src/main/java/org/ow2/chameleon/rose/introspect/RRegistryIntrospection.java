@@ -12,7 +12,7 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
  * 
  * @author barjo
  */
-public interface AnnouncerIntrospection {
+public interface RRegistryIntrospection {
 
 	/**
 	 * @return The collection of All {@link ExportReference} tracked by the

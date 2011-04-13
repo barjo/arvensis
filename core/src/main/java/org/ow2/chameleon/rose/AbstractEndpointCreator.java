@@ -34,7 +34,7 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	private final ConcurrentMapOfSet<MyExportReference, MyExportRegistration> registrations;
 	private volatile boolean isValid = false;
 	
-	private final BundleContext context;
+	protected final BundleContext context;
 	
 	public  AbstractEndpointCreator(BundleContext pContext) {
 		context=pContext;

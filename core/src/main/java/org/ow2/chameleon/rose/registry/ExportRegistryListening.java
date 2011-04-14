@@ -4,17 +4,11 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.ow2.chameleon.rose.internal.ExportRegistryComponent;
 
-/**
- * This service allows to add {@link EndpointListener} within an ImportRegistry.
- * 
- * @author barjo
- */
-public interface ImportRegistryListening {
-
+public interface ExportRegistryListening {
 	/**
-	 * Macro for {@link 
-	 * ImportRegistryListening#addEndpointListener(EndpointListener, String)
+	 * Macro for {@link ExportRegistryListening#addEndpointListener(EndpointListener, String)
 	 * addEndpointListener(listener, null)}
 	 * 
 	 * @param listener The {@link EndpointListener} object to be add.
@@ -22,33 +16,32 @@ public interface ImportRegistryListening {
 	void addEndpointListener(EndpointListener listener);
 
 	/**
-	 * Adds the specifier {@link EndpointListener} object to the RRegistry list
+	 * Adds the specifier {@link EndpointListener} object to the {@link ExportRegistryComponent} list
 	 * of listeners. See {@link Filter} for a description of the filter syntax.
 	 * {@link EndpointListener} objects are notified when an endpoint has a
 	 * lifecyle state change.
 	 * 
-	 * If the RRegistry's list of listeners already contains
+	 * If the {@link ExportRegistryComponent}'s list of listeners already contains
 	 * <code>listener</code>, then this methods replaces that listner's filter
 	 * with the new one.
 	 * 
 	 * 
 	 * @param listener The {@link EndpointListener} object to be add.
-	 * @param filter A valid {@link Filter}, If <code>null</code> all
-	 *        {@link EndpointDescription} are considered to match the
-	 *        filter.
+	 * @param filter  A valid {@link Filter}, If <code>null</code> all
+	 *            {@link EndpointDescription} are considered to match the
+	 *            filter.
 	 * @throws InvalidSyntaxException If the <code>filter</code> parameter is not a valid filter.
 	 */
 	void addEndpointListener(EndpointListener listener, String filter) throws InvalidSyntaxException;
 
 	/**
-	 * Removes the <code>listener</code> object from the RRegistry's list of
+	 * Removes the <code>listener</code> object from the {@link ExportRegistryComponent}'s list of
 	 * {@link EndpointListener}.
 	 * 
-	 * If <code>listener</code> is not contained in this RRegistry's list of
+	 * If <code>listener</code> is not contained in this {@link ExportRegistryComponent}'s list of
 	 * {@link EndpointListener}, this method does nothing.
 	 * 
-	 * @param listener  The {@link EndpointListener} to be removed.
+	 * @param listener The {@link EndpointListener} to be removed.
 	 */
 	void removeEndpointListener(EndpointListener listener);
-
 }

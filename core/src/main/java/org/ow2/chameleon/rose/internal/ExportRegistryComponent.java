@@ -1,5 +1,8 @@
 package org.ow2.chameleon.rose.internal;
 
+import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.osgi.framework.ServiceEvent.REGISTERED;
+import static org.osgi.framework.ServiceEvent.UNREGISTERING;
 import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
 import java.util.HashMap;
@@ -11,21 +14,32 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
+import org.ow2.chameleon.rose.registry.ExportRegistryListening;
 import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
+import org.ow2.chameleon.rose.registry.ExportRegistryService;
 
 @Component(name="rose.export.registry",immediate=true)
 @Instantiate(name="rose.export.registry-instance")
-@Provides(specifications=ExportRegistryProvisoning.class)
-public class ExportRegistryComponent implements ExportRegistryProvisoning{
+@Provides(specifications={ExportRegistryProvisoning.class,ExportRegistryListening.class})
+public class ExportRegistryComponent implements ExportRegistryService{
 	
+	private static final String FILTER = "(" + OBJECTCLASS + "=" + ExportReference.class.getName() + ")";
 	private final Map<Object, ServiceRegistration> registrations;
+	private final Map<EndpointListener,ListenerWrapper> listeners;
 	private final BundleContext context;
 	
 	public ExportRegistryComponent(BundleContext pContext) {
 		context=pContext;
 		registrations = new HashMap<Object, ServiceRegistration>();
+		listeners = new HashMap<EndpointListener, ListenerWrapper>();
 	}
 	
 	@Validate
@@ -76,6 +90,110 @@ public class ExportRegistryComponent implements ExportRegistryProvisoning{
 		synchronized (registrations) {
 			return registrations.containsKey(key);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.registry.ExportRegistryListening#addEndpointListener(org.osgi.service.remoteserviceadmin.EndpointListener)
+	 */
+	public void addEndpointListener(EndpointListener listener) {
+		
+		synchronized (listeners) {
+			
+			ListenerWrapper slist;
+			
+			//update if was already present
+			if (listeners.containsKey(listener)){
+				slist=listeners.remove(listener);
+			}else { //create otherwise
+				slist = new ListenerWrapper(listener, null);
+			}
+			
+			try {
+				context.addServiceListener(slist, FILTER);
+				
+				//add the listeners to the listeners map.
+				listeners.put(listener, slist);
+				
+			} catch (InvalidSyntaxException e) {
+				//impossible right !
+				assert false;
+			}
+		}
+		
+	}
+
+	public void addEndpointListener(EndpointListener listener, String filter)
+			throws InvalidSyntaxException {
+
+		FrameworkUtil.createFilter(filter);
+		
+		//XXX The filter must not contains the ObjectClass filter.
+		
+		synchronized (listeners) {
+
+			ListenerWrapper slist;
+
+			// update if was already present
+			if (listeners.containsKey(listener)) {
+				slist = listeners.remove(listener);
+				slist.setFilter(filter); //update filter
+			} else { // create otherwise
+				slist = new ListenerWrapper(listener, filter);
+			}
+
+			try {
+				String newfilter = "(&" +FILTER + filter +")";
+				context.addServiceListener(slist, newfilter);
+
+				// add the listeners to the listeners map.
+				listeners.put(listener, slist);
+
+			} catch (InvalidSyntaxException e) {
+				// impossible right !
+				assert false;
+			}
+		}
+		
+	}
+
+	public void removeEndpointListener(EndpointListener listener) {
+		synchronized (listeners) {
+			if (listeners.containsKey(listener)){
+				ServiceListener slist = listeners.get(listener);
+				context.removeServiceListener(slist);
+			}
+		}
+	}
+	
+	public final class ListenerWrapper implements ServiceListener {
+		private final EndpointListener listener;
+		private volatile String filter;
+		
+		private ListenerWrapper(EndpointListener pListener,String pFilter) {
+			listener = pListener; 
+			setFilter(pFilter);
+		}
+		
+		private void setFilter(String pFilter){
+			filter=pFilter;
+		}
+
+		public void serviceChanged(ServiceEvent event) {
+			switch (event.getType()) {
+			case REGISTERED:
+				listener.endpointAdded((EndpointDescription) event.getSource(), filter);
+				break;
+
+			case UNREGISTERING:
+				listener.endpointRemoved((EndpointDescription) event.getSource(), filter);
+				break;
+			default:
+				//TODO log Warning
+				break;
+			}
+		}
+		
 	}
 
 }

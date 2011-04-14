@@ -26,13 +26,14 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.ow2.chameleon.rose.AbstractEndpointCreator;
+import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
 
 @Component(name="RoSe.endpoint_creator.jsonrpc")
 @Provides(specifications=ExporterService.class)
 @Instantiate(name="RoSe.endpoint_creator.jsonrpc-default")
-public class EndpointCreator extends AbstractEndpointCreator implements ExporterService {
+public class EndpointCreator extends AbstractExporterComponent implements ExporterService {
 	
 	/**
 	 * Property containing the URL of the JSONRPC orb.
@@ -84,8 +85,13 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
 	@Requires(optional=false)
 	private HttpService httpservice;
 	
+	@Requires(optional=false)
+	private ExportRegistryProvisoning registry;
+	
+	private final BundleContext context;
+	
 	public EndpointCreator(BundleContext pContext) {
-		super(pContext);
+		context = pContext;
 	}
 	
 	/*--------------------------*
@@ -155,7 +161,7 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
 		
         String id = desc.getId();
         
-        Object service = getBundleContext().getService(sref);
+        Object service = context.getService(sref);
         
         //Check if the name is valid
         if (endpointIds.contains(id)){
@@ -214,6 +220,15 @@ public class EndpointCreator extends AbstractEndpointCreator implements Exporter
 	 */
 	protected EventAdmin getEventAdmin() {
 		return eventadmin;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getExportRegistry()
+	 */
+	@Override
+	protected ExportRegistryProvisoning getExportRegistry() {
+		return registry;
 	}
 	
 	/*

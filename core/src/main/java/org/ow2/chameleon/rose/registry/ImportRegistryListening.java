@@ -10,11 +10,11 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
  * 
  * @author barjo
  */
-public interface RRegistryListeningService {
+public interface ImportRegistryListening {
 
 	/**
 	 * Macro for {@link 
-	 * RRegistryListeningService#addEndpointListener(EndpointListener, String)
+	 * ImportRegistryListening#addEndpointListener(EndpointListener, String)
 	 * addEndpointListener(listener, null)}
 	 * 
 	 * @param listener The {@link EndpointListener} object to be add.

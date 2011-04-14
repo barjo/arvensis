@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
-import org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection;
+import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 
 /**
  * The {@link ExporterService} service are provided by the endpoint-creator component.
@@ -14,7 +14,7 @@ import org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection;
  * @author barjo
  * @version 0.2.0
  **/
-public interface ExporterService extends EndpointCreatorIntrospection{
+public interface ExporterService extends ExporterIntrospection{
 
 	/**
 	 * Create an endpoint for the service of reference {@code sref}.

@@ -13,17 +13,18 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
  * @author barjo
  * @version 0.2.0
  */
-public interface EndpointCreatorIntrospection {
+public interface ExporterIntrospection {
 	/**
-	 * The name of the property related to {@link EndpointCreatorIntrospection#getConfigPrefix()}.
+	 * The name of the property related to {@link ExporterIntrospection#getConfigPrefix()}.
 	 */
 	String ENDPOINT_CONFIG_PREFIX = "rose.endpoint-creator.configs";
 
 	/**
-	 * @return All {@link ExportReference} of services exported through this
-	 *         component instance.
-	 */
-	Collection<ExportReference> getAllExportReference();
+     * @return All {@link ExportReference} of services exported through this
+     *         component instance.
+     */
+    Collection<ExportReference> getAllExportReference();
+	
 
 	/**
 	 * @param sref The {@link ServiceReference} of an exported service.

@@ -4,14 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -19,31 +16,27 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
-import org.ow2.chameleon.rose.AbstractEndpointCreator;
+import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
 
 /**
- *  Test Suite of the {@link AbstractEndpointCreator} class.
+ *  Test Suite of the {@link AbstractExporterComponent} class.
  * @author barjo
  */
-public class AbstractEndpointCreatorTest {
+public class AbstractExportRegistryTest {
 	private static final int EXPORT_MAX = 10; //Number max of export to be tested within a single test.
 	
 	//Mock object
 	@Mock LogService logservice;
 	@Mock EventAdmin eventadmin;
-	@Mock ServiceRegistration sreg;
-	@Mock BundleContext context;
+	@Mock ExportRegistryProvisoning registry;
 	
 	//Tested Object
 	TestedClass creator;
@@ -51,7 +44,7 @@ public class AbstractEndpointCreatorTest {
 	@Before
 	public void setUp(){
 		MockitoAnnotations.initMocks(this); //initialize the object with mocks annotations
-		creator = new TestedClass(context); 
+		creator = new TestedClass(); 
 	}
 	
 	@After
@@ -90,19 +83,22 @@ public class AbstractEndpointCreatorTest {
 		creator.start(); //validate the simulated instance
 		ExportRegistration reg = creator.exportService(sref, null);
 		
+		//Configure the registry behavior
+		when(registry.remove(sref)).thenReturn(reg.getExportReference());
+		
 		assertNotNull(reg.getExportReference()); //Export is a success
 		assertNull(reg.getException()); //No Exception
 		
 		assertEquals(reg.getExportReference(), creator.getExportReference(sref)); //no strange side effect on the reference
 		
-		//Check that the ExportReference is published
-		verify(context).registerService(ExportReference.class.getName(), reg.getExportReference(), new Hashtable<String, Object>());
+		//Check that the ExportReference is published in the ExportRegistry
+		verify(registry).put(sref, reg.getExportReference());
 		
 		reg.close(); //Unexport !
 		assertNull(reg.getExportReference()); //Now that is has been closed
 		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
 		
-		verify(sreg).unregister(); //Verify the unregister method has been called once.
+		verify(registry).remove(sref); //Verify the unregister method has been called once.
 		
 		creator.stop(); //Invalidate the instance
 	}
@@ -120,16 +116,19 @@ public class AbstractEndpointCreatorTest {
 			ServiceReference sref = mock(ServiceReference.class); //Create a Mock ServiceReference to be exported
 			
 			ExportRegistration reg = creator.exportService(sref, null); //export
+			
+			//Configure the registry behavior
+			when(registry.remove(sref)).thenReturn(reg.getExportReference());
 		
 			assertNotNull(reg.getExportReference()); //Export is a success
 			assertNull(reg.getException()); //No Exception
 		
 			assertEquals(reg.getExportReference(), creator.getExportReference(sref)); //no strange side effect on the reference
-			assertEquals(i+1, creator.getAllExportReference().size()); //one ExportReference per ServiceReference
+			
+			//assertEquals(i+1, creator.getAllExportReference().size()); //one ExportReference per ServiceReference
 			regs.add(reg);
 		}
 		
-		int count = EXPORT_MAX;
 		for (ExportRegistration reg : regs) {
 			
 			ServiceReference sref = reg.getExportReference().getExportedService(); //get the ServiceReference
@@ -137,8 +136,8 @@ public class AbstractEndpointCreatorTest {
 			assertNull(reg.getExportReference()); //Now that is has been closed
 			assertNull(creator.getExportReference(sref)); //No more exported
 			
-			assertEquals(--count, creator.getAllExportReference().size()); //verify that one and only one has been removed
-			verify(sreg,times(EXPORT_MAX - count)).unregister(); //Verify the unregister method has been called once.
+			//assertEquals(--count, creator.getAllExportReference().size()); //verify that one and only one has been removed
+			verify(registry).remove(sref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		}
 		
 		creator.stop(); //Invalidate the instance
@@ -157,12 +156,15 @@ public class AbstractEndpointCreatorTest {
 		creator.start(); //validate the simulated instance
 		for (int i=0;i<EXPORT_MAX;i++){
 			ExportRegistration reg = creator.exportService(sref, null); //export
+			
+			//Configure the registry behavior
+			when(registry.remove(sref)).thenReturn(reg.getExportReference());
 		
 			assertNotNull(reg.getExportReference()); //Export is a success
 			assertNull(reg.getException()); //No Exception
 		
 			assertEquals(reg.getExportReference(), creator.getExportReference(sref)); //no strange side effect on the reference
-			assertEquals(1, creator.getAllExportReference().size()); //one ExportReference per ServiceReference
+			//assertEquals(1, creator.getAllExportReference().size()); //one ExportReference per ServiceReference
 			regs.add(reg);
 		}
 		
@@ -176,25 +178,19 @@ public class AbstractEndpointCreatorTest {
 			}
 		}
 		
-		assertEquals(0, creator.getAllExportReference().size()); //The ExportReference has been closed since there is no more exportRegistration linked to it.
-		verify(sreg).unregister(); //Verify the unregister method has been called once.
+		//assertEquals(0, creator.getAllExportReference().size()); //The ExportReference has been closed since there is no more exportRegistration linked to it.
+		verify(registry).remove(sref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		
 		creator.stop(); //Invalidate the instance
 	}
 	
 	
 	/**
-	 * Convenient implementation of {@link AbstractEndpointCreator} in order to test it.
+	 * Convenient implementation of {@link AbstractExporterComponent} in order to test it.
 	 * @author barjo
 	 */
-	public class TestedClass extends AbstractEndpointCreator {
+	public class TestedClass extends AbstractExporterComponent {
 		private Collection<EndpointDescription> descs = new HashSet<EndpointDescription>();
-		BundleContext context;
-		
-		public TestedClass(BundleContext pContext) {
-			super(pContext);
-			context = pContext;
-		}
 		
 		@Override
 		protected EndpointDescription createEndpoint(ServiceReference sref,
@@ -202,8 +198,6 @@ public class AbstractEndpointCreatorTest {
 			EndpointDescription desc = mock(EndpointDescription.class);
 			descs.add(desc);
 			
-			//Return a mock ServiceRegistration when the registerService method is called with an ExportReference
-			when(context.registerService(Mockito.eq(ExportReference.class.getName()), Mockito.any(ExportReference.class), Mockito.any(Dictionary.class))).thenReturn(sreg);
 			return desc;
 		}
 
@@ -222,6 +216,11 @@ public class AbstractEndpointCreatorTest {
 			return eventadmin;
 		}		
 		
+		@Override
+		protected ExportRegistryProvisoning getExportRegistry() {
+			return registry;
+		}
+		
 		public List<String> getConfigPrefix() {
 			return null;
 		}
@@ -233,5 +232,6 @@ public class AbstractEndpointCreatorTest {
 		public void stop() {
 			super.stop();
 		}
+
 	}
 }

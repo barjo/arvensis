@@ -1,7 +1,7 @@
 package org.ow2.chameleon.rose.jsonrpc;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.introspect.ExporterIntrospection.ENDPOINT_CONFIG_PREFIX;
 
 import java.net.URI;
 import java.net.URISyntaxException;

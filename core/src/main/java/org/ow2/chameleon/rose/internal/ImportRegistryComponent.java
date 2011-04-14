@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose.registry;
+package org.ow2.chameleon.rose.internal;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,15 +12,18 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.ow2.chameleon.rose.registry.ImportRegistryListening;
+import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
+import org.ow2.chameleon.rose.registry.ImportRegistryService;
 
 /**
- * Abstract rregistry-listening {@link ComponentFactory} which provides an
- * {@link RRegistryListeningService} service.
+ * ImportRegistry {@link ComponentFactory} which provides an
+ * {@link ImportRegistryListening} service and a {@link ImportRegistryProvisioning} service.
  * 
  * @author barjo
  */
-public abstract class AbstractRRegistryListeningComp implements
-		RRegistryListeningService {
+public abstract class ImportRegistryComponent implements
+		ImportRegistryService {
 
 	/**
 	 * The Set of registered {@link EndpointDescription}
@@ -34,7 +37,7 @@ public abstract class AbstractRRegistryListeningComp implements
 
 	protected final BundleContext context; // The BundleContext
 
-	public AbstractRRegistryListeningComp(BundleContext pContext) {
+	public ImportRegistryComponent(BundleContext pContext) {
 		context = pContext;
 	}
 
@@ -46,11 +49,10 @@ public abstract class AbstractRRegistryListeningComp implements
 	 * @param description
 	 * @return
 	 * @throw {@link IllegalArgumentException} if the
-	 *        {@link EndpointDescription} has already been added or 
+	 *        {@link EndpointDescription} has already been added.
 	 */
-	protected EndpointDescription put(Object key,
+	public void put(Object key,
 			EndpointDescription description) {
-		EndpointDescription returned;
 		
 		if (key == null || description == null) {
 			throw new NullPointerException("The description and the key must not be null");
@@ -62,7 +64,7 @@ public abstract class AbstractRRegistryListeningComp implements
 				throw new IllegalArgumentException("The key has already been associated with a descriptio, or vice-versa");
 			}
 
-			returned = descriptions.put(key, description);
+			descriptions.put(key, description);
 
 			// Notify all the matching listener
 			for (Entry<EndpointListener, String> entry : listeners.entrySet()) {
@@ -74,8 +76,6 @@ public abstract class AbstractRRegistryListeningComp implements
 				}
 			}
 		}
-
-		return returned;
 	}
 
 	/**
@@ -86,7 +86,7 @@ public abstract class AbstractRRegistryListeningComp implements
 	 * @return The previous value associated with the <code>key</code> or
 	 *         <code>null</code> if there is no mapping for the key.
 	 */
-	protected EndpointDescription remove(Object key) {
+	public EndpointDescription remove(Object key) {
 		EndpointDescription desc;
 
 		synchronized (descriptions) {
@@ -111,13 +111,9 @@ public abstract class AbstractRRegistryListeningComp implements
 
 		return desc;
 	}
-
-	/**
-	 * Clean the registry, i.e. removes all the {@link EndpointDescription} and
-	 * all the {@link EndpointListener}. The {@link EndpointListener} are
-	 * notified before being removed.
-	 */
-	protected void clean() {
+	
+	@SuppressWarnings("unused")
+	private void stop() {
 
 		synchronized (descriptions) {
 			Collection<EndpointDescription> descSet = descriptions.values();
@@ -140,17 +136,15 @@ public abstract class AbstractRRegistryListeningComp implements
 			}
 		}
 	}
+	
 
 	/*-------------------------------------*
-	 *  RRegistryListeningService methods  *
+	 *   ImportRegistryListening methods   *
 	 *-------------------------------------*/
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.ow2.chameleon.rose.registry.RRegistryListeningService#addEndpointListener
-	 * (org.osgi.service.remoteserviceadmin.EndpointListener)
+	 * @see org.ow2.chameleon.rose.registry.ImportRegistryListening#addEndpointListener(org.osgi.service.remoteserviceadmin.EndpointListener)
 	 */
 	public void addEndpointListener(EndpointListener listener) {
 		synchronized (descriptions) {
@@ -163,10 +157,7 @@ public abstract class AbstractRRegistryListeningComp implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.ow2.chameleon.rose.registry.RRegistryListeningService#addEndpointListener
-	 * (org.osgi.service.remoteserviceadmin.EndpointListener, java.lang.String)
+	 * @see org.ow2.chameleon.rose.registry.ImportRegistryListening#addEndpointListener(org.osgi.service.remoteserviceadmin.EndpointListener, java.lang.String)
 	 */
 	public void addEndpointListener(EndpointListener listener, String filter)
 			throws InvalidSyntaxException {
@@ -185,10 +176,7 @@ public abstract class AbstractRRegistryListeningComp implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.ow2.chameleon.rose.registry.RRegistryListeningService#
-	 * removeEndpointListener
-	 * (org.osgi.service.remoteserviceadmin.EndpointListener)
+	 * @see org.ow2.chameleon.rose.registry.ImportRegistryListening#removeEndpointListener(org.osgi.service.remoteserviceadmin.EndpointListener)
 	 */
 	public void removeEndpointListener(EndpointListener listener) {
 		synchronized (descriptions) {

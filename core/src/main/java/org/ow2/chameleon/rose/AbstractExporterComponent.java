@@ -2,25 +2,22 @@ package org.ow2.chameleon.rose;
 
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.util.RoseTools.computeEndpointExtraProperties;
-import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.felix.ipojo.ComponentFactory;
 import org.apache.felix.ipojo.ComponentInstance;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.internal.BadExportRegistration;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
 import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 
 /**
@@ -29,17 +26,13 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
  * @version 0.2.0
  * @author barjo
  */
-public abstract class AbstractEndpointCreator implements ExporterService {
-	private final Map<ServiceReference, MyExportReference> references;
-	private final ConcurrentMapOfSet<MyExportReference, MyExportRegistration> registrations;
+public abstract class AbstractExporterComponent implements ExporterService {
+	private final ConcurrentMapOfSet<ServiceReference, MyExportRegistration> registrations;
 	private volatile boolean isValid = false;
 	
-	protected final BundleContext context;
 	
-	public  AbstractEndpointCreator(BundleContext pContext) {
-		context=pContext;
-		references = new HashMap<ServiceReference, MyExportReference>();
-		registrations = new ConcurrentMapOfSet<MyExportReference, MyExportRegistration>();
+	public  AbstractExporterComponent() {
+		registrations = new ConcurrentMapOfSet<ServiceReference, MyExportRegistration>();
 	}
 	
 	/*--------------------------*
@@ -67,17 +60,17 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 * Close all endpoints.
 	 */
 	 protected void stop(){
-		registrations.clear();
 		
-		synchronized (references) {
-			Collection<MyExportReference> endrefs = references.values();
+		synchronized (registrations) {
+			Collection<ServiceReference> srefs = registrations.keySet();
 		
-			for (Iterator<MyExportReference> iterator = endrefs.iterator(); iterator.hasNext();) {
-				MyExportReference myref = iterator.next();
-				myref.close();
+			for (Iterator<ServiceReference> iterator = srefs.iterator(); iterator.hasNext();) {
+				ServiceReference ref = iterator.next();
+				ExportReference xref = getExportRegistry().remove(ref);
+				destroyEndpoint(xref.getExportedEndpoint()); //TODO check != null
+				iterator.remove();
 			}
 			
-			references.clear();
 			isValid = false;
 		}
 	 }
@@ -87,10 +80,10 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	  * Must be override !
 	  */
 	 protected void start(){
-		 synchronized (references) {
+		 synchronized (registrations) {
 			isValid = true;
 			
-			if (references.size() > 0 || registrations.size() > 0){
+			if (registrations.size() > 0){
 				getLogService().log(LOG_WARNING, "Internal structures have not been cleared while stopping the instance.");
 			}
 		 }
@@ -118,11 +111,9 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	protected abstract EventAdmin getEventAdmin();
 	
 	/**
-	 * @return The {@link BundleContext}.
+	 * @return The {@link ExportRegistryProvisoning} service.
 	 */
-	protected BundleContext getBundleContext(){
-		return context;
-	}
+	protected abstract ExportRegistryProvisoning getExportRegistry();
 	
 	/*---------------------------------*
 	 *  ExporterService implementation *
@@ -137,40 +128,52 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	public final ExportRegistration exportService(ServiceReference sref,Map<String,Object> extraProperties) {
 		final ExportRegistration xreg;
 		
-		synchronized (references) {
+		synchronized (registrations) {
 			
 			if (!isValid){
 				return new BadExportRegistration(new Throwable("This ExporterService is no more available. !"));
 			}
 			
-			if (references.containsKey(sref)) {
-				xreg = new MyExportRegistration(references.get(sref));
-			} else {
-				EndpointDescription enddesc = createEndpoint(sref,
-						computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix()));
-				MyExportReference xref = new MyExportReference(sref, enddesc,
-						context);
-				xreg = new MyExportRegistration(xref);
+			if (registrations.containsKey(sref)) { 
+				//Clone Registration
+				xreg = new MyExportRegistration(registrations.getElem(sref));
+			} else { 
+				//First registration, create the endpoint
+				EndpointDescription enddesc = createEndpoint(sref, computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix()));
+				
+				xreg = new MyExportRegistration(sref,enddesc);
 			}
 		}
 		
 		return xreg;
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ow2.chameleon.rose.ExporterService#getAllExportReference()
-	 */
-	public final Collection<ExportReference> getAllExportReference() {
-		return new HashSet<ExportReference>(registrations.keySet());
-	}
+
 	
 	/*
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.ExporterService#getExportReference(org.osgi.framework.ServiceReference)
 	 */
 	public ExportReference getExportReference(ServiceReference sref) {
-		return references.get(sref);
+		
+		if(!registrations.containsKey(sref)){
+			return null;
+		}
+		return registrations.getElem(sref).getExportReference();
+		
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.introspect.ExporterIntrospection#getAllExportReference()
+	 */
+	public Collection<ExportReference> getAllExportReference(){
+		Collection<ExportReference> xrefs = new HashSet<ExportReference>();
+		
+		for (ServiceReference sref : registrations.keySet()) {
+			xrefs.add(registrations.getElem(sref).getExportReference());
+		}
+		
+		return xrefs;
 	}
 	
 	
@@ -181,14 +184,11 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	/**
 	 * Implementation of an {@link ExportReference}.
 	 * 
-	 * When {@link MyExportReference#close()} is called, the endpoint is destroyed and unregistered. 
 	 * @author barjo
 	 */
 	private final class MyExportReference implements ExportReference {
 		private ServiceReference sref;
 		private EndpointDescription desc;
-		private ServiceRegistration regis;
-		private volatile boolean closed = false;
 		
 		/**
 		 * Register the {@code pEndesc} thanks to {@code context}.
@@ -197,13 +197,9 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		 * @param pEnddesc
 		 * @param context
 		 */
-		public MyExportReference(ServiceReference pSref,EndpointDescription pEnddesc,BundleContext context) {
+		public MyExportReference(ServiceReference pSref,EndpointDescription pEnddesc) {
 			sref = pSref;
 			desc = pEnddesc;
-			regis = context.registerService(ExportReference.class.getName(),this, endDescToDico(pEnddesc));
-			
-			//add the export reference to the references.
-			references.put(sref, this);
 		}
 
 		/*
@@ -221,29 +217,6 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		public EndpointDescription getExportedEndpoint() {
 				return desc;
 		}
-
-		/**
-		 * Unregister the {@link EndpointDescription} and destroy the endpoint,
-		 * by calling
-		 * {@link AbstractEndpointCreator#destroyEndpoint(EndpointDescription)}.
-		 */
-		public void close() {
-			synchronized (references) {
-				if (!closed) {
-					//remove the reference of the references
-					references.remove(sref);
-					
-					// unregister the endpointDescription and destroy the
-					// endpoint
-					regis.unregister();
-					destroyEndpoint(desc);
-					regis = null;
-					sref = null;
-					desc = null;
-					closed = true; //is now closed
-				}
-			}
-		}
 	}
 	
 	/**
@@ -252,13 +225,26 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 	 * @author barjo
 	 */
 	private final class MyExportRegistration implements ExportRegistration {
-		private volatile MyExportReference xref;
+		private volatile ExportReference xref;
 		
-		private MyExportRegistration(MyExportReference pXref) {
-			xref=pXref;
+		private MyExportRegistration(MyExportRegistration reg) {
+			xref=reg.getExportReference();
+			
 			//Add the registration to the registrations mapOfSet
-			registrations.add(xref, this);
+			registrations.add(reg.getExportReference().getExportedService(), this);
 		}
+		
+		private MyExportRegistration(ServiceReference sref, EndpointDescription desc) {
+			//Create the ExportedReference
+			xref = new MyExportReference(sref, desc); 
+			
+			//Add the registration to the registrations mapOfSet
+			registrations.add(xref.getExportedService(), this);
+			
+			//register the ExportReference within the ExportRegistry
+			getExportRegistry().put(xref.getExportedService(), getExportReference());
+		}
+		
 		
 		/*
 		 * (non-Javadoc)
@@ -274,9 +260,9 @@ public abstract class AbstractEndpointCreator implements ExporterService {
 		 */
 		public void close() {
 			if (xref != null) {
-				// Last registration, close the ExportReference
-				if (registrations.remove(xref, this)) {
-					xref.close();
+				// Last registration, remove the ExportReference from the ExportRegistry
+				if (registrations.remove(xref.getExportedService(), this)) {
+					getExportRegistry().remove(xref.getExportedService()).getExportedService();
 				}
 				xref = null; // is now closed
 			}

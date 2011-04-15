@@ -24,7 +24,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 
 /**
  *  Test Suite of the {@link AbstractExporterComponent} class.
@@ -36,7 +36,7 @@ public class AbstractExporterComponentTest {
 	//Mock object
 	@Mock LogService logservice;
 	@Mock EventAdmin eventadmin;
-	@Mock ExportRegistryProvisoning registry;
+	@Mock ExportRegistryProvisioning registry;
 	
 	//Tested Object
 	TestedClass creator;
@@ -217,7 +217,7 @@ public class AbstractExporterComponentTest {
 		}		
 		
 		@Override
-		protected ExportRegistryProvisoning getExportRegistry() {
+		protected ExportRegistryProvisioning getExportRegistry() {
 			return registry;
 		}
 		

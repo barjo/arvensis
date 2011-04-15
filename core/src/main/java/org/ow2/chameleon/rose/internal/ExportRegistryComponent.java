@@ -23,12 +23,12 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.ow2.chameleon.rose.registry.ExportRegistryListening;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 import org.ow2.chameleon.rose.registry.ExportRegistryService;
 
 @Component(name="rose.export.registry",immediate=true)
 @Instantiate(name="rose.export.registry-instance")
-@Provides(specifications={ExportRegistryProvisoning.class,ExportRegistryListening.class})
+@Provides(specifications={ExportRegistryProvisioning.class,ExportRegistryListening.class})
 public class ExportRegistryComponent implements ExportRegistryService{
 	
 	private static final String FILTER = "(" + OBJECTCLASS + "=" + ExportReference.class.getName() + ")";

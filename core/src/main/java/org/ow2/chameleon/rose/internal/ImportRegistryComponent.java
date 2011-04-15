@@ -97,7 +97,7 @@ public class ImportRegistryComponent implements
 		synchronized (descriptions) {
 
 			if (descriptions.containsKey(key) || descriptions.containsValue(description)) {
-				throw new IllegalArgumentException("The key has already been associated with a descriptio, or vice-versa");
+				throw new IllegalArgumentException("The key has already been associated with a description, or vice-versa");
 			}
 
 			descriptions.put(key, description);

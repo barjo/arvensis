@@ -17,7 +17,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.internal.BadExportRegistration;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 
 /**
@@ -111,9 +111,9 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	protected abstract EventAdmin getEventAdmin();
 	
 	/**
-	 * @return The {@link ExportRegistryProvisoning} service.
+	 * @return The {@link ExportRegistryProvisioning} service.
 	 */
-	protected abstract ExportRegistryProvisoning getExportRegistry();
+	protected abstract ExportRegistryProvisioning getExportRegistry();
 	
 	/*---------------------------------*
 	 *  ExporterService implementation *

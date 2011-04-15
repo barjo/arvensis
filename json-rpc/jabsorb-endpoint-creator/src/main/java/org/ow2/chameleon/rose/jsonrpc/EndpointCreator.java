@@ -28,7 +28,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisoning;
+import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 
 @Component(name="RoSe.endpoint_creator.jsonrpc")
 @Provides(specifications=ExporterService.class)
@@ -86,7 +86,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	private HttpService httpservice;
 	
 	@Requires(optional=false)
-	private ExportRegistryProvisoning registry;
+	private ExportRegistryProvisioning registry;
 	
 	private final BundleContext context;
 	
@@ -227,7 +227,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getExportRegistry()
 	 */
 	@Override
-	protected ExportRegistryProvisoning getExportRegistry() {
+	protected ExportRegistryProvisioning getExportRegistry() {
 		return registry;
 	}
 	

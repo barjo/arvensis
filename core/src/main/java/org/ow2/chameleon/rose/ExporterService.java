@@ -7,7 +7,7 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 
 /**
- * The {@link ExporterService} service are provided by the endpoint-creator component.
+ * The {@link ExporterService} service are provided by the exporter component.
  * It allows for supervisor component to create the endpoint thanks to the {@link ServiceReference}.
  * For each request to export a service, an {@link ExportRegistration} is returned.
  * 

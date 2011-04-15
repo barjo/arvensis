@@ -13,7 +13,6 @@ import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.testing.RoSeHelper.waitForIt;
 
-import java.net.InterfaceAddress;
 import java.util.Map;
 
 import org.junit.After;
@@ -28,7 +27,6 @@ import org.ops4j.pax.exam.junit.JUnitOptions;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.device.Device;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
@@ -56,7 +54,7 @@ public abstract class EndpointCreatorAbstractTest {
     protected RoSeHelper rose;
     
 	@Mock private LogService logService; //Mock LogService
-    @Mock private Device device; //Mock Device
+    //@Mock private Device device; //Mock Device
 
     /**
      * Done some initializations.

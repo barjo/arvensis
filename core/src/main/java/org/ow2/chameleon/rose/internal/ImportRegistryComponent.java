@@ -7,7 +7,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.felix.ipojo.ComponentFactory;
-import org.osgi.framework.BundleContext;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -22,7 +25,10 @@ import org.ow2.chameleon.rose.registry.ImportRegistryService;
  * 
  * @author barjo
  */
-public abstract class ImportRegistryComponent implements
+@Component(name="rose.import.registry",immediate=true)
+@Provides(specifications={ImportRegistryListening.class,ImportRegistryProvisioning.class})
+@Instantiate(name="rose.import.registry-instance")
+public class ImportRegistryComponent implements
 		ImportRegistryService {
 
 	/**
@@ -31,16 +37,46 @@ public abstract class ImportRegistryComponent implements
 	private final Map<Object, EndpointDescription> descriptions = new HashMap<Object, EndpointDescription>();
 
 	/**
-	 * The Set
+	 * The Set of listeners {@link EndpointListener}
 	 */
 	private final Map<EndpointListener, String> listeners = new HashMap<EndpointListener, String>();
 
-	protected final BundleContext context; // The BundleContext
 
-	public ImportRegistryComponent(BundleContext pContext) {
-		context = pContext;
+	/*-------------------------------*
+	 * Internal life-cycle callbacks *
+	 *-------------------------------*/
+	
+	@Invalidate
+	@SuppressWarnings("unused")
+	private void stop() {
+
+		synchronized (descriptions) {
+			Collection<EndpointDescription> descSet = descriptions.values();
+			Collection<Entry<EndpointListener, String>> lsEnrtySet = listeners
+					.entrySet();
+
+			//notify all listeners of the endpoints unavailability
+			for (Iterator<EndpointDescription> itdesc = descSet.iterator(); itdesc
+					.hasNext();) {
+				EndpointDescription desc = itdesc.next();
+
+				for (Iterator<Entry<EndpointListener, String>> itls = lsEnrtySet
+						.iterator(); itls.hasNext();) {
+					Entry<EndpointListener, String> entry = itls.next();
+					entry.getKey().endpointRemoved(desc, entry.getValue());
+
+					itls.remove();
+				}
+
+				itdesc.remove();
+			}
+		}
 	}
-
+	
+	/*-------------------------------------*
+	 * ImportRegistryProvisioning service  *
+	 *-------------------------------------*/
+	
 	/**
 	 * Add an {@link EndpointDescription}.All {@link EndpointListener} which are
 	 * interesting in the {@link EndpointDescription} are notified.
@@ -112,34 +148,9 @@ public abstract class ImportRegistryComponent implements
 		return desc;
 	}
 	
-	@SuppressWarnings("unused")
-	private void stop() {
-
-		synchronized (descriptions) {
-			Collection<EndpointDescription> descSet = descriptions.values();
-			Collection<Entry<EndpointListener, String>> lsEnrtySet = listeners
-					.entrySet();
-
-			for (Iterator<EndpointDescription> itdesc = descSet.iterator(); itdesc
-					.hasNext();) {
-				EndpointDescription desc = itdesc.next();
-
-				for (Iterator<Entry<EndpointListener, String>> itls = lsEnrtySet
-						.iterator(); itls.hasNext();) {
-					Entry<EndpointListener, String> entry = itls.next();
-					entry.getKey().endpointRemoved(desc, entry.getValue());
-
-					itls.remove();
-				}
-
-				itdesc.remove();
-			}
-		}
-	}
-	
 
 	/*-------------------------------------*
-	 *   ImportRegistryListening methods   *
+	 *   ImportRegistryListening service   *
 	 *-------------------------------------*/
 
 	/*
@@ -181,7 +192,7 @@ public abstract class ImportRegistryComponent implements
 	public void removeEndpointListener(EndpointListener listener) {
 		synchronized (descriptions) {
 			listeners.remove(listener);
-			// TODO Should we called listener.endpointRemoved ??
+			// XXX Should we called listener.endpointRemoved ??
 		}
 
 	}

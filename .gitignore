@@ -1,0 +1,13 @@
+# Eclipse  #
+############
+
+*.project
+*.classpath
+*.settings
+.externalToolBuilders
+
+# maven #
+#########
+maven-eclipse.xml
+target
+

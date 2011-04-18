@@ -11,8 +11,8 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
  */
 public interface ImportRegistryProvisioning {
 
-	void put(Object key, EndpointDescription desc);
+	void put(EndpointDescription desc);
 
-	EndpointDescription remove(Object key);
+	boolean remove(EndpointDescription key);
 
 }

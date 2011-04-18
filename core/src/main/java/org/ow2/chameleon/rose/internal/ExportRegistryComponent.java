@@ -32,13 +32,13 @@ import org.ow2.chameleon.rose.registry.ExportRegistryService;
 public class ExportRegistryComponent implements ExportRegistryService{
 	
 	private static final String FILTER = "(" + OBJECTCLASS + "=" + ExportReference.class.getName() + ")";
-	private final Map<Object, ServiceRegistration> registrations;
+	private final Map<ExportReference, ServiceRegistration> registrations;
 	private final Map<EndpointListener,ListenerWrapper> listeners;
 	private final BundleContext context;
 	
 	public ExportRegistryComponent(BundleContext pContext) {
 		context=pContext;
-		registrations = new HashMap<Object, ServiceRegistration>();
+		registrations = new HashMap<ExportReference, ServiceRegistration>();
 		listeners = new HashMap<EndpointListener, ListenerWrapper>();
 	}
 	
@@ -55,38 +55,37 @@ public class ExportRegistryComponent implements ExportRegistryService{
 	}
 	
 
-	public void put(Object key, ExportReference xref) {
+	public void put(ExportReference xref) {
 		
 		synchronized (registrations) {
 			
-			if (registrations.containsKey(key)){
+			if (registrations.containsKey(xref)){ //TODO log warning ?
 				throw new IllegalStateException("An EndpointDescription associated with the given key as already been registered");
 			}
 			
 			ServiceRegistration reg = context.registerService(ExportReference.class.getName(), xref, endDescToDico(xref.getExportedEndpoint()));
-			registrations.put(key, reg);
+			registrations.put(xref, reg);
 		}
 		
 	}
 
-	public ExportReference remove(Object key) {
+	public boolean remove(ExportReference xref) {
 		ServiceRegistration sreg;
 
 		synchronized (registrations) {
-			sreg = registrations.remove(key);
+			sreg = registrations.remove(xref);
 		}
 		
 		if(sreg == null){
-			return null;
+			return false;
 		}
-
-		ExportReference xref = (ExportReference) context.getService(sreg.getReference());
+		
 		sreg.unregister();
-
-		return xref;
+		
+		return true;
 	}
 	
-	public boolean contains(Object key) {
+	public boolean contains(ExportReference key) {
 		synchronized (registrations) {
 			return registrations.containsKey(key);
 		}

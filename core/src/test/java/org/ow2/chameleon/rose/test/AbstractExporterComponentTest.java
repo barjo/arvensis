@@ -21,6 +21,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
@@ -82,23 +83,25 @@ public class AbstractExporterComponentTest {
 		
 		creator.start(); //validate the simulated instance
 		ExportRegistration reg = creator.exportService(sref, null);
+		ExportReference xref = reg.getExportReference(); //get the ExportReference
 		
-		//Configure the registry behavior
-		when(registry.remove(sref)).thenReturn(reg.getExportReference());
-		
-		assertNotNull(reg.getExportReference()); //Export is a success
+		assertNotNull(xref); //Export is a success
 		assertNull(reg.getException()); //No Exception
 		
-		assertEquals(reg.getExportReference(), creator.getExportReference(sref)); //no strange side effect on the reference
+		//Configure the registry behavior
+		when(registry.remove(xref)).thenReturn(true);
+		
+		assertEquals(xref, creator.getExportReference(sref)); //no strange side effect on the reference
 		
 		//Check that the ExportReference is published in the ExportRegistry
-		verify(registry).put(sref, reg.getExportReference());
+		verify(registry).put(xref);
 		
 		reg.close(); //Unexport !
+		
 		assertNull(reg.getExportReference()); //Now that is has been closed
 		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
-		
-		verify(registry).remove(sref); //Verify the unregister method has been called once.
+
+		verify(registry).remove(xref); //Verify the unregister method has been called once.
 		
 		creator.stop(); //Invalidate the instance
 	}
@@ -116,28 +119,31 @@ public class AbstractExporterComponentTest {
 			ServiceReference sref = mock(ServiceReference.class); //Create a Mock ServiceReference to be exported
 			
 			ExportRegistration reg = creator.exportService(sref, null); //export
+			ExportReference xref = reg.getExportReference(); //get the ExportReference
 			
 			//Configure the registry behavior
-			when(registry.remove(sref)).thenReturn(reg.getExportReference());
+			when(registry.remove(xref)).thenReturn(true);
+			
 		
-			assertNotNull(reg.getExportReference()); //Export is a success
+			assertNotNull(xref); //Export is a success
 			assertNull(reg.getException()); //No Exception
 		
-			assertEquals(reg.getExportReference(), creator.getExportReference(sref)); //no strange side effect on the reference
+			assertEquals(xref, creator.getExportReference(sref)); //no strange side effect on the reference
 			
 			//assertEquals(i+1, creator.getAllExportReference().size()); //one ExportReference per ServiceReference
 			regs.add(reg);
 		}
 		
 		for (ExportRegistration reg : regs) {
+			ExportReference xref = reg.getExportReference(); //get the ExportReference
+			ServiceReference sref = xref.getExportedService(); //get the ServiceReference
 			
-			ServiceReference sref = reg.getExportReference().getExportedService(); //get the ServiceReference
 			reg.close(); //Unexport !
 			assertNull(reg.getExportReference()); //Now that is has been closed
 			assertNull(creator.getExportReference(sref)); //No more exported
 			
 			//assertEquals(--count, creator.getAllExportReference().size()); //verify that one and only one has been removed
-			verify(registry).remove(sref); //Verify that the ExportReference has been removed from the ExportRegistry.
+			verify(registry).remove(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		}
 		
 		creator.stop(); //Invalidate the instance
@@ -149,16 +155,18 @@ public class AbstractExporterComponentTest {
 	 */
 	@Test
 	public void testExportServiceWhileValidMultipleSame(){
+		ExportReference xref = null;
 		ServiceReference sref = mock(ServiceReference.class); //Create a Mock ServiceReference to be exported (same for all)
-
+		
 		Collection<ExportRegistration> regs = new HashSet< ExportRegistration>();
 		
 		creator.start(); //validate the simulated instance
 		for (int i=0;i<EXPORT_MAX;i++){
 			ExportRegistration reg = creator.exportService(sref, null); //export
+			xref = reg.getExportReference(); //get the ExportReference
 			
 			//Configure the registry behavior
-			when(registry.remove(sref)).thenReturn(reg.getExportReference());
+			when(registry.remove(xref)).thenReturn(true);
 		
 			assertNotNull(reg.getExportReference()); //Export is a success
 			assertNull(reg.getException()); //No Exception
@@ -179,7 +187,7 @@ public class AbstractExporterComponentTest {
 		}
 		
 		//assertEquals(0, creator.getAllExportReference().size()); //The ExportReference has been closed since there is no more exportRegistration linked to it.
-		verify(registry).remove(sref); //Verify that the ExportReference has been removed from the ExportRegistry.
+		verify(registry).remove(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		
 		creator.stop(); //Invalidate the instance
 	}

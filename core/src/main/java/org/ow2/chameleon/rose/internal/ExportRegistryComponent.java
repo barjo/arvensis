@@ -32,13 +32,13 @@ import org.ow2.chameleon.rose.registry.ExportRegistryService;
 public class ExportRegistryComponent implements ExportRegistryService{
 	
 	private static final String FILTER = "(" + OBJECTCLASS + "=" + ExportReference.class.getName() + ")";
-	private final Map<ExportReference, ServiceRegistration> registrations;
+	private final Map<Object, ServiceRegistration> registrations;
 	private final Map<EndpointListener,ListenerWrapper> listeners;
 	private final BundleContext context;
 	
 	public ExportRegistryComponent(BundleContext pContext) {
 		context=pContext;
-		registrations = new HashMap<ExportReference, ServiceRegistration>();
+		registrations = new HashMap<Object, ServiceRegistration>();
 		listeners = new HashMap<EndpointListener, ListenerWrapper>();
 	}
 	
@@ -55,37 +55,38 @@ public class ExportRegistryComponent implements ExportRegistryService{
 	}
 	
 
-	public void put(ExportReference xref) {
+	public void put(Object key, ExportReference xref) {
 		
 		synchronized (registrations) {
 			
-			if (registrations.containsKey(xref)){ //TODO log warning ?
-				throw new IllegalStateException("An EndpointDescription associated with the given key as already been registered");
+			if (registrations.containsKey(key)){
+				throw new IllegalStateException("An ExportReference associated with the given key as already been registered");
 			}
 			
 			ServiceRegistration reg = context.registerService(ExportReference.class.getName(), xref, endDescToDico(xref.getExportedEndpoint()));
-			registrations.put(xref, reg);
+			registrations.put(key, reg);
 		}
 		
 	}
 
-	public boolean remove(ExportReference xref) {
+	public ExportReference remove(Object key) {
 		ServiceRegistration sreg;
 
 		synchronized (registrations) {
-			sreg = registrations.remove(xref);
+			sreg = registrations.remove(key);
 		}
 		
 		if(sreg == null){
-			return false;
+			return null;
 		}
-		
+
+		ExportReference xref = (ExportReference) context.getService(sreg.getReference());
 		sreg.unregister();
-		
-		return true;
+
+		return xref;
 	}
 	
-	public boolean contains(ExportReference key) {
+	public boolean contains(Object key) {
 		synchronized (registrations) {
 			return registrations.containsKey(key);
 		}

@@ -243,7 +243,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			registrations.add(xref.getExportedService(), this);
 			
 			//register the ExportReference within the ExportRegistry
-			getExportRegistry().put(xref);
+			getExportRegistry().put(xref,xref);
 		}
 		
 		

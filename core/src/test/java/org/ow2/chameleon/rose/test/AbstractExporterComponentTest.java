@@ -89,12 +89,12 @@ public class AbstractExporterComponentTest {
 		assertNull(reg.getException()); //No Exception
 		
 		//Configure the registry behavior
-		when(registry.remove(xref)).thenReturn(true);
+		when(registry.remove(xref)).thenReturn(xref);
 		
 		assertEquals(xref, creator.getExportReference(sref)); //no strange side effect on the reference
 		
 		//Check that the ExportReference is published in the ExportRegistry
-		verify(registry).put(xref);
+		verify(registry).put(xref,xref);
 		
 		reg.close(); //Unexport !
 		
@@ -122,7 +122,7 @@ public class AbstractExporterComponentTest {
 			ExportReference xref = reg.getExportReference(); //get the ExportReference
 			
 			//Configure the registry behavior
-			when(registry.remove(xref)).thenReturn(true);
+			when(registry.remove(xref)).thenReturn(xref);
 			
 		
 			assertNotNull(xref); //Export is a success
@@ -166,7 +166,7 @@ public class AbstractExporterComponentTest {
 			xref = reg.getExportReference(); //get the ExportReference
 			
 			//Configure the registry behavior
-			when(registry.remove(xref)).thenReturn(true);
+			when(registry.remove(xref)).thenReturn(xref);
 		
 			assertNotNull(reg.getExportReference()); //Export is a success
 			assertNull(reg.getException()); //No Exception

@@ -9,10 +9,10 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
  */
 public interface ExportRegistryProvisioning {
 	
-	void put(ExportReference xref);
-
-	boolean remove(ExportReference key);
-
-	boolean contains(ExportReference key);
+	void put(Object key, ExportReference xref);
+	
+	ExportReference remove(Object key);
+	
+	boolean contains(Object key);
 }
 

@@ -121,7 +121,6 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 *---------------------------------*/
 	
 	/**
-	 * FIXME
 	 * @param sref
 	 * @param extraProperties
 	 * @return

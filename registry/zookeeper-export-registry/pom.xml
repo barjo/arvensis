@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Project's parent -->
+	<!-- <parent> <groupId>org.ow2.chameleon</groupId> <artifactId>parent-pom</artifactId> 
+		<version>0.2.2</version> </parent> -->
+
+	<!-- Description of the project -->
+	<groupId>org.ow2.chameleon.rose.registry</groupId>
+	<artifactId>zookeeper-export-registry</artifactId>
+	<name>OW2 Chameleon - RoSe Zookeeper ExportRegistry</name>
+	<version>0.1.4-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+	<description>OW2 Chameleon ROSE Zookeeper ExportRegistry bundle, contains the RoSe export-registry component based on the zookeeper project.</description>
+
+	<properties>
+		<!-- Dependencies version -->
+		<ipojo.version>1.8.0</ipojo.version>
+		<osgi.version>4.2.0</osgi.version>
+		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
+
+		<!-- Plugins version-->
+		<bundle.plugin.version>2.3.4</bundle.plugin.version>
+		<compiler.plugin.version>2.1</compiler.plugin.version>
+		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+		
+		<!-- Encoding -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<!-- Project dependencies -->
+	<dependencies>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<version>${osgi.version}</version>
+		</dependency>
+		<dependency>
+      		<groupId>org.apache.felix</groupId>
+     	 	<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+    	  	<version>${ipojo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.rose</groupId>
+			<artifactId>rose-core</artifactId>
+			<version>${rose.core.version}</version>
+		</dependency>
+	</dependencies>
+	
+	<!-- Project repositories -->
+	<repositories>
+		<repository>
+			<id>objectweb-release</id>
+
+			<name>ow2 Maven Repository</name>
+			<url>http://maven.ow2.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>objectweb-snapshot</id>
+			<name>ow2 Maven Repository</name>
+			<url>http://maven.ow2.org/maven2-snapshot</url>
+
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<!-- Build configuration -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>${bundle.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>
+							${project.artifactId}
+						</Bundle-SymbolicName>
+						<Import-Package>
+							org.ow2.chameleon.rose;version="[0.1,1)",
+							org.ow2.chameleon.rose.registry;version="[0.1,1)",
+							org.ow2.chameleon.rose.introspect;version="[0.1,1)",
+							org.ow2.chameleon.rose.util;version="[0.1,1)",
+							org.osgi.framework,
+							org.osgi.service.event,
+							org.osgi.service.http,
+							org.osgi.service.log,
+							org.osgi.service.remoteserviceadmin,
+							org.osgi.util.tracker
+						</Import-Package>
+						<Private-Package>
+							org.ow2.chameleon.rose.zookeeper
+						</Private-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-ipojo-plugin</artifactId>
+				<version>${ipojo.plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>ipojo-bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${compiler.plugin.version}</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+

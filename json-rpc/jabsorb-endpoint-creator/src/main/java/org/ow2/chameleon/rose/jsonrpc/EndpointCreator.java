@@ -38,6 +38,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	/**
 	 * Property containing the URL of the JSONRPC orb.
 	 */
+	@SuppressWarnings("unused")
 	private final static String PROP_JABSORB_URL = "org.jabsorb.url";
 	
 	/**

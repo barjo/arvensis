@@ -21,6 +21,7 @@
 		<ipojo.version>1.8.0</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
+		<cxf.zookeeper.version>1.2</cxf.zookeeper.version>
 
 		<!-- Plugins version-->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
@@ -39,14 +40,19 @@
 			<version>${osgi.version}</version>
 		</dependency>
 		<dependency>
-      		<groupId>org.apache.felix</groupId>
-     	 	<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-    	  	<version>${ipojo.version}</version>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<version>${ipojo.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
 			<version>${rose.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf.dosgi</groupId>
+			<artifactId>cxf-dosgi-ri-discovery-distributed-zookeeper-wrapper</artifactId>
+			<version>${cxf.zookeeper.version}</version>
 		</dependency>
 	</dependencies>
 	
@@ -105,7 +111,8 @@
 							org.osgi.service.http,
 							org.osgi.service.log,
 							org.osgi.service.remoteserviceadmin,
-							org.osgi.util.tracker
+							org.osgi.util.tracker,
+							org.apache.hadoop.zookeeper
 						</Import-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.zookeeper

@@ -1,11 +1,15 @@
 package org.ow2.chameleon.rose.zookeeper;
 
+import java.io.IOException;
+
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
 
@@ -13,6 +17,12 @@ import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
 @Instantiate(name="RoSe.export_registry.zookeeper-default")
 @Provides(specifications=ExportedEndpointListener.class)
 public class ZooExportRegistry implements ExportedEndpointListener {
+	
+	private String connectString;
+	
+	private int sessionTimeout;
+	
+	
 
 	@SuppressWarnings("unused")
 	@Property(name=ENDPOINT_LISTENER_SCOPE,mandatory=false)
@@ -24,6 +34,17 @@ public class ZooExportRegistry implements ExportedEndpointListener {
 	@SuppressWarnings("unused")
 	@Validate
 	private void start(){
+		try {
+			ZooKeeper keeper = new ZooKeeper("", 1200, null);
+			
+			//keeper.
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
 	}
 	
 	/**

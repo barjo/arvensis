@@ -3,15 +3,18 @@ package org.ow2.chameleon.rose.internal;
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.ServiceEvent.REGISTERED;
 import static org.osgi.framework.ServiceEvent.UNREGISTERING;
+import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
 import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -25,6 +28,7 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.ow2.chameleon.rose.registry.ExportRegistryListening;
 import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 import org.ow2.chameleon.rose.registry.ExportRegistryService;
+import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
 
 @Component(name="rose.export.registry",immediate=true)
 @Instantiate(name="rose.export.registry-instance")
@@ -91,42 +95,30 @@ public class ExportRegistryComponent implements ExportRegistryService{
 			return registrations.containsKey(key);
 		}
 	}
+	
+	/*-----------------------------------------*
+	 * ExportRegistryListening service methods *
+	 *-----------------------------------------*/
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.registry.ExportRegistryListening#addEndpointListener(org.osgi.service.remoteserviceadmin.EndpointListener)
 	 */
 	public void addEndpointListener(EndpointListener listener) {
-		
-		synchronized (listeners) {
-			
-			ListenerWrapper slist;
-			
-			//update if was already present
-			if (listeners.containsKey(listener)){
-				slist=listeners.remove(listener);
-			}else { //create otherwise
-				slist = new ListenerWrapper(listener, null);
-			}
-			
-			try {
-				context.addServiceListener(slist, FILTER);
-				
-				//add the listeners to the listeners map.
-				listeners.put(listener, slist);
-				
-			} catch (InvalidSyntaxException e) {
-				//impossible right !
-				assert false;
-			}
+		try {
+			addEndpointListener(listener, null);
+		} catch (InvalidSyntaxException e) {
+			assert false; //impossible right ? //TODO log error
 		}
-		
 	}
 
 	public void addEndpointListener(EndpointListener listener, String filter)
 			throws InvalidSyntaxException {
 
-		FrameworkUtil.createFilter(filter);
+		//Check the filter if != null
+		if (filter != null){
+			FrameworkUtil.createFilter(filter);
+		}
 		
 		//XXX The filter must not contains the ObjectClass filter.
 		
@@ -166,6 +158,32 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		}
 	}
 	
+	/*-----------------------------*
+	 * WhiteBoard pattern support  *
+	 *-----------------------------*/
+	
+	@SuppressWarnings("unused")
+	@Bind(aggregate=true,optional=true,id="listeners")
+	private void bindExportedEndpointListener(ExportedEndpointListener listener,Map<String,Object> properties){
+		String filter = (String) properties.get(ENDPOINT_LISTENER_SCOPE);
+		try {
+			addEndpointListener(listener, filter);
+		} catch (Exception e) {
+			//TODO Log warning
+		}
+	}
+	
+	@Unbind(id="listeners")
+	@SuppressWarnings("unused")
+	private void unBindExportedEndpointListener(ExportedEndpointListener listener){
+		removeEndpointListener(listener);
+	}
+	
+	
+	
+	/**
+	 * InnerClass, wrap an EndpointListener in a ServiceListener
+	 */
 	public final class ListenerWrapper implements ServiceListener {
 		private final EndpointListener listener;
 		private volatile String filter;

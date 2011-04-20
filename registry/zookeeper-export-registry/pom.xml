@@ -56,17 +56,10 @@
 			<version>${cxf.zookeeper.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.hadoop.zookeeper</groupId>
-			<artifactId>zookeeper</artifactId>
-			<version>3.2.1</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.log4j</groupId>
 			<artifactId>com.springsource.org.apache.log4j</artifactId>
 			<version>1.2.15</version>
 			<scope>provided</scope>
-
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.json</groupId>
@@ -90,18 +83,15 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-
 		<repository>
 			<id>objectweb-snapshot</id>
 			<name>ow2 Maven Repository</name>
 			<url>http://maven.ow2.org/maven2-snapshot</url>
-
 			<releases>
 				<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-
 				<updatePolicy>daily</updatePolicy>
 			</snapshots>
 		</repository>
@@ -139,7 +129,6 @@
 					</instructions>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-ipojo-plugin</artifactId>
@@ -152,7 +141,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -165,4 +153,3 @@
 		</plugins>
 	</build>
 </project>
-

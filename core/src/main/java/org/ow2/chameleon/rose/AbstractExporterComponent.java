@@ -263,6 +263,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 				// Last registration, remove the ExportReference from the ExportRegistry
 				if (registrations.remove(xref.getExportedService(), this)) {
 					getExportRegistry().remove(xref);
+					destroyEndpoint(xref.getExportedEndpoint());
 				}
 				xref = null; // is now closed
 			}

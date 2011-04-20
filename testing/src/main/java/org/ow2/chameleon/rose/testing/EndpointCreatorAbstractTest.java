@@ -167,6 +167,60 @@ public abstract class EndpointCreatorAbstractTest {
         }
     }
     
+    /**
+     * Test the {@link ExporterService#exportService(ServiceReference, Map)} with 
+     * a valid {@link ServiceReference}. export, destroy and re export.
+     */
+    @Test
+    public void testReExportService() {
+        //wait for the service to be available.
+        waitForIt(100);
+        
+        ExporterService exporter = getExporterService(); //get the service
+        
+        //Register a mock LogService
+        ServiceRegistration regLog = rose.registerService(logService,LogService.class);
+        
+        //export the logService 
+        ExportRegistration xreg = exporter.exportService(regLog.getReference(), null);
+        
+        //destroy the registration 
+        xreg.close();
+        
+        //re export it
+        xreg = exporter.exportService(regLog.getReference(), null);
+        
+        //check that xreg is not null
+        assertNotNull(xreg); 
+        
+        //check that there is no exception
+        assertNull(xreg.getException());
+        
+        //check that the export reference is not null
+        assertNotNull(xreg.getExportReference());
+        
+        //check that the ServiceReference is equal to the logService one
+        assertEquals(regLog.getReference(), xreg.getExportReference().getExportedService());
+        
+        //Check that the ExportReference has been published
+        ExportReference xref = rose.getServiceObject(ExportReference.class);
+        
+        //Check that the published ExportReference is equal to the ExportRegistration one
+        assertEquals(xreg.getExportReference(), xref);
+        
+        //get a proxy
+        LogService proxy = getProxy(xreg,LogService.class);
+        
+        //check proxy != null
+        assertNotNull(proxy);
+        
+        //check proxy calls
+        for (int i = 1; i <= MAX_MOCK; i++) {
+            proxy.log(LOG_WARNING, "YEAHH!!"+i);
+            verify(logService).log(LOG_WARNING, "YEAHH!!"+i);
+        }
+    }
+    
 
 	/**
      * Test the {@link ExportRegistration#close()}. (destroy the endpoint)

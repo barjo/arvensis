@@ -108,6 +108,45 @@ public class AbstractExporterComponentTest {
 	
 	/**
 	 * Test the {@link ExporterService#exportService(ServiceReference, Map)
+	 * exportService(mock sref,null)} while the endpoint-creator is valid.
+	 * Export , close and then re export
+	 */
+	@Test
+	public void testReExportServiceWhileValid(){
+		ServiceReference sref = mock(ServiceReference.class);
+		
+		creator.start(); //validate the simulated instance
+		ExportRegistration reg = creator.exportService(sref, null); //export
+		
+		reg.close(); //Unexport !
+		
+		reg = creator.exportService(sref, null); //reexport
+		
+		ExportReference xref = reg.getExportReference(); //get the ExportReference
+		
+		assertNotNull(xref); //Export is a success
+		assertNull(reg.getException()); //No Exception
+		
+		//Configure the registry behavior
+		when(registry.remove(xref)).thenReturn(xref);
+		
+		assertEquals(xref, creator.getExportReference(sref)); //no strange side effect on the reference
+		
+		//Check that the ExportReference is published in the ExportRegistry
+		verify(registry).put(xref,xref);
+		
+		reg.close(); //Re unexport !
+		
+		assertNull(reg.getExportReference()); //Now that is has been closed
+		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
+
+		verify(registry).remove(xref); //Verify the unregister method has been called once.
+		
+		creator.stop(); //Invalidate the instance
+	}
+	
+	/**
+	 * Test the {@link ExporterService#exportService(ServiceReference, Map)
 	 * exportService(mock sref,null)} while the endpoint-creator is valid and with multiple export of different service.
 	 */
 	@Test

@@ -23,7 +23,6 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.ow2.chameleon.rose.registry.ExportRegistryListening;
@@ -171,6 +170,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 			addEndpointListener(listener, filter);
 		} catch (Exception e) {
 			//TODO Log warning
+			e.printStackTrace();
 		}
 	}
 	
@@ -218,8 +218,6 @@ public class ExportRegistryComponent implements ExportRegistryService{
 			// Release the service reference
 			context.ungetService(ref); // XXX Merci Pierre
 		}
-		
-		
 	}
 
 }

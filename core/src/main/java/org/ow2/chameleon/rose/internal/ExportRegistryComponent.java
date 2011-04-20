@@ -21,6 +21,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -198,19 +199,26 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		}
 
 		public void serviceChanged(ServiceEvent event) {
+			ServiceReference ref = (ServiceReference) event.getSource();
+			ExportReference xref = (ExportReference) context.getService(ref);
+
 			switch (event.getType()) {
 			case REGISTERED:
-				listener.endpointAdded((EndpointDescription) event.getSource(), filter);
+				listener.endpointAdded(xref.getExportedEndpoint(), filter);
 				break;
 
 			case UNREGISTERING:
-				listener.endpointRemoved((EndpointDescription) event.getSource(), filter);
+				listener.endpointRemoved(xref.getExportedEndpoint(), filter);
 				break;
 			default:
-				//TODO log Warning
+				// TODO log Warning
 				break;
 			}
+			
+			// Release the service reference
+			context.ungetService(ref); // XXX Merci Pierre
 		}
+		
 		
 	}
 

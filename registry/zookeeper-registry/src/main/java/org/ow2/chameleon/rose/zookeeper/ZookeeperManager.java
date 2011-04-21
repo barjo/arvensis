@@ -20,7 +20,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
 
-@Component(name="RoSe.export_registry.zookeeper",propagation=true)
+@Component(name="RoSe.registry.zookeeper",propagation=true)
 public class ZookeeperManager implements Watcher {
 	public static final String SEPARATOR="/";
 	

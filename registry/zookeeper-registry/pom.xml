@@ -10,11 +10,11 @@
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose.registry</groupId>
-	<artifactId>zookeeper-export-registry</artifactId>
-	<name>OW2 Chameleon - RoSe Zookeeper ExportRegistry</name>
+	<artifactId>zookeeper-registry</artifactId>
+	<name>OW2 Chameleon - RoSe Zookeeper Registry</name>
 	<version>0.1.4-SNAPSHOT</version>
 	<packaging>bundle</packaging>
-	<description>OW2 Chameleon ROSE Zookeeper ExportRegistry bundle, contains the RoSe export-registry component based on the zookeeper project.</description>
+	<description>OW2 Chameleon ROSE Zookeeper Registry bundle, contains the RoSe Zookeeper registry component.</description>
 
 	<properties>
 		<!-- Dependencies version -->

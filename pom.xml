@@ -12,6 +12,7 @@
 		<module>supervisor/export-supervisor-it</module>
 		<module>json-rpc/jabsorb-endpoint-creator</module>
 		<module>json-rpc/jabsorb-endpoint-creator-it</module>
+		<module>registry/zookeeper-registry</module>
 	</modules>
 </project>
 

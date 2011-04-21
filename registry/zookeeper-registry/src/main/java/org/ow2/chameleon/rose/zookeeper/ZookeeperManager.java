@@ -2,14 +2,12 @@ package org.ow2.chameleon.rose.zookeeper;
 
 import static org.apache.zookeeper.CreateMode.EPHEMERAL;
 import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
-import static org.ow2.chameleon.rose.zookeeper.ZookeeperManager.SEPARATOR;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -20,6 +18,10 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
 
+/**
+ * TODO Handle concurrency, logging
+ * @author barjo
+ */
 @Component(name="RoSe.registry.zookeeper",propagation=true)
 public class ZookeeperManager implements Watcher {
 	public static final String SEPARATOR="/";
@@ -30,7 +32,6 @@ public class ZookeeperManager implements Watcher {
 	@Property(name="timeout",mandatory=false)
 	private int sessionTimeout;
 	
-	@SuppressWarnings("unused")
 	@Property(name=ENDPOINT_LISTENER_SCOPE,mandatory=false)
 	private String filter;
 

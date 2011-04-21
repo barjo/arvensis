@@ -1,8 +1,7 @@
 package org.ow2.chameleon.rose.internal;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.osgi.framework.ServiceEvent.REGISTERED;
-import static org.osgi.framework.ServiceEvent.UNREGISTERING;
+import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
 import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
@@ -17,14 +16,16 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.registry.ExportRegistryListening;
 import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 import org.ow2.chameleon.rose.registry.ExportRegistryService;
@@ -114,7 +115,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 
 	public void addEndpointListener(EndpointListener listener, String filter)
 			throws InvalidSyntaxException {
-
+		
 		//Check the filter if != null
 		if (filter != null){
 			FrameworkUtil.createFilter(filter);
@@ -128,23 +129,17 @@ public class ExportRegistryComponent implements ExportRegistryService{
 
 			// update if was already present
 			if (listeners.containsKey(listener)) {
-				slist = listeners.remove(listener);
-				slist.setFilter(filter); //update filter
+
+				listeners.get(listener).setFilter(filter);
+				
 			} else { // create otherwise
 				slist = new ListenerWrapper(listener, filter);
-			}
-
-			try {
-				String newfilter = "(&" +FILTER + filter +")";
-				context.addServiceListener(slist, newfilter);
-
 				// add the listeners to the listeners map.
 				listeners.put(listener, slist);
-
-			} catch (InvalidSyntaxException e) {
-				// impossible right !
-				assert false;
 			}
+
+			
+
 		}
 		
 	}
@@ -152,8 +147,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 	public void removeEndpointListener(EndpointListener listener) {
 		synchronized (listeners) {
 			if (listeners.containsKey(listener)){
-				ServiceListener slist = listeners.get(listener);
-				context.removeServiceListener(slist);
+				listeners.remove(listener).close(); //remove and close ! (stop the tracker)
 			}
 		}
 	}
@@ -183,40 +177,49 @@ public class ExportRegistryComponent implements ExportRegistryService{
 	
 	
 	/**
-	 * InnerClass, wrap an EndpointListener in a ServiceListener
+	 * InnerClass, wrap an EndpointListener in a {@link ServiceTrackerCustomizer}
 	 */
-	public final class ListenerWrapper implements ServiceListener {
+	public final class ListenerWrapper implements ServiceTrackerCustomizer {
+		private ServiceTracker tracker;
 		private final EndpointListener listener;
-		private volatile String filter;
+		private String filter;
 		
-		private ListenerWrapper(EndpointListener pListener,String pFilter) {
+		
+		private ListenerWrapper(EndpointListener pListener,String pFilter) throws InvalidSyntaxException {
 			listener = pListener; 
-			setFilter(pFilter);
+			Filter ofilter = createFilter("(&" +FILTER + pFilter +")");
+			tracker = new ServiceTracker(context, ofilter, this);
+			filter = pFilter;
+			tracker.open();
 		}
 		
-		private void setFilter(String pFilter){
-			filter=pFilter;
+		public void close(){
+			tracker.close();
+		}
+		
+		private void setFilter(String pFilter) throws InvalidSyntaxException{
+			//update only if the filter are not equal
+			if ( (pFilter!= filter) && (pFilter != null && !pFilter.equals(filter))){
+				Filter ofilter = createFilter("(&" +FILTER + pFilter +")");
+				filter=pFilter;
+				tracker.close();
+				tracker = new ServiceTracker(context,ofilter,this);
+				tracker.open();
+			}
 		}
 
-		public void serviceChanged(ServiceEvent event) {
-			ServiceReference ref = (ServiceReference) event.getSource();
-			ExportReference xref = (ExportReference) context.getService(ref);
+		public Object addingService(ServiceReference reference) {
+			ExportReference xref = (ExportReference) context.getService(reference);
+			listener.endpointAdded(xref.getExportedEndpoint(), filter);
+			return xref.getExportedEndpoint();
+		}
 
-			switch (event.getType()) {
-			case REGISTERED:
-				listener.endpointAdded(xref.getExportedEndpoint(), filter);
-				break;
+		public void modifiedService(ServiceReference reference, Object service) {
+			//TODO Log warning
+		}
 
-			case UNREGISTERING:
-				listener.endpointRemoved(xref.getExportedEndpoint(), filter);
-				break;
-			default:
-				// TODO log Warning
-				break;
-			}
-			
-			// Release the service reference
-			context.ungetService(ref); // XXX Merci Pierre
+		public void removedService(ServiceReference reference, Object service) {
+			listener.endpointRemoved((EndpointDescription) service, filter);
 		}
 	}
 

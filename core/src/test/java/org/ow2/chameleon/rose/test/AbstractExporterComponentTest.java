@@ -82,7 +82,10 @@ public class AbstractExporterComponentTest {
 		ServiceReference sref = mock(ServiceReference.class);
 		
 		creator.start(); //validate the simulated instance
-		ExportRegistration reg = creator.exportService(sref, null);
+		ExportRegistration reg = creator.exportService(sref, null); //
+		
+		assertEquals(1, creator.nbEndpoints()); //Verify that the create method has been called
+		
 		ExportReference xref = reg.getExportReference(); //get the ExportReference
 		
 		assertNotNull(xref); //Export is a success
@@ -102,6 +105,8 @@ public class AbstractExporterComponentTest {
 		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
 
 		verify(registry).remove(xref); //Verify the unregister method has been called once.
+		
+		assertEquals(0, creator.nbEndpoints()); //Verify that the destroy method has been called
 		
 		creator.stop(); //Invalidate the instance
 	}
@@ -122,6 +127,8 @@ public class AbstractExporterComponentTest {
 		
 		reg = creator.exportService(sref, null); //reexport
 		
+		assertEquals(1, creator.nbEndpoints()); //Verify that the create method has been called
+		
 		ExportReference xref = reg.getExportReference(); //get the ExportReference
 		
 		assertNotNull(xref); //Export is a success
@@ -141,6 +148,8 @@ public class AbstractExporterComponentTest {
 		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
 
 		verify(registry).remove(xref); //Verify the unregister method has been called once.
+		
+		assertEquals(0, creator.nbEndpoints()); //Verify that the destroy method has been called
 		
 		creator.stop(); //Invalidate the instance
 	}
@@ -278,6 +287,10 @@ public class AbstractExporterComponentTest {
 		
 		public void stop() {
 			super.stop();
+		}
+		
+		public int nbEndpoints(){
+			return descs.size();
 		}
 
 	}

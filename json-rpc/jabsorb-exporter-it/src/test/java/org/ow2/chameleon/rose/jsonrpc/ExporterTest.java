@@ -17,14 +17,14 @@ import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.ExporterService;
-import org.ow2.chameleon.rose.testing.EndpointCreatorAbstractTest;
+import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
 
 /**
  * Integration test for the jabsorb-endpoint-creator component.
  * @author barjo
  */
 @RunWith(JUnit4TestRunner.class)
-public class EndpointCreatorTest extends EndpointCreatorAbstractTest {
+public class ExporterTest extends ExporterComponentAbstractTest {
     private static final String FILTER="("+ENDPOINT_CONFIG_PREFIX+"=jsonrpc)";
     private static URI JSONRPC_URI;
 
@@ -49,7 +49,7 @@ public class EndpointCreatorTest extends EndpointCreatorAbstractTest {
                 mavenBundle().groupId("org.apache.servicemix.bundles").artifactId("org.apache.servicemix.bundles.commons-codec").versionAsInProject(),
                 mavenBundle().groupId("commons-logging").artifactId("org.ow2.chameleon.commons.logging").versionAsInProject(),
                 mavenBundle().groupId("org.jabsorb").artifactId("org.ow2.chameleon.commons.jabsorb").versionAsInProject(),
-                mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc").artifactId("jabsorb-endpoint-creator").versionAsInProject()
+                mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc").artifactId("jabsorb-exporter").versionAsInProject()
 		));
 	}
 

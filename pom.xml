@@ -10,8 +10,8 @@
 		<module>testing</module>
 		<module>supervisor/export-supervisor</module>
 		<module>supervisor/export-supervisor-it</module>
-		<module>json-rpc/jabsorb-endpoint-creator</module>
-		<module>json-rpc/jabsorb-endpoint-creator-it</module>
+		<module>json-rpc/jabsorb-exporter</module>
+		<module>json-rpc/jabsorb-exporter-it</module>
 		<module>registry/zookeeper-registry</module>
 	</modules>
 </project>

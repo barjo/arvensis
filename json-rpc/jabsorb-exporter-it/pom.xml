@@ -10,11 +10,11 @@
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
-	<artifactId>jabsorb-endpoint-creator-it</artifactId>
-	<name>OW2 Chameleon - RoSe JSON-RPC Endpoint-Creator[IntegrationTest]</name>
+	<artifactId>jabsorb-exporter-it</artifactId>
+	<name>OW2 Chameleon - RoSe JSON-RPC Exporter[IntegrationTest]</name>
 	<version>0.1.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<description>OW2 Chameleon ROSE JSON-RPC Endpoint-Creator Integration Test, contains the ROSE Json-rpc endpoint-creator integration test</description>
+	<description>OW2 Chameleon ROSE JSON-RPC Exporter Integration Test, contains the ROSE Json-rpc exporter integration test</description>
 
 	<properties>
 		<!-- Dependencies version -->
@@ -27,7 +27,7 @@
 		<grizzly.version>1.9.28</grizzly.version>
 		
 		<!-- Tested version-->
-		<jabsorb-endpoint-creator.version>0.1.4-SNAPSHOT</jabsorb-endpoint-creator.version>
+		<jabsorb-exporter.version>0.1.4-SNAPSHOT</jabsorb-exporter.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 
 		<!-- Plugins version-->
@@ -122,8 +122,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
-			<artifactId>jabsorb-endpoint-creator</artifactId>
-			<version>${jabsorb-endpoint-creator.version}</version>
+			<artifactId>jabsorb-exporter</artifactId>
+			<version>${jabsorb-exporter.version}</version>
 			<scope>test</scope>
 		</dependency>	
 

@@ -35,7 +35,7 @@ import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
-public abstract class EndpointCreatorAbstractTest {
+public abstract class ExporterComponentAbstractTest {
 	
 	protected static String HTTP_PORT = "9027";
 	

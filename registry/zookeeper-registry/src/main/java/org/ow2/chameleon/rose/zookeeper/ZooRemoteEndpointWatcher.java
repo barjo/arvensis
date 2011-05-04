@@ -14,12 +14,12 @@ import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
 
 public class ZooRemoteEndpointWatcher implements Watcher{
 	
-	private final ZookeeperManager bridge;
+	private final ZookeeperManager manager;
 	private final ImportRegistryProvisioning registry;
 	
-	public ZooRemoteEndpointWatcher(ZookeeperManager zbridge,ImportRegistryProvisioning rregistry) {
-		bridge=zbridge;
-		registry=rregistry;
+	public ZooRemoteEndpointWatcher(ZookeeperManager pManager,ImportRegistryProvisioning pRegistry) {
+		manager=pManager;
+		registry=pRegistry;
 		try {
 			keeper().exists(SEPARATOR, this);
 		} catch (KeeperException e) {
@@ -47,7 +47,7 @@ public class ZooRemoteEndpointWatcher implements Watcher{
 		String path = event.getPath();
 		
 		//Description published by this framework. do nothing
-		if (path.startsWith(SEPARATOR+bridge.frameworkid)){
+		if (path.startsWith(SEPARATOR+manager.frameworkid)){
 			return;
 		}
 		
@@ -85,10 +85,10 @@ public class ZooRemoteEndpointWatcher implements Watcher{
 	}
 	
 	private ZooKeeper keeper(){
-		return bridge.getKeeper();
+		return manager.getKeeper();
 	}
 	
 	private JSONService json(){
-		return bridge.getJson();
+		return manager.getJson();
 	}
 }

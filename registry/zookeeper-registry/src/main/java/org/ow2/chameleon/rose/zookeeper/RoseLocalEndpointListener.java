@@ -1,6 +1,9 @@
 package org.ow2.chameleon.rose.zookeeper;
 
 import static org.apache.zookeeper.CreateMode.EPHEMERAL;
+import static org.osgi.service.log.LogService.LOG_DEBUG;
+import static org.osgi.service.log.LogService.LOG_INFO;
+import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.zookeeper.ZookeeperManager.computePath;
 
 import java.util.Dictionary;
@@ -11,6 +14,7 @@ import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
@@ -31,53 +35,73 @@ public class RoseLocalEndpointListener implements ExportedEndpointListener {
 		}
 		
 		registration = context.registerService(ExportedEndpointListener.class.getName(), this, props);
-		System.out.println("Register called: " + context.getBundle().getBundleId());
+		logger().log(LOG_INFO, "The zookeeper ExportedEndpointListener service has been registered.");
 	}
 	
-	
-
 	/*----------------------------*
 	 * EndpointListener call-back *
 	 * (WB pattern)               *
 	 *----------------------------*/
-	
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org.osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
+	 */
 	public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
+		//Convert the endpoint into a json object
 		String desc = json().toJSON(endpoint.getProperties());
 		try {
 			String path = keeper().create(computePath(endpoint), desc.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, EPHEMERAL);
-			System.out.println("Node create: "+path);
+			logger().log(LOG_DEBUG,"The endpoint :"+endpoint.getId()+" has been published on the zookeeper node of path "+path);
 		} catch (KeeperException e) {
-			e.printStackTrace();
+			logger().log(LOG_WARNING, "Cannot publish through zookeeper the endpoint of id: "+endpoint.getId(),e);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			logger().log(LOG_WARNING, "Cannot publish through zookeeper the endpoint of id: "+endpoint.getId(),e);
 		}
-		
-		
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.osgi.service.remoteserviceadmin.EndpointListener#endpointRemoved(org.osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
+	 */
 	public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
+		final String path = computePath(endpoint);
 		try {
-			keeper().delete(computePath(endpoint), -1); //-1 match any nodes version
+			keeper().delete(path, -1); //-1 match any nodes version
+			logger().log(LOG_DEBUG,"The endpoint :"+endpoint.getId()+" has been removed from zookeeper, node :"+path);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			logger().log(LOG_WARNING, "Cannot remove from zookeeper the endpoint of id: "+endpoint.getId(),e);
 		} catch (KeeperException e) {
-			e.printStackTrace();
+			logger().log(LOG_WARNING, "Cannot remove from zookeeper the endpoint of id: "+endpoint.getId(),e);
 		}
 		
 	}
 	
-	public void stop(){
-		System.out.println("IUnregister");
+	/**
+	 * Unregister this {@link ExportedEndpointListener}.
+	 */
+	public void destroy(){
 		registration.unregister();
+		logger().log(LOG_INFO, "The zookeeper ExportedEndpointListener service has been unregistered.");
 	}
 	
+	/**
+	 * @return The {@link LogService}
+	 */
+	private LogService logger(){
+		return bridge.getLogger();
+	}
 	
-	
+	/**
+	 * @return The {@link ZooKeeper} client
+	 */
 	private ZooKeeper keeper(){
 		return bridge.getKeeper();
 	}
 	
+	/**
+	 * @return The {@link JSONService}
+	 */
 	private JSONService json(){
 		return bridge.getJson();
 	}

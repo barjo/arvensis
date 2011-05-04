@@ -1,6 +1,8 @@
 package org.ow2.chameleon.rose.zookeeper;
 
 import static org.apache.zookeeper.CreateMode.EPHEMERAL;
+import static org.osgi.service.log.LogService.LOG_INFO;
+import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -14,12 +16,14 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 
 /**
- * TODO Handle concurrency, logging
+ * TODO Handle concurrency.
  * @author barjo
  */
 @Component(name="RoSe.registry.zookeeper",propagation=true)
@@ -40,6 +44,9 @@ public class ZookeeperManager implements Watcher {
 	
 	@Requires(optional=false)
 	private JSONService json;
+	
+	@Requires(optional=true,defaultimplementation=DefaultLogService.class)
+	private LogService logger;
 	
 	private BundleContext context;
 	
@@ -69,9 +76,8 @@ public class ZookeeperManager implements Watcher {
 			
 			//create a node for the framework id.
 			createFrameworkNode();
-
 		} catch (Exception e) {
-			e.printStackTrace(); // TODO log ERROR
+			getLogger().log(LogService.LOG_ERROR, "Cannot start zookeeper registry bridge.",e);
 		}
 
 	}
@@ -82,7 +88,6 @@ public class ZookeeperManager implements Watcher {
 	@SuppressWarnings("unused")
 	@Invalidate
 	private void stop(){
-		System.out.println("Stopping");
 		try {
 			if(keeper!=null){
 				destroyListenerAndProvider();
@@ -90,7 +95,7 @@ public class ZookeeperManager implements Watcher {
 				
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace(); // TODO log warning
+			getLogger().log(LogService.LOG_ERROR, "Cannot stop properly the zookeeper registry bridge.",e);
 		}
 	}
 	
@@ -108,13 +113,13 @@ public class ZookeeperManager implements Watcher {
 		switch (event.getState()) {
 		case Expired: // TODO handle expired (i.e create a new connection)
 		case Disconnected:
-			System.out.println("Disconnected Call");
+			getLogger().log(LOG_WARNING, "The zookeeper client has been disconnected.");
 			// The client has been disconnected for some reason, destroy the
 			// Listener and the provisioner
 			destroyListenerAndProvider();
 			break;
 		case SyncConnected:
-			System.out.println("Connected !");
+			getLogger().log(LOG_INFO, "The zookeeper client has been connected.");
 			// we have been reconnected, recreate the framework node and the
 			// Listener and the provisioner
 			createFrameworkNode();
@@ -132,7 +137,7 @@ public class ZookeeperManager implements Watcher {
 	 */
 	private void destroyListenerAndProvider(){
 		provisioner.stop();
-		listener.stop();
+		listener.destroy();
 		provisioner = null;
 		listener = null;
 	}
@@ -146,20 +151,22 @@ public class ZookeeperManager implements Watcher {
 	}
 	
 	/**
-	 * Create the node associated to the framework id. destroy it if it was previously defined.
+	 * Create the node associated to the framework id. 
+	 * Destroy it if it was previously defined.
 	 */
 	private void createFrameworkNode(){
 		try{
-			Stat stat = keeper.exists("/"+frameworkid, false);
+			Stat stat = keeper.exists(SEPARATOR+frameworkid, false);
 			if (stat==null){
-				keeper.create("/"+frameworkid, new byte[0], Ids.OPEN_ACL_UNSAFE, EPHEMERAL);
+				keeper.create(SEPARATOR+frameworkid, new byte[0], Ids.OPEN_ACL_UNSAFE, EPHEMERAL);
 			}else {
 				//server crash, we just reconnect
-				keeper.delete("/"+frameworkid, -1);
-				keeper.create("/"+frameworkid, new byte[0], Ids.OPEN_ACL_UNSAFE, EPHEMERAL); //re create the node
+				keeper.delete(SEPARATOR+frameworkid, -1);
+				keeper.create(SEPARATOR+frameworkid, new byte[0], Ids.OPEN_ACL_UNSAFE, EPHEMERAL); //re create the node
 			}
+			getLogger().log(LOG_WARNING, "A zookeeper node has been successfully created for this framework, node: "+SEPARATOR+frameworkid);
 		}catch(Exception ke){
-			ke.printStackTrace(); //TODO log warning
+			getLogger().log(LOG_WARNING, "Cannot create a zookeeper node for this framework.",ke);
 		}
 	}
 	
@@ -170,6 +177,10 @@ public class ZookeeperManager implements Watcher {
 
 	public JSONService getJson() {
 		return json;
+	}
+	
+	public LogService getLogger(){
+		return logger;
 	}
 	
 	public static String computePath(EndpointDescription desc){

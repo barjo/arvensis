@@ -1,14 +1,17 @@
 package org.ow2.chameleon.rose.util;
 
+import static java.util.Collections.unmodifiableSet;
+
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * TODO doc
+ * XXX Not really efficient, see if there is something similar in Guava ?
  * @author barjo
  *
  * @param <T>
@@ -21,7 +24,7 @@ public class ConcurrentMapOfSet<T, E> {
 	private final ReentrantReadWriteLock rwlock;
 
 	public ConcurrentMapOfSet() {
-		innermap = new ConcurrentHashMap<T, Collection<E>>();
+		innermap = new HashMap<T, Collection<E>>();
 		rwlock = new ReentrantReadWriteLock();
 	}
 
@@ -144,7 +147,7 @@ public class ConcurrentMapOfSet<T, E> {
 	public Set<T> keySet(){
 		rwlock.readLock().lock();
 		try {
-			return innermap.keySet();
+			return unmodifiableSet(innermap.keySet());
 		} finally{
 			rwlock.readLock().unlock();
 		}

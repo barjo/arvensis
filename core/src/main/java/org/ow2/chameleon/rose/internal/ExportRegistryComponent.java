@@ -2,6 +2,8 @@ package org.ow2.chameleon.rose.internal;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
+import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
 import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
@@ -13,6 +15,7 @@ import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -21,6 +24,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
@@ -30,6 +34,7 @@ import org.ow2.chameleon.rose.registry.ExportRegistryListening;
 import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 import org.ow2.chameleon.rose.registry.ExportRegistryService;
 import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 
 @Component(name="rose.export.registry",immediate=true)
 @Instantiate(name="rose.export.registry-instance")
@@ -40,6 +45,9 @@ public class ExportRegistryComponent implements ExportRegistryService{
 	private final Map<Object, ServiceRegistration> registrations;
 	private final Map<EndpointListener,ListenerWrapper> listeners;
 	private final BundleContext context;
+	
+	@Requires(defaultimplementation=DefaultLogService.class)
+	private LogService logger;
 	
 	public ExportRegistryComponent(BundleContext pContext) {
 		context=pContext;
@@ -109,7 +117,8 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		try {
 			addEndpointListener(listener, null);
 		} catch (InvalidSyntaxException e) {
-			assert false; //impossible right ? //TODO log error
+			logger.log(LOG_ERROR, "This exeception should not occured. ",e);
+			assert false; //impossible right ?
 		}
 	}
 
@@ -163,8 +172,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		try {
 			addEndpointListener(listener, filter);
 		} catch (Exception e) {
-			//TODO Log warning
-			e.printStackTrace();
+			logger.log(LOG_WARNING, "Cannot bind listener: "+listener+" an exception occured.",e);
 		}
 	}
 	
@@ -215,7 +223,9 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		}
 
 		public void modifiedService(ServiceReference reference, Object service) {
-			//TODO Log warning
+			logger.log(LOG_WARNING, "Modification of an ExportReference " +
+									"is not supported. EndpointDescription: " +
+									service);
 		}
 
 		public void removedService(ServiceReference reference, Object service) {

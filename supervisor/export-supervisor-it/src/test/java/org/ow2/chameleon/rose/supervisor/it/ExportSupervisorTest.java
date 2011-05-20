@@ -16,7 +16,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.provision;
 import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.ow2.chameleon.rose.supervisor.it.ITTools.waitForIt;
+import static org.ow2.chameleon.rose.testing.RoSeHelper.waitForIt;
 
 import java.util.Collection;
 import java.util.Dictionary;

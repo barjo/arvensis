@@ -102,6 +102,12 @@
 			<version>0.2.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.rose.testing</groupId>
+			<artifactId>rose-helpers</artifactId>
+			<version>0.1.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 		
 		<!-- Pax Exam API: -->
 		<dependency>

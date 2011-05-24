@@ -91,7 +91,8 @@ public class ExportSupervisorTest {
         Option[] bundles = options(provision(
         		mavenBundle().groupId("org.apache.felix").artifactId("org.apache.felix.ipojo").versionAsInProject(),
                 mavenBundle().groupId("org.ow2.chameleon.testing").artifactId("osgi-helpers").versionAsInProject(), 
-                mavenBundle().groupId("org.ow2.chameleon.rose").artifactId("rose-core").versionAsInProject(), 
+                mavenBundle().groupId("org.ow2.chameleon.rose").artifactId("rose-core").versionAsInProject(),
+                mavenBundle().groupId("org.ow2.chameleon.rose.testing").artifactId("rose-helpers").versionAsInProject(), 
                 mavenBundle().groupId("org.osgi").artifactId("org.osgi.compendium").versionAsInProject(),
                 mavenBundle().groupId("org.slf4j").artifactId("slf4j-api").versionAsInProject(),
                 mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple").versionAsInProject(),

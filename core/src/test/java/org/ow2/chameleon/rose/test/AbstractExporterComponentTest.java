@@ -18,14 +18,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
+import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.registry.ExportRegistry;
 
 /**
  *  Test Suite of the {@link AbstractExporterComponent} class.
@@ -36,8 +36,8 @@ public class AbstractExporterComponentTest {
 	
 	//Mock object
 	@Mock LogService logservice;
-	@Mock EventAdmin eventadmin;
-	@Mock ExportRegistryProvisioning registry;
+	@Mock RoseMachine machine;
+	@Mock ExportRegistry registry;
 	
 	//Tested Object
 	TestedClass creator;
@@ -267,16 +267,6 @@ public class AbstractExporterComponentTest {
 			return logservice;
 		}
 
-		@Override
-		protected EventAdmin getEventAdmin() {
-			return eventadmin;
-		}		
-		
-		@Override
-		protected ExportRegistryProvisioning getExportRegistry() {
-			return registry;
-		}
-		
 		public List<String> getConfigPrefix() {
 			return null;
 		}
@@ -291,6 +281,12 @@ public class AbstractExporterComponentTest {
 		
 		public int nbEndpoints(){
 			return descs.size();
+		}
+
+		@Override
+		protected RoseMachine getRoseMachine() {
+			when(machine.exportRegistry()).thenReturn(registry);
+			return machine;
 		}
 
 	}

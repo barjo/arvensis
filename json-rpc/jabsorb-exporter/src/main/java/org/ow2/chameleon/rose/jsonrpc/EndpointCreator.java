@@ -1,8 +1,11 @@
 package org.ow2.chameleon.rose.jsonrpc;
 
+import static java.lang.Integer.valueOf;
 import static java.util.Arrays.asList;
 import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_WARNING;
 
+import java.net.URI;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -10,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -21,25 +25,34 @@ import org.jabsorb.JSONRPCBridge;
 import org.jabsorb.JSONRPCServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
+import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 
-@Component(name="RoSe.endpoint_creator.jsonrpc")
-@Provides(specifications=ExporterService.class)
-@Instantiate(name="RoSe.endpoint_creator.jsonrpc-default")
-public class EndpointCreator extends AbstractExporterComponent implements ExporterService {
+@Component(name="RoSe.exporter.jsonrpc[jabsorb]")
+@Provides(specifications={ExporterService.class,ExporterIntrospection.class})
+@Instantiate(name="RoSe.exporter.jsonrpc[jabsorb]-default")
+public class EndpointCreator extends AbstractExporterComponent implements ExporterService,ExporterIntrospection {
 	
 	/**
 	 * Property containing the URL of the JSONRPC orb.
 	 */
-	@SuppressWarnings("unused")
 	private final static String PROP_JABSORB_URL = "org.jabsorb.url";
+	
+    /**
+     * Default value for the {@link EndpointCreator#PROP_HTTP_PORT} property.
+     */
+	private static final int DEFAULT_HTTP_PORT = 80;
+	
+	/**
+	 * Property of the HttpService http port.
+	 */
+	private final static String PROP_HTTP_PORT = "org.osgi.service.http.port";
 	
 	/**
 	 * Configuration supported by this component
@@ -51,6 +64,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
      * Name of the Property needed by JSONRPCServlet, the gzip threshold.
      */
     private static final String PROP_GZIP_THRESHOLD = "gzip.threshold";
+
 
     /**
      * Values of the Property needed by JSONRPCServlet, the gzip threshold.
@@ -73,6 +87,18 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
     private JSONRPCBridge jsonbridge;
     
     /**
+     * Value of the {@link EndpointCreator#PROP_JABSORB_URL} property.
+     */
+    private String myurl;
+
+	/**
+	 * Property containing the value of the
+	 * {@link EndpointCreator#PROP_HTTP_PORT} HttpService property.
+	 * Set in {@link EndpointCreator#bindHttpService(HttpService, ServiceReference)}
+	 */
+    private int httpport;
+    
+    /**
      * Set which contains the names of the endpoint created by this factory.
      */
     private Set<String> endpointIds = new HashSet<String>();
@@ -80,14 +106,16 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	@Requires(optional=true)
 	private LogService logger;
 	
-	@Requires(optional=true)
-	private EventAdmin eventadmin;
-	
-	@Requires(optional=false)
+	/**
+	 * Set in {@link EndpointCreator#bindHttpService(HttpService, ServiceReference) bindHttpService}
+	 */
 	private HttpService httpservice;
 	
+	/**
+	 * Require the {@link RoseMachine}.
+	 */
 	@Requires(optional=false)
-	private ExportRegistryProvisioning registry;
+	private RoseMachine machine;
 	
 	private final BundleContext context;
 	
@@ -123,6 +151,37 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
         // Set the bridge to a global bridge. (HttpSession are not managed here)
         // TODO support the HttpSession
         jsonbridge = JSONRPCBridge.getGlobalBridge();
+        
+        //compute the PROP_JABSORB_URL property
+        try {
+			myurl = new URI("http://"+machine.getHost()+":"+httpport+servletname).toString(); //compute the url
+		} catch (Exception e) {
+			logger.log(LOG_ERROR, "Cannot create the URL of the Json-rpc server, this will lead to incomplete EndpointDescription.",e);
+		}
+	}
+	
+	/**
+	 * Bind the {@link HttpService} and set the {@link EndpointCreator#httpport} value.
+	 * @param service the {@link HttpService}
+	 * @param ref the {@link HttpService} {@link ServiceReference}.
+	 */
+	@SuppressWarnings("unused")
+	@Bind(aggregate=false,optional=false)
+	private void bindHttpService(HttpService service,ServiceReference ref){
+		httpservice = service;
+		
+		if (ref.getProperty(PROP_HTTP_PORT) != null){
+			httpport = valueOf((String) ref.getProperty(PROP_HTTP_PORT));
+		}
+		else if (System.getProperty(PROP_HTTP_PORT) != null) {
+			httpport = valueOf((String) System.getProperty(PROP_HTTP_PORT));
+		} else {
+			httpport = DEFAULT_HTTP_PORT;
+			logger.log( LOG_WARNING, "A default value ("+
+					    DEFAULT_HTTP_PORT + 
+					    ") has been set to the http port, this could lead to a bad " +
+						PROP_JABSORB_URL + " property value.");
+		}
 	}
 	
 	/*
@@ -155,7 +214,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 			Map<String, Object> extraProperties) {
 
 		//Set the url property
-		//extraProperties.put(PROP_JABSORB_URL, ""); //FIXME
+		extraProperties.put(PROP_JABSORB_URL, myurl);
 		
 		//create the endpoint description
 		EndpointDescription desc = new EndpointDescription(sref, extraProperties);
@@ -217,27 +276,18 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ow2.chameleon.rose.AbstractEndpointCreator#getEventAdmin()
-	 */
-	protected EventAdmin getEventAdmin() {
-		return eventadmin;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getExportRegistry()
-	 */
-	@Override
-	protected ExportRegistryProvisioning getExportRegistry() {
-		return registry;
-	}
-	
-	/*
-	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.introspect.EndpointCreatorIntrospection#getConfigPrefix()
 	 */
 	public List<String> getConfigPrefix() {
 		return asList(configs);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
+	 */
+	protected RoseMachine getRoseMachine() {
+		return machine;
 	}
 }
 

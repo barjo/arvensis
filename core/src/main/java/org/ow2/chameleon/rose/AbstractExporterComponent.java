@@ -11,13 +11,11 @@ import java.util.Map;
 import org.apache.felix.ipojo.ComponentFactory;
 import org.apache.felix.ipojo.ComponentInstance;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.internal.BadExportRegistration;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
 import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 
 /**
@@ -67,7 +65,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			for (Iterator<ServiceReference> iterator = srefs.iterator(); iterator.hasNext();) {
 				ServiceReference ref = iterator.next();
 				ExportReference xref = registrations.getElem(ref).getExportReference();
-				getExportRegistry().remove(xref); //TODO check !=null
+				getRoseMachine().exportRegistry().remove(xref); //TODO check !=null
 				destroyEndpoint(xref.getExportedEndpoint()); //TODO check != null
 				iterator.remove();
 			}
@@ -106,15 +104,11 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 */
 	protected abstract LogService getLogService();
 	
-	/**
-	 * @return The {@link EventAdmin} service.
-	 */
-	protected abstract EventAdmin getEventAdmin();
 	
 	/**
-	 * @return The {@link ExportRegistryProvisioning} service.
+	 * @return The {@link RoseMachine} service.
 	 */
-	protected abstract ExportRegistryProvisioning getExportRegistry();
+	protected abstract RoseMachine getRoseMachine();
 	
 	/*---------------------------------*
 	 *  ExporterService implementation *
@@ -242,7 +236,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			registrations.add(xref.getExportedService(), this);
 			
 			//register the ExportReference within the ExportRegistry
-			getExportRegistry().put(xref,xref);
+			getRoseMachine().exportRegistry().put(xref,xref);
 		}
 		
 		
@@ -262,7 +256,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			if (xref != null) {
 				// Last registration, remove the ExportReference from the ExportRegistry
 				if (registrations.remove(xref.getExportedService(), this)) {
-					getExportRegistry().remove(xref);
+					getRoseMachine().exportRegistry().remove(xref);
 					destroyEndpoint(xref.getExportedEndpoint());
 				}
 				xref = null; // is now closed

@@ -4,7 +4,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.ow2.chameleon.rose.internal.ExportRegistryComponent;
+import org.ow2.chameleon.rose.internal.ExportRegistryImpl;
 
 public interface ExportRegistryListening {
 	/**
@@ -16,12 +16,12 @@ public interface ExportRegistryListening {
 	void addEndpointListener(EndpointListener listener);
 
 	/**
-	 * Adds the specifier {@link EndpointListener} object to the {@link ExportRegistryComponent} list
+	 * Adds the specifier {@link EndpointListener} object to the {@link ExportRegistryImpl} list
 	 * of listeners. See {@link Filter} for a description of the filter syntax.
 	 * {@link EndpointListener} objects are notified when an endpoint has a
 	 * lifecyle state change.
 	 * 
-	 * If the {@link ExportRegistryComponent}'s list of listeners already contains
+	 * If the {@link ExportRegistryImpl}'s list of listeners already contains
 	 * <code>listener</code>, then this methods replaces that listner's filter
 	 * with the new one.
 	 * 
@@ -35,10 +35,10 @@ public interface ExportRegistryListening {
 	void addEndpointListener(EndpointListener listener, String filter) throws InvalidSyntaxException;
 
 	/**
-	 * Removes the <code>listener</code> object from the {@link ExportRegistryComponent}'s list of
+	 * Removes the <code>listener</code> object from the {@link ExportRegistryImpl}'s list of
 	 * {@link EndpointListener}.
 	 * 
-	 * If <code>listener</code> is not contained in this {@link ExportRegistryComponent}'s list of
+	 * If <code>listener</code> is not contained in this {@link ExportRegistryImpl}'s list of
 	 * {@link EndpointListener}, this method does nothing.
 	 * 
 	 * @param listener The {@link EndpointListener} to be removed.

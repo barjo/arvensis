@@ -12,12 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Bind;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
-import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -30,34 +25,32 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.ow2.chameleon.rose.registry.ExportRegistryListening;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
-import org.ow2.chameleon.rose.registry.ExportRegistryService;
+import org.ow2.chameleon.rose.registry.ExportRegistry;
 import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 
-@Component(name="rose.export.registry",immediate=true)
-@Instantiate(name="rose.export.registry-instance")
-@Provides(specifications={ExportRegistryProvisioning.class,ExportRegistryListening.class})
-public class ExportRegistryComponent implements ExportRegistryService{
+public class ExportRegistryImpl implements ExportRegistry{
 	
 	private static final String FILTER = "(" + OBJECTCLASS + "=" + ExportReference.class.getName() + ")";
+	
+	/**
+	 * Default logger.
+	 */
+	private static final LogService defaultlogger = new DefaultLogService();
+	
 	private final Map<Object, ServiceRegistration> registrations;
 	private final Map<EndpointListener,ListenerWrapper> listeners;
 	private final BundleContext context;
+
 	
-	@Requires(defaultimplementation=DefaultLogService.class)
-	private LogService logger;
 	
-	public ExportRegistryComponent(BundleContext pContext) {
+	public ExportRegistryImpl(BundleContext pContext) {
 		context=pContext;
 		registrations = new HashMap<Object, ServiceRegistration>();
 		listeners = new HashMap<EndpointListener, ListenerWrapper>();
 	}
 	
-	@Validate
-	@SuppressWarnings("unused")
-	private void stop(){
+	protected void stop(){
 		synchronized (registrations) {
 			for (Iterator<ServiceRegistration> iterator = registrations.values().iterator(); iterator.hasNext();) {
 				ServiceRegistration regis = (ServiceRegistration) iterator.next();
@@ -117,7 +110,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		try {
 			addEndpointListener(listener, null);
 		} catch (InvalidSyntaxException e) {
-			logger.log(LOG_ERROR, "This exeception should not occured. ",e);
+			getLogger().log(LOG_ERROR, "This exeception should not occured. ",e);
 			assert false; //impossible right ?
 		}
 	}
@@ -172,7 +165,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		try {
 			addEndpointListener(listener, filter);
 		} catch (Exception e) {
-			logger.log(LOG_WARNING, "Cannot bind listener: "+listener+" an exception occured.",e);
+			getLogger().log(LOG_WARNING, "Cannot bind listener: "+listener+" an exception occured.",e);
 		}
 	}
 	
@@ -223,7 +216,7 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		}
 
 		public void modifiedService(ServiceReference reference, Object service) {
-			logger.log(LOG_WARNING, "Modification of an ExportReference " +
+			getLogger().log(LOG_WARNING, "Modification of an ExportReference " +
 									"is not supported. EndpointDescription: " +
 									service);
 		}
@@ -233,4 +226,19 @@ public class ExportRegistryComponent implements ExportRegistryService{
 		}
 	}
 
+	
+	/*------------------------*
+	 * Convenient log methods *
+	 *------------------------*/
+	
+	private LogService getLogger(){
+		LogService logger = null;
+		ServiceReference sref = context.getServiceReference(LogService.class.getName());
+		if (sref != null){
+			logger = (LogService) context.getService(sref);
+			context.ungetService(sref);
+		}
+		
+		return logger!=null ?logger : defaultlogger;
+	}
 }

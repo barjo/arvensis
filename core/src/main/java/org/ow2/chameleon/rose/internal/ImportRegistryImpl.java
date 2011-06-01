@@ -6,23 +6,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.felix.ipojo.ComponentFactory;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.ow2.chameleon.rose.registry.ImportRegistryListening;
-import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
-import org.ow2.chameleon.rose.registry.ImportRegistryService;
+import org.ow2.chameleon.rose.registry.ImportRegistry;
 
 /**
- * ImportRegistry {@link ComponentFactory} which provides an
- * {@link ImportRegistryListening} service and a
- * {@link ImportRegistryProvisioning} service.
+ * {@link HashMap} based Implementations of {@link ImportRegistry}.
+ * 
  * 
  * The listener are notified only on the first registration of an
  * EndpointDescrition or when all occurrence of an EndpointDescription has been
@@ -30,11 +22,8 @@ import org.ow2.chameleon.rose.registry.ImportRegistryService;
  * 
  * @author barjo
  */
-@Component(name="rose.import.registry",immediate=true)
-@Provides(specifications={ImportRegistryListening.class,ImportRegistryProvisioning.class})
-@Instantiate(name="rose.import.registry-instance")
-public class ImportRegistryComponent implements
-		ImportRegistryService {
+public class ImportRegistryImpl implements
+		ImportRegistry {
 
 	/**
 	 * The Set of registered {@link EndpointDescription}
@@ -53,9 +42,7 @@ public class ImportRegistryComponent implements
 	 * Internal life-cycle callbacks *
 	 *-------------------------------*/
 	
-	@Invalidate
-	@SuppressWarnings("unused")
-	private void stop() {
+	protected void stop() {
 
 		synchronized (descriptions) {
 			Collection<EndpointDescription> descSet = counter.keySet();

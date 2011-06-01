@@ -85,7 +85,7 @@ public final class RoseTools {
 		
 		//Set the ENDPOINT_ID property
 		properties.put(ENDPOINT_ID, computeEndpointId(sref, configPrefix));
-
+		
 		return properties;
 	}
 	

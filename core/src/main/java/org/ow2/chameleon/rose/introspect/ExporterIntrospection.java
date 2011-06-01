@@ -1,7 +1,6 @@
 package org.ow2.chameleon.rose.introspect;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportReference;
@@ -14,10 +13,6 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
  * @version 0.2.0
  */
 public interface ExporterIntrospection {
-	/**
-	 * The name of the property related to {@link ExporterIntrospection#getConfigPrefix()}.
-	 */
-	String ENDPOINT_CONFIG_PREFIX = "rose.exporter.configs";
 
 	/**
      * @return All {@link ExportReference} of services exported through this
@@ -34,9 +29,4 @@ public interface ExporterIntrospection {
 	 */
 	ExportReference getExportReference(ServiceReference sref);
 	
-	/**
-	 * @return The configuration prefix used or defined by the exporter. (i.e <code>json-rpc,org.jabsorb,jax-rs</code>.
-	 */
-	List<String> getConfigPrefix();
-
 }

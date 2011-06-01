@@ -32,6 +32,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
@@ -246,7 +247,8 @@ public abstract class ExporterComponentAbstractTest {
         assertNull(xreg.getException());
         
         //Check that the ExportReference has been succesfully destroyed
-        assertNull(exporter.getExportReference(regLog.getReference()));
+        // Ok this cast sôcks
+        assertNull(((ExporterIntrospection)exporter).getExportReference(regLog.getReference()));
     }
     
     /**

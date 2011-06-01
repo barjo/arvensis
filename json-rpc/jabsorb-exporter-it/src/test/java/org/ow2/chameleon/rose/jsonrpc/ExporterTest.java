@@ -1,7 +1,8 @@
 package org.ow2.chameleon.rose.jsonrpc;
 
+import static org.junit.Assert.fail;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ow2.chameleon.rose.introspect.ExporterIntrospection.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,6 +16,7 @@ import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
@@ -26,17 +28,11 @@ import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
 @RunWith(JUnit4TestRunner.class)
 public class ExporterTest extends ExporterComponentAbstractTest {
     private static final String FILTER="("+ENDPOINT_CONFIG_PREFIX+"=jsonrpc)";
-    private static URI JSONRPC_URI;
+    private static final String PROP_JABSORB_URL="org.jabsorb.url";
 
     @Before
     public void setUp() {
         super.setUp();
-        
-        //init the url
-        try {
-			JSONRPC_URI = new URI("http://localhost:" + HTTP_PORT + "/JSONRPC");
-		} catch (URISyntaxException e) {
-		}
     }
     
     
@@ -56,9 +52,18 @@ public class ExporterTest extends ExporterComponentAbstractTest {
     @SuppressWarnings("unchecked")
 	protected <T> T getProxy(ExportRegistration xreg,Class<T> itface) {
     	T proxy = null;
-        Session session = new HTTPSession(JSONRPC_URI);
+    	Session session = null;
+    	
+    	EndpointDescription description = xreg.getExportReference().getExportedEndpoint();
+
+    	try {
+			session = new HTTPSession(new URI((String) description.getProperties().get(PROP_JABSORB_URL)));
+		} catch (URISyntaxException e) {
+			fail("Bad Url computation"+e.getMessage());
+		}
+		
         Client client = new Client(session);
-        proxy = (T) client.openProxy(xreg.getExportReference().getExportedEndpoint().getId(), itface);
+        proxy = (T) client.openProxy(description.getId(), itface);
     	
 		return proxy;
 	}

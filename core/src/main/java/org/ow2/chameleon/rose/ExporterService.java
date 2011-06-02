@@ -1,9 +1,11 @@
 package org.ow2.chameleon.rose;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 
 /**
@@ -35,5 +37,11 @@ public interface ExporterService {
 	 */
 	ExportRegistration exportService(ServiceReference sref, Map<String, Object> properties);
 
+	/**
+     * @return All {@link ExportReference} of services exported through this
+     *         service.
+     */
+    Collection<ExportReference> getAllExportReference();
+	
 }
  

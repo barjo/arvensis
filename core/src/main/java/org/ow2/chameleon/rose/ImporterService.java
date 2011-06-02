@@ -1,6 +1,9 @@
 package org.ow2.chameleon.rose;
 
+import java.util.Collection;
+
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 
 /**
@@ -20,5 +23,11 @@ public interface ImporterService {
 	 * @return An {@link ImportRegistration}.
 	 */
 	ImportRegistration importService(EndpointDescription description);
+	
+	/**
+     * @return All {@link ImportReference} of services imported through this
+     *         service.
+     */
+    Collection<ImportReference> getAllImportReference();
 	
 }

@@ -1,7 +1,5 @@
 package org.ow2.chameleon.rose.introspect;
 
-import java.util.Collection;
-
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 
@@ -13,13 +11,6 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
  * @version 0.2.0
  */
 public interface ExporterIntrospection {
-
-	/**
-     * @return All {@link ExportReference} of services exported through this
-     *         component instance.
-     */
-    Collection<ExportReference> getAllExportReference();
-	
 
 	/**
 	 * @param sref The {@link ServiceReference} of an exported service.

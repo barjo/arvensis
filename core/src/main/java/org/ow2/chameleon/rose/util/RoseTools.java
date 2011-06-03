@@ -1,20 +1,32 @@
 package org.ow2.chameleon.rose.util;
 
+import static java.util.Collections.emptyList;
 import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.framework.Constants.SERVICE_PID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
+import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
+import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
+import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.ImporterService;
+import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest;
 
 /**
  * This class contains some useful static methods.
@@ -96,6 +108,107 @@ public final class RoseTools {
 	 */
 	public static Dictionary<String, Object> endDescToDico(EndpointDescription enddesc){
 		return new Hashtable<String, Object>(enddesc.getProperties());
+	}
+
+	/**
+	 * @param reference
+	 *            The {@link ServiceReference} of an {@link EndpointListener}.
+	 * @return {@link EndpointListerInterrest} of the given
+	 *         {@link ServiceReference} or <code>ALL</code> if it has not been
+	 *         set.
+	 * @throws IllegalArgumentException
+	 *             if the property
+	 *             {@link RoseMachine#ENDPOINT_LISTENER_INTEREST} is not a valid
+	 *             String or and {@link EndpointListerInterrest}.
+	 */
+	public static EndpointListerInterrest getEndpointListenerInterrest(ServiceReference reference){
+		Object ointerrest = reference.getProperty(ENDPOINT_LISTENER_INTEREST);
+		EndpointListerInterrest interrest = null;
+
+		// Parse the ENDPOINT_LISTENER_INTERRET property
+		if (ointerrest instanceof EndpointListerInterrest) {
+			interrest = (EndpointListerInterrest) ointerrest;
+		} else if (ointerrest instanceof String) {
+			interrest = EndpointListerInterrest.valueOf((String) ointerrest);
+		} else if (ointerrest == null){
+			interrest = ALL;
+		} else {
+			throw new IllegalArgumentException(
+					"The ENDPOINT_LISTENER_INTEREST property is neither an EndpointListerInterrest or a String object.");
+		}
+		
+		return interrest;
+	}
+	
+	/**
+	 * @param context {@link BundleContext}
+	 * @return A Snapshot of All {@link ExporterService} available within this Machine.
+	 */
+	public static List<ExporterService> getAllExporter(BundleContext context){
+		
+		try {
+			return getAllExporter(context, "("+ENDPOINT_CONFIG_PREFIX+"=*)");
+		} catch (InvalidSyntaxException e) {
+			assert false; //What would Dr. Gordon Freeman do ?
+		}
+		
+		return emptyList();
+	}
+	
+	/**
+	 * @param context {@link BundleContext}
+	 * @param filter
+	 * @return A Snapshot of All {@link ExporterService} available within this Machine which match <code>filter</code>.
+	 * @throws InvalidSyntaxException if <code>filter</code> is not valid.
+	 */
+	public static List<ExporterService> getAllExporter(BundleContext context,String filter) throws InvalidSyntaxException{
+		List<ExporterService> exporters = new ArrayList<ExporterService>();
+		
+		ServiceReference[] srefs = context.getAllServiceReferences(
+				ExporterService.class.getName(), filter);
+
+		for (ServiceReference sref : srefs) {
+			exporters.add((ExporterService) context.getService(sref));
+			context.ungetService(sref);
+		}
+			
+		
+		return exporters;
+	}
+	
+	/**
+	 * @param context {@link BundleContext}
+	 * @return A Snapshot of All {@link ImporterService} available within this Machine.
+	 */
+	public static List<ImporterService> getAllImporter(BundleContext context){
+		try {
+			return getAllImporter(context, "("+ImporterService.ENDPOINT_CONFIG_PREFIX+"=*)");
+		} catch (InvalidSyntaxException e) {
+			assert false; //What would Dr. Gordon Freeman do ?
+		}
+		
+		return emptyList();
+	}
+	
+	/**
+	 * @param context {@link BundleContext}
+	 * @param filter
+	 * @return A Snapshot of All {@link ImporterService} available within this Machine which match <code>filter</code>.
+	 * @throws InvalidSyntaxException if <code>filter</code> is not valid.
+	 */
+	public static List<ImporterService> getAllImporter(BundleContext context,String filter) throws InvalidSyntaxException{
+		List<ImporterService> importers = new ArrayList<ImporterService>();
+		
+		ServiceReference[] srefs = context.getAllServiceReferences(
+				ImporterService.class.getName(), filter);
+
+		for (ServiceReference sref : srefs) {
+			importers.add((ImporterService) context.getService(sref));
+			context.ungetService(sref);
+		}
+			
+		
+		return importers;
 	}
 	
 }

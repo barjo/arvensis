@@ -4,8 +4,9 @@ import static org.apache.zookeeper.CreateMode.EPHEMERAL;
 import static org.osgi.service.log.LogService.LOG_DEBUG;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.zookeeper.ZookeeperManager.computePath;
-
+import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.LOCAL;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -16,10 +17,10 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
 
-public class RoseLocalEndpointListener implements ExportedEndpointListener {
+public class RoseLocalEndpointListener implements EndpointListener {
 	
 	private final ZookeeperManager bridge;
 	private final ServiceRegistration registration;
@@ -31,10 +32,11 @@ public class RoseLocalEndpointListener implements ExportedEndpointListener {
 		
 		if (filter!=null){
 			props=new Hashtable<String, Object>();
-			props.put(ENDPOINT_LISTENER_SCOPE, filter);
+			props.put(ENDPOINT_LISTENER_SCOPE, filter); //scope filter
+			props.put(ENDPOINT_LISTENER_INTEREST, LOCAL); //track only local EndpointDescription
 		}
 		
-		registration = context.registerService(ExportedEndpointListener.class.getName(), this, props);
+		registration = context.registerService(EndpointListener.class.getName(), this, props);
 		logger().log(LOG_INFO, "The zookeeper ExportedEndpointListener service has been registered.");
 	}
 	
@@ -78,7 +80,7 @@ public class RoseLocalEndpointListener implements ExportedEndpointListener {
 	}
 	
 	/**
-	 * Unregister this {@link ExportedEndpointListener}.
+	 * Unregister this {@link LocalEndpointListener}.
 	 */
 	public void destroy(){
 		registration.unregister();

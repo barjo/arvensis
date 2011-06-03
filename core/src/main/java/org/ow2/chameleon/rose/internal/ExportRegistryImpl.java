@@ -4,15 +4,12 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
 import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.felix.ipojo.annotations.Bind;
-import org.apache.felix.ipojo.annotations.Unbind;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -26,10 +23,9 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.registry.ExportRegistry;
-import org.ow2.chameleon.rose.registry.ExportedEndpointListener;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 
-public class ExportRegistryImpl implements ExportRegistry{
+public class ExportRegistryImpl implements ExportRegistry {
 	
 	private static final String FILTER = "(" + OBJECTCLASS + "=" + ExportReference.class.getName() + ")";
 	
@@ -152,27 +148,6 @@ public class ExportRegistryImpl implements ExportRegistry{
 				listeners.remove(listener).close(); //remove and close ! (stop the tracker)
 			}
 		}
-	}
-	
-	/*-----------------------------*
-	 * WhiteBoard pattern support  *
-	 *-----------------------------*/
-	
-	@SuppressWarnings("unused")
-	@Bind(aggregate=true,optional=true,id="listeners")
-	private void bindExportedEndpointListener(ExportedEndpointListener listener,Map<String,Object> properties){
-		String filter = (String) properties.get(ENDPOINT_LISTENER_SCOPE);
-		try {
-			addEndpointListener(listener, filter);
-		} catch (Exception e) {
-			getLogger().log(LOG_WARNING, "Cannot bind listener: "+listener+" an exception occured.",e);
-		}
-	}
-	
-	@Unbind(id="listeners")
-	@SuppressWarnings("unused")
-	private void unBindExportedEndpointListener(ExportedEndpointListener listener){
-		removeEndpointListener(listener);
 	}
 	
 	

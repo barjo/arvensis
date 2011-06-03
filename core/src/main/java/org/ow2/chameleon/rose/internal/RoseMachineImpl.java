@@ -1,8 +1,8 @@
 package org.ow2.chameleon.rose.internal;
 
-import static org.osgi.service.log.LogService.LOG_ERROR;
-import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
+import static org.ow2.chameleon.rose.util.RoseTools.getAllExporter;
+import static org.ow2.chameleon.rose.util.RoseTools.getAllImporter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -10,27 +10,29 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointPermission;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
+import org.ow2.chameleon.rose.DynamicExporter;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
@@ -41,6 +43,8 @@ import org.ow2.chameleon.rose.registry.ImportRegistry;
 import org.ow2.chameleon.rose.registry.ImportRegistryListening;
 import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
 import org.ow2.chameleon.rose.util.DefaultLogService;
+import org.ow2.chameleon.rose.util.RoseTools;
+
 
 @Component(name="RoSe.machine",immediate=true)
 @Instantiate
@@ -49,12 +53,18 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	/**
 	 * Remote EndpointDescription dynamic registry.
 	 */
-	private final ImportRegistryImpl importReg;
+	protected final ImportRegistryImpl importReg;
 	
 	/**
 	 * Local EndpointDescriptoin dynamic registry
 	 */
-	private final ExportRegistryImpl exportReg;
+	protected final ExportRegistryImpl exportReg;
+
+	/**
+	 * Track the {@link EndpointListener} and notified them about the
+	 * {@link EndpointDescription} availabilities.
+	 */
+	private final EndpointListenerTracker tracklistener;
 	
 	private final Map<Object,ServiceRegistration> registrations;
 	
@@ -63,18 +73,12 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 */
 	private final Hashtable<String, Object> properties;
 	
-	private Map<String, ExporterService> exporters;
-	
-	private Map<String, ImporterService> importers;
-	
-	
 	private final BundleContext context;
 	
 	@Requires(optional=true,defaultimplementation=DefaultLogService.class)
 	private LogService logger;
 	
 	public RoseMachineImpl(BundleContext pContext) {
-		exporters = new HashMap<String, ExporterService>();
 		properties = new Hashtable<String, Object>(4);
 		registrations = new HashMap<Object, ServiceRegistration>(4);
 		context = pContext;
@@ -88,6 +92,8 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		//Create the export registry
 		exportReg = new ExportRegistryImpl(context);
 		
+		//Create the EndpointListener Tracker
+		tracklistener = new EndpointListenerTracker(context, this);
 	}
 
 	@SuppressWarnings("unused")
@@ -99,6 +105,9 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		
 		//Register the RoseMachine Service
 		registrations.put(this, context.registerService(RoseMachine.class.getName(), this, properties));
+	
+		//Open the EndpointListener tracker
+		tracklistener.open();
 	}
 	
 	@SuppressWarnings("unused")
@@ -109,14 +118,19 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 			reg.unregister();
 		}
 		
+		//Close the EndpointListener tracker
+		tracklistener.close();
+		
 		//Stop both rose local registry
 		importReg.stop();
 		exportReg.stop();
 	}
+	
 
 	/*-------------------------------*
-	 *                               *
+	 *  Registry methods             *
 	 *-------------------------------*/
+	
 	
 	public final ImportRegistry importRegistry(){
 		return importReg;
@@ -126,38 +140,16 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		return exportReg;
 	}
 	
-	@SuppressWarnings("unused")
-	@Bind(optional=true,aggregate=true)
-	private void bindEndpointListener(EndpointListener listener, ServiceReference ref){
-		Object sfilter = ref.getProperty(ENDPOINT_LISTENER_SCOPE);
-		try {
-			if (sfilter == null) {
-				exportReg.addEndpointListener(listener);
-			} else {
-				exportReg.addEndpointListener(listener, String.valueOf(sfilter));
-			}
-		} catch (Exception e) {
-			logger.log(
-					LOG_ERROR,
-					"Cannot add the EndpointListener to the RoseMachine registry. an exception occured",
-					e);
-		}
-	}
 	
-	@SuppressWarnings("unused")
-	@Unbind
-	private void unbindEndpointListener(EndpointListener listener){
-		exportReg.removeEndpointListener(listener);
-	}
-	
-	/*-----------------------------*
-	 *  Server (Service Exporter) methods
-	 *-----------------------------*/
+	/*------------------------------*
+	 *  RemoteServiceAdmin methods  *
+	 *------------------------------*/
 	
 	public Collection<ExportRegistration> exportService(ServiceReference reference, Map<String, Object> properties) {
+		Collection<ExporterService> exporters = RoseTools.getAllExporter(context);
 		Collection<ExportRegistration> registrations = new HashSet<ExportRegistration>(); 
 		
-		for (ExporterService exporter : exporters.values()) {
+		for (ExporterService exporter : exporters) {
 			ExportRegistration reg = exporter.exportService(reference, properties);
 			if (reg!=null){
 				registrations.add(reg);
@@ -168,21 +160,42 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	}
 
 	public ImportRegistration importService(EndpointDescription endpoint) {
-		Iterator<String> configs = endpoint.getConfigurationTypes().iterator();
+		Iterator<ImporterService> iterator;
+		
+		//Construct a Filter which track only the Importer which are compliant with the EndpointDescription.
+		StringBuilder filterb = new StringBuilder("(&");
+		
+		for (String conf : endpoint.getConfigurationTypes()) {
+			filterb.append("(");
+			filterb.append(ImporterService.ENDPOINT_CONFIG_PREFIX);
+			filterb.append("=");
+			filterb.append(conf);
+			filterb.append(")");
+		}
+		filterb.append(")");
+		
+		try {
+			iterator = getAllImporter(context, filterb.toString()).iterator();
+		} catch (InvalidSyntaxException e) {
+			assert false; //What Would Dr. Gordon Freeman Do ?
+			return null;
+		}
+		
 		ImportRegistration registration = null;
 
-		while (configs.hasNext() && registration==null) {
-			String config = configs.next();
-			registration = importers.get(config).importService(endpoint);
+		//First successful import is the winner :P
+		while (iterator.hasNext() && registration==null) {
+			registration = iterator.next().importService(endpoint);
 		}
 		
 		return registration;
 	}
 
 	public Collection<ExportReference> getExportedServices() {
+		Collection<ExporterService> exporters = getAllExporter(context);
 		Collection<ExportReference> refs = new HashSet<ExportReference>();
 		
-		for (ExporterService exporter : exporters.values()) {
+		for (ExporterService exporter : exporters) {
 			refs.addAll(exporter.getAllExportReference());
 		}
 		
@@ -191,8 +204,9 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 
 	public Collection<ImportReference> getImportedEndpoints() {
 		Collection<ImportReference> refs = new HashSet<ImportReference>();
-
-		for (ImporterService importer : importers.values()) {
+		List<ImporterService> importers = getAllImporter(context);
+		
+		for (ImporterService importer : importers) {
 			refs.addAll(importer.getAllImportReference());
 		}
 		
@@ -203,21 +217,6 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 * The RoSe Machine Properties  *
 	 *------------------------------*/
 	
-	/**
-	 * System property identifying the ID for this rose machine.
-	 */
-	public final static String ROSE_MACHINE_ID = "rose.machine.id";
-
-	/**
-	 * System property identifying the host name for this rose machine.
-	 */
-	public final static String ROSE_MACHINE_HOST = "rose.machine.host";
-
-	/**
-	 * System property identifying the IP address for this rose machine.
-	 */
-	public final static String ROSE_MACHINE_IP = "rose.machine.ip";
-
 	/**
 	 * Default machine IP.
 	 */

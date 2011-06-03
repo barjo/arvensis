@@ -21,7 +21,7 @@ public interface ExporterService {
 	/**
 	 * The name of the property related to {@link ExporterService#getConfigPrefix()}.
 	 */
-	String ENDPOINT_CONFIG_PREFIX = "rose.exporter.configs";
+	String ENDPOINT_CONFIG_PREFIX = "rose.protos.configs";
 	
 	/**
 	 * @return The configuration prefix used or defined by the exporter. (i.e <code>json-rpc,org.jabsorb,jax-rs</code>.

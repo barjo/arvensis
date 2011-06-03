@@ -184,7 +184,7 @@ public class ImportRegistryImpl implements
 		FrameworkUtil.createFilter(filter);
 
 		synchronized (descriptions) {
-			listeners.put(listener, null);
+			listeners.put(listener, filter);
 			for (EndpointDescription endpoint : counter.keySet()) {
 				if (endpoint.matches(filter)) {
 					listener.endpointAdded(endpoint, filter);
@@ -200,10 +200,16 @@ public class ImportRegistryImpl implements
 	 */
 	public void removeEndpointListener(EndpointListener listener) {
 		synchronized (descriptions) {
-			listeners.remove(listener);
-			// XXX Should we called listener.endpointRemoved ??
+			if (listeners.containsKey(listener)){
+				String filter = listeners.remove(listener);
+				
+				for (EndpointDescription endpoint : counter.keySet()) {
+					if (endpoint.matches(filter)) {
+						listener.endpointRemoved(endpoint, filter);
+					}
+				}
+			}
 		}
-
 	}
 
 	public boolean contains(EndpointDescription desc) {

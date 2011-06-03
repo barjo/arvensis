@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ImportReference;
@@ -14,7 +15,7 @@ import org.osgi.service.remoteserviceadmin.ImportRegistration;
  */
 public interface ImporterService {
 
-	String ENDPOINT_CONFIG_PREFIX = "rose.importer.configs";
+	String ENDPOINT_CONFIG_PREFIX = "rose.protos.configs";
 
 	/**
 	 * Reify the endpoint of given description as a local service.
@@ -23,6 +24,11 @@ public interface ImporterService {
 	 * @return An {@link ImportRegistration}.
 	 */
 	ImportRegistration importService(EndpointDescription description);
+	
+	/**
+	 * @return The configuration prefix used or defined by this {@link ImporterService}. (i.e <code>json-rpc,org.jabsorb,jax-rs</code>.
+	 */
+	List<String> getConfigPrefix();
 	
 	/**
      * @return All {@link ImportReference} of services imported through this

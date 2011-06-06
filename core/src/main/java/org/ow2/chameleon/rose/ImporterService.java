@@ -2,6 +2,7 @@ package org.ow2.chameleon.rose;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ImportReference;
@@ -21,9 +22,10 @@ public interface ImporterService {
 	 * Reify the endpoint of given description as a local service.
 	 * 
 	 * @param description The {@link EndpointDescription} of the endpoint to be imported.
+	 * @param properties optional properties (must be crushed by the description properties if conflict).
 	 * @return An {@link ImportRegistration}.
 	 */
-	ImportRegistration importService(EndpointDescription description);
+	ImportRegistration importService(EndpointDescription description,Map<String, Object> properties);
 	
 	/**
 	 * @return The configuration prefix used or defined by this {@link ImporterService}. (i.e <code>json-rpc,org.jabsorb,jax-rs</code>.

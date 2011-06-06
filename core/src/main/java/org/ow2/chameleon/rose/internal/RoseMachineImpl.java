@@ -34,10 +34,8 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
-import org.ow2.chameleon.rose.registry.ExportRegistry;
 import org.ow2.chameleon.rose.registry.ExportRegistryListening;
 import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
-import org.ow2.chameleon.rose.registry.ImportRegistry;
 import org.ow2.chameleon.rose.registry.ImportRegistryListening;
 import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
 import org.ow2.chameleon.rose.util.DefaultLogService;
@@ -203,7 +201,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 
 		//First successful import is the winner :P
 		while (iterator.hasNext() && registration==null) {
-			registration = iterator.next().importService(endpoint);
+			registration = iterator.next().importService(endpoint,null);
 		}
 		
 		return registration;

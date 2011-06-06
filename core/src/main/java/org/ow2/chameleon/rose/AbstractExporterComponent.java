@@ -65,7 +65,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			for (Iterator<ServiceReference> iterator = srefs.iterator(); iterator.hasNext();) {
 				ServiceReference ref = iterator.next();
 				ExportReference xref = registrations.getElem(ref).getExportReference();
-				getRoseMachine().exportRegistry().remove(xref); //TODO check !=null
+				getRoseMachine().removeLocal(xref); //TODO check !=null
 				destroyEndpoint(xref.getExportedEndpoint()); //TODO check != null
 				iterator.remove();
 			}
@@ -236,7 +236,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			registrations.add(xref.getExportedService(), this);
 			
 			//register the ExportReference within the ExportRegistry
-			getRoseMachine().exportRegistry().put(xref,xref);
+			getRoseMachine().putLocal(xref,xref);
 		}
 		
 		
@@ -256,7 +256,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			if (xref != null) {
 				// Last registration, remove the ExportReference from the ExportRegistry
 				if (registrations.remove(xref.getExportedService(), this)) {
-					getRoseMachine().exportRegistry().remove(xref);
+					getRoseMachine().removeLocal(xref);
 					destroyEndpoint(xref.getExportedEndpoint());
 				}
 				xref = null; // is now closed

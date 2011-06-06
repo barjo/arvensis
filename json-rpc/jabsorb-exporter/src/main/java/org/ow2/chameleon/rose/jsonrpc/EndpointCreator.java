@@ -223,6 +223,9 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
         
         Object service = context.getService(sref);
         
+        //Release the reference
+        context.ungetService(sref);
+        
         //Check if the name is valid
         if (endpointIds.contains(id)){
             throw new IllegalArgumentException("An endpoint of id: "+id+" has already been created. Please chose a different id.");

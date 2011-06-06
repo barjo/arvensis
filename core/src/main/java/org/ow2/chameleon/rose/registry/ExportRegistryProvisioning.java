@@ -13,6 +13,6 @@ public interface ExportRegistryProvisioning {
 	
 	ExportReference remove(Object key);
 	
-	boolean contains(Object key);
+	boolean contains(ExportReference xref);
 }
 

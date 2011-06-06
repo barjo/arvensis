@@ -25,7 +25,6 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.RoseMachine;
-import org.ow2.chameleon.rose.registry.ExportRegistry;
 
 /**
  *  Test Suite of the {@link AbstractExporterComponent} class.
@@ -37,7 +36,6 @@ public class AbstractExporterComponentTest {
 	//Mock object
 	@Mock LogService logservice;
 	@Mock RoseMachine machine;
-	@Mock ExportRegistry registry;
 	
 	//Tested Object
 	TestedClass creator;
@@ -92,19 +90,19 @@ public class AbstractExporterComponentTest {
 		assertNull(reg.getException()); //No Exception
 		
 		//Configure the registry behavior
-		when(registry.remove(xref)).thenReturn(xref);
+		when(machine.removeLocal(xref)).thenReturn(xref);
 		
 		assertEquals(xref, creator.getExportReference(sref)); //no strange side effect on the reference
 		
 		//Check that the ExportReference is published in the ExportRegistry
-		verify(registry).put(xref,xref);
+		verify(machine).putLocal(xref,xref);
 		
 		reg.close(); //Unexport !
 		
 		assertNull(reg.getExportReference()); //Now that is has been closed
 		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
 
-		verify(registry).remove(xref); //Verify the unregister method has been called once.
+		verify(machine).removeLocal(xref); //Verify the unregister method has been called once.
 		
 		assertEquals(0, creator.nbEndpoints()); //Verify that the destroy method has been called
 		
@@ -135,19 +133,19 @@ public class AbstractExporterComponentTest {
 		assertNull(reg.getException()); //No Exception
 		
 		//Configure the registry behavior
-		when(registry.remove(xref)).thenReturn(xref);
+		when(machine.removeLocal(xref)).thenReturn(xref);
 		
 		assertEquals(xref, creator.getExportReference(sref)); //no strange side effect on the reference
 		
 		//Check that the ExportReference is published in the ExportRegistry
-		verify(registry).put(xref,xref);
+		verify(machine).putLocal(xref,xref);
 		
 		reg.close(); //Re unexport !
 		
 		assertNull(reg.getExportReference()); //Now that is has been closed
 		assertNull(creator.getExportReference(sref)); //No more ExportReferences, that was the last registration
 
-		verify(registry).remove(xref); //Verify the unregister method has been called once.
+		verify(machine).removeLocal(xref); //Verify the unregister method has been called once.
 		
 		assertEquals(0, creator.nbEndpoints()); //Verify that the destroy method has been called
 		
@@ -170,7 +168,7 @@ public class AbstractExporterComponentTest {
 			ExportReference xref = reg.getExportReference(); //get the ExportReference
 			
 			//Configure the registry behavior
-			when(registry.remove(xref)).thenReturn(xref);
+			when(machine.removeLocal(xref)).thenReturn(xref);
 			
 		
 			assertNotNull(xref); //Export is a success
@@ -191,7 +189,7 @@ public class AbstractExporterComponentTest {
 			assertNull(creator.getExportReference(sref)); //No more exported
 			
 			//assertEquals(--count, creator.getAllExportReference().size()); //verify that one and only one has been removed
-			verify(registry).remove(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
+			verify(machine).removeLocal(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		}
 		
 		creator.stop(); //Invalidate the instance
@@ -214,7 +212,7 @@ public class AbstractExporterComponentTest {
 			xref = reg.getExportReference(); //get the ExportReference
 			
 			//Configure the registry behavior
-			when(registry.remove(xref)).thenReturn(xref);
+			when(machine.removeLocal(xref)).thenReturn(xref);
 		
 			assertNotNull(reg.getExportReference()); //Export is a success
 			assertNull(reg.getException()); //No Exception
@@ -235,7 +233,7 @@ public class AbstractExporterComponentTest {
 		}
 		
 		//assertEquals(0, creator.getAllExportReference().size()); //The ExportReference has been closed since there is no more exportRegistration linked to it.
-		verify(registry).remove(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
+		verify(machine).removeLocal(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		
 		creator.stop(); //Invalidate the instance
 	}
@@ -285,7 +283,6 @@ public class AbstractExporterComponentTest {
 
 		@Override
 		protected RoseMachine getRoseMachine() {
-			when(machine.exportRegistry()).thenReturn(registry);
 			return machine;
 		}
 

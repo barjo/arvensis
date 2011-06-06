@@ -26,13 +26,11 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.osgi.service.remoteserviceadmin.EndpointPermission;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
-import org.ow2.chameleon.rose.DynamicExporter;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
@@ -93,7 +91,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		exportReg = new ExportRegistryImpl(context);
 		
 		//Create the EndpointListener Tracker
-		tracklistener = new EndpointListenerTracker(context, this);
+		tracklistener = new EndpointListenerTracker(context, importReg,exportReg);
 	}
 
 	@SuppressWarnings("unused")
@@ -108,6 +106,8 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	
 		//Open the EndpointListener tracker
 		tracklistener.open();
+		
+		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(ROSE_MACHINE_ID)+" has successfully started");
 	}
 	
 	@SuppressWarnings("unused")
@@ -124,6 +124,8 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		//Stop both rose local registry
 		importReg.stop();
 		exportReg.stop();
+		
+		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(ROSE_MACHINE_ID)+" has been stoped");
 	}
 	
 
@@ -132,15 +134,31 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 *-------------------------------*/
 	
 	
-	public final ImportRegistry importRegistry(){
-		return importReg;
+	public void putRemote(Object key, EndpointDescription description) {
+		importReg.put(key, description);
 	}
-	
-	public final ExportRegistry exportRegistry(){
-		return exportReg;
+
+	public EndpointDescription removeRemote(Object key) {
+		return importReg.remove(key);
 	}
+
+	public boolean containsRemote(EndpointDescription desc) {
+		return importReg.contains(desc);
+	}
+
 	
-	
+	public void putLocal(Object key, ExportReference xref) {
+		exportReg.put(key, xref);
+	}
+
+	public ExportReference removeLocal(Object key) {
+		return exportReg.remove(key);
+	}
+
+	public boolean containsLocal(ExportReference xref) {
+		return exportReg.contains(xref);
+	}
+
 	/*------------------------------*
 	 *  RemoteServiceAdmin methods  *
 	 *------------------------------*/
@@ -289,6 +307,18 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 */
 	public final Map<String, Object>  getProperties(){
 		return Collections.unmodifiableMap(properties);
+	}
+	
+	/*---------------------------------------*
+	 *  RoseMachine Logger                   *
+	 *---------------------------------------*/
+	
+	public void log(int level, String message){
+		logger.log(level, message);
+	}
+	
+	public void log(int level, String message,Throwable exception){
+		logger.log(level, message,exception);
 	}
 
 }

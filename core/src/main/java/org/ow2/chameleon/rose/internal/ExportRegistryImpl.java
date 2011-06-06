@@ -4,6 +4,7 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.ow2.chameleon.rose.util.RoseTools.endDescToDico;
 
 import java.util.HashMap;
@@ -88,9 +89,20 @@ public class ExportRegistryImpl implements ExportRegistry {
 		return xref;
 	}
 	
-	public boolean contains(Object key) {
+	public boolean contains(ExportReference xref) {
+		StringBuilder filter = new StringBuilder("(");
+		filter.append(ENDPOINT_ID);
+		filter.append("=");
+		filter.append(xref.getExportedEndpoint().getId());
+		filter.append(")");
+		
 		synchronized (registrations) {
-			return registrations.containsKey(key);
+			try {
+				return context.getServiceReferences(ExportReference.class.getName(),filter.toString()) != null;
+			} catch (InvalidSyntaxException e) {
+				//XXX What would Dr Gordon Freeman do ?
+				return false;
+			}
 		}
 	}
 	

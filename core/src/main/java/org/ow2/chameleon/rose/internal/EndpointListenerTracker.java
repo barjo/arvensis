@@ -8,7 +8,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest;
 import org.ow2.chameleon.rose.registry.ExportRegistry;
 import org.ow2.chameleon.rose.registry.ImportRegistry;
@@ -20,10 +19,10 @@ public class EndpointListenerTracker implements ServiceTrackerCustomizer {
 	private final BundleContext context;
 	
 	
-	public EndpointListenerTracker(BundleContext pContext, RoseMachine machine) {
+	public EndpointListenerTracker(BundleContext pContext,ImportRegistry impReg, ExportRegistry expReg) {
 		context = pContext;
-		importReg =  machine.importRegistry();
-		exportReg = machine.exportRegistry();
+		importReg =  impReg;
+		exportReg = expReg;
 		
 		tracker = new ServiceTracker(context, EndpointListener.class.getName(), this);
 	}

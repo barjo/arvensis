@@ -92,7 +92,7 @@ public class DynamicExporter {
 			sb.append(DEFAULT_EXPORTER_FILTER);
 			sb.append(val);
 			sb.append(")");
-			xfilter = createFilter(val);
+			xfilter = createFilter(sb.toString());
 
 			return this;
 		}

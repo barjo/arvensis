@@ -2,7 +2,9 @@ package org.ow2.chameleon.rose;
 
 import java.util.Map;
 
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 
 public interface RoseMachine {
@@ -40,6 +42,10 @@ public interface RoseMachine {
 	ExportReference removeLocal(Object key);
 
 	boolean containsLocal(ExportReference xref);
+	
+	void addEndpointListener(EndpointListener listener, EndpointListerInterrest interrest, String filter) throws InvalidSyntaxException;
+
+	void removeEndpointListener(EndpointListener listener, EndpointListerInterrest interrest);
 	
 	
 	/**

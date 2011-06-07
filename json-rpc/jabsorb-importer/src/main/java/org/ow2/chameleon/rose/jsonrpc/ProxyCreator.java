@@ -10,6 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.ServiceProperty;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.jabsorb.client.Client;
 import org.jabsorb.client.HTTPSession;
 import org.jabsorb.client.Session;
@@ -28,13 +35,30 @@ import org.ow2.chameleon.rose.util.RoseTools;
  * 
  * TODO Improve the client management, only one client should be created for a given uri.
  */
+@Component(name="RoSe.importer.jsonrpc[jabsorb]")
+@Provides(specifications={ImporterService.class})
+@Instantiate(name="RoSe.importer.jsonrpc[jabsorb]-default")
 public class ProxyCreator extends AbstractImporterComponent{
 	/**
 	 * Property containing the URL of the JSONRPC orb.
 	 */
 	private final static String PROP_JABSORB_URL = "org.jabsorb.url";
 	
-	private static final String[] CONFIGS = {"jsonrpc", "org.jabsorb", "json-rpc"};
+	
+	/**
+	 * Configuration supported by this component
+	 */
+	@ServiceProperty(name=ENDPOINT_CONFIG_PREFIX,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
+	private String[] CONFIGS;
+	
+	/**
+	 * Require the {@link RoseMachine}.
+	 */
+	@Requires(optional=false)
+	private RoseMachine machine;
+	
+	@Requires(optional=true)
+	private LogService logger;
 	
 	private final BundleContext context;
 
@@ -48,6 +72,10 @@ public class ProxyCreator extends AbstractImporterComponent{
         context=pContext;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.ow2.chameleon.rose.AbstractImporterComponent#createProxy(org.osgi.service.remoteserviceadmin.EndpointDescription, java.util.Map)
+     */
     public ServiceRegistration createProxy(EndpointDescription description,Map<String, Object> properties){
     	final Object proxy;
         final Client client;
@@ -86,6 +114,10 @@ public class ProxyCreator extends AbstractImporterComponent{
         return registerProxy(context, proxy,description,properties);
     } 
 
+    /*
+     * (non-Javadoc)
+     * @see org.ow2.chameleon.rose.AbstractImporterComponent#destroyProxy(org.osgi.service.remoteserviceadmin.EndpointDescription, org.osgi.framework.ServiceRegistration)
+     */
     public void destroyProxy(EndpointDescription description, ServiceRegistration registration){
     	if (proxies.containsKey(description.getId())) {
             Client client = proxies.remove(description.getId());
@@ -96,7 +128,28 @@ public class ProxyCreator extends AbstractImporterComponent{
         }
     }
     
-	
+    /*
+     * (non-Javadoc)
+     * @see org.ow2.chameleon.rose.AbstractImporterComponent#getLogService()
+     */
+	@Override
+	protected LogService getLogService() {
+		return logger;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.AbstractImporterComponent#getRoseMachine()
+	 */
+	@Override
+	protected RoseMachine getRoseMachine() {
+		return machine;
+	}
+    
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.ImporterService#getConfigPrefix()
+	 */
 	public List<String> getConfigPrefix() {
 		return asList(CONFIGS);
 	}
@@ -106,29 +159,25 @@ public class ProxyCreator extends AbstractImporterComponent{
      *  Component LifeCycle method              *
      *------------------------------------------*/
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ow2.chameleon.rose.AbstractImporterComponent#start()
+	 */
+	@Override
+	@Validate
 	protected void start(){
 		super.start();
 	}
 
-    /**
-     * CallBack onInvalidate, called by iPOJO. Destroy all the created proxy.
+    /*
+     * (non-Javadoc)
+     * @see org.ow2.chameleon.rose.AbstractImporterComponent#stop()
      */
-    @SuppressWarnings("unused")
+    @Override
+    @Invalidate
 	protected void stop() {
         super.stop();
     }
 
-	@Override
-	protected LogService getLogService() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected RoseMachine getRoseMachine() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-    
 
 }

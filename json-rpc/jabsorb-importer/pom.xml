@@ -34,6 +34,11 @@
 			<version>${rose.core.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-osgi</artifactId>
+			<version>4.1.1</version>
+		</dependency>
+		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.compendium</artifactId>
 			<version>${osgi.version}</version>
@@ -67,8 +72,25 @@
 							${project.artifactId}
 						</Bundle-SymbolicName>
 						<Private-Package>
-							org.ow2.chameleon.rose.jsonrpc
+							org.ow2.chameleon.rose.jsonrpc,
+							org.json
 						</Private-Package>
+						<Import-Package>
+							org.apache.http,
+							org.apache.http.conn, 
+							org.apache.http.client,
+							org.apache.http.client.methods,
+							org.apache.http.entity,
+							org.apache.http.impl.client, 
+							org.apache.http.impl.conn.tsccm,
+							org.jabsorb.client,
+							!org.json,
+							org.osgi.framework,
+							org.osgi.service.log,
+							org.osgi.service.remoteserviceadmin,
+							org.ow2.chameleon.rose,
+							org.ow2.chameleon.rose.util
+						</Import-Package>
 						<Export-Package/>
 					</instructions>
 				</configuration>

@@ -126,7 +126,18 @@
 			<version>${jabsorb-importer.version}</version>
 			<scope>test</scope>
 		</dependency>	
-
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-osgi</artifactId>
+			<version>4.1.1</version>
+			<scope>test</scope>
+		</dependency>	
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore-osgi</artifactId>
+			<version>4.1.1</version>
+			<scope>test</scope>
+		</dependency>	
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>

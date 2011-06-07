@@ -89,7 +89,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		exportReg = new ExportRegistryImpl(context);
 		
 		//Create the EndpointListener Tracker
-		tracklistener = new EndpointListenerTracker(context, importReg,exportReg);
+		tracklistener = new EndpointListenerTracker(this);
 	}
 
 	@SuppressWarnings("unused")
@@ -156,6 +156,38 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	public boolean containsLocal(ExportReference xref) {
 		return exportReg.contains(xref);
 	}
+	
+	public void addEndpointListener(EndpointListener listener,
+			EndpointListerInterrest interrest, String filter)
+			throws InvalidSyntaxException {
+		switch (interrest) {
+		case ALL:
+			exportReg.addEndpointListener(listener, filter);
+			importReg.addEndpointListener(listener, filter);
+			break;
+		case LOCAL:
+			exportReg.addEndpointListener(listener, filter);
+			break;
+		case REMOTE:
+			importReg.addEndpointListener(listener, filter);
+		}
+	}
+
+	public void removeEndpointListener(EndpointListener listener,
+			EndpointListerInterrest interrest) {
+		switch (interrest) {
+		case ALL:
+			exportReg.removeEndpointListener(listener);
+			importReg.removeEndpointListener(listener);
+			break;
+		case LOCAL:
+			exportReg.removeEndpointListener(listener);
+			break;
+		case REMOTE:
+			importReg.removeEndpointListener(listener);
+		}
+	}
+	
 
 	/*------------------------------*
 	 *  RemoteServiceAdmin methods  *
@@ -311,12 +343,20 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 *  RoseMachine Logger                   *
 	 *---------------------------------------*/
 	
-	public void log(int level, String message){
+	protected void log(int level, String message){
 		logger.log(level, message);
 	}
 	
-	public void log(int level, String message,Throwable exception){
+	protected void log(int level, String message,Throwable exception){
 		logger.log(level, message,exception);
+	}
+	
+	/*---------------------------------------*
+	 * RoseMachine BundleContext             *
+	 *---------------------------------------*/
+	
+	protected BundleContext getContext(){
+		return context;
 	}
 
 }

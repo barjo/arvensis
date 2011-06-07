@@ -44,7 +44,7 @@ public class DynamicImporter {
 		extraProperties = builder.extraProperties;
 		context = builder.context;
 		edfilter = builder.dfilter;
-		ifilter = builder.xfilter;
+		ifilter = builder.imfilter;
 		customizer = builder.customizer;
 
 		imptracker = new ImporterTracker();
@@ -77,13 +77,13 @@ public class DynamicImporter {
 	 * 
 	 * @author barjo
 	 */
-	public class Builder {
+	public static class Builder {
 		// required
 		private final BundleContext context;
 		private final Filter dfilter;
 
 		// optional
-		private Filter xfilter = createFilter(DEFAULT_IMPORTER_FILTER);
+		private Filter imfilter = createFilter(DEFAULT_IMPORTER_FILTER);
 		private DynamicImporterCustomizer customizer = new DefautCustomizer();
 		private Map<String, Object> extraProperties = new HashMap<String, Object>();
 
@@ -99,7 +99,8 @@ public class DynamicImporter {
 			sb.append(DEFAULT_IMPORTER_FILTER);
 			sb.append(val);
 			sb.append(")");
-
+			imfilter = createFilter(sb.toString());
+			
 			return this;
 		}
 
@@ -222,7 +223,10 @@ public class DynamicImporter {
 		public Object doImport(ImporterService importer,
 				EndpointDescription description,Map<String, Object> properties) {
 			ImportRegistration registration = importer.importService(description,properties);
-			irefs.add(registration.getImportReference());
+			ImportReference iref = registration.getImportReference();
+			if (iref!=null){
+				irefs.add(registration.getImportReference());
+			}//XXX else log exception ? registration.getException ?
 			return registration;
 		}
 

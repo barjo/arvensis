@@ -134,7 +134,9 @@ public class RoSeHelper {
 		sref = context.getServiceReference(klass.getName());
 
 		if (sref != null) {
-			return (T) context.getService(sref);
+			T service = (T) context.getService(sref);
+			context.ungetService(sref);
+			return service;
 		} else {
 			return null;
 		}

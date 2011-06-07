@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.felix.ipojo.ComponentFactory;
-import org.apache.felix.ipojo.ComponentInstance;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -20,6 +19,8 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 
 /**
  * Abstract implementation of an endpoint-creator {@link ComponentFactory} which provides an {@link ExporterService}.
+ * Start must be call before registering the service !
+ * Stop must be called while the service is no more available !
  * 
  * @version 0.2.0
  * @author barjo
@@ -89,7 +90,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 }
 	 
 	 /**
-	  * @return <code>true</code> if the {@link ComponentInstance} is in a valid state, <code>false</code> otherwise.
+	  * @return <code>true</code> if the {@link ExporterService} is in a valid state, <code>false</code> otherwise.
 	  */
 	 protected final boolean isValid(){
 			return isValid;

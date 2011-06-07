@@ -71,7 +71,7 @@ public class DynamicExporter {
 	 * 
 	 * @author barjo
 	 */
-	public class Builder {
+	public static class Builder {
 		// required
 		private final BundleContext context;
 		private final Filter sfilter;

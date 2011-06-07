@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.felix.ipojo.ComponentInstance;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
@@ -19,6 +18,8 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 
 /**
  * Abstract implementation of an proxy-creator which provides an {@link ImporterService}.
+ * Start must be call before registering the service !
+ * Stop must be called while the service is no more available !
  * 
  * @version 0.2.0
  * @author barjo
@@ -83,7 +84,7 @@ public abstract class AbstractImporterComponent implements ImporterService {
 	 }
 	 
 	 /**
-	  * @return <code>true</code> if the {@link ComponentInstance} is in a valid state, <code>false</code> otherwise.
+	  * @return <code>true</code> if the {@link ImporterService} is in a valid state, <code>false</code> otherwise.
 	  */
 	 protected final boolean isValid(){
 			return isValid;

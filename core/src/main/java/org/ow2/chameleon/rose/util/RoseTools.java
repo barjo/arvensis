@@ -292,9 +292,7 @@ public final class RoseTools {
 
 		for (int i = 0; i < interfaces.size(); i++) {
 			String itf = interfaces.get(i);
-			String pname = itf.substring(0, itf.lastIndexOf(".") - 1); // extract
-																		// package
-																		// name
+			String pname = itf.substring(0, itf.lastIndexOf(".")); // extract package name
 
 			ExportedPackage pkg = padmin.getExportedPackage(pname);
 			try {

@@ -4,7 +4,6 @@ import static org.osgi.service.log.LogService.LOG_WARNING;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.osgi.framework.ServiceReference;
@@ -55,14 +54,13 @@ public abstract class AbstractImporterComponent implements ImporterService {
 		synchronized (registrations) {
 			Collection<EndpointDescription> descs = registrations.keySet();
 		
-			for (Iterator<EndpointDescription> iterator = descs.iterator(); iterator.hasNext();) {
-				EndpointDescription desc = iterator.next();
+			for (EndpointDescription desc : descs) {
 				MyImportReference iref = registrations.getElem(desc).getImportReference();
 				destroyProxy(iref.getImportedEndpoint(),iref.getRegistration()); //TODO check != null
 				iref.close();//unregister the proxy
-				iterator.remove();
 			}
 			
+			registrations.clear();
 			isValid = false;
 		}
 	 }

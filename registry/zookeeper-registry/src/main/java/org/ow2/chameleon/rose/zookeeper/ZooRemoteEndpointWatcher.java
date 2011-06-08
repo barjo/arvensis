@@ -10,16 +10,16 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
+import org.ow2.chameleon.rose.RoseMachine;
 
 public class ZooRemoteEndpointWatcher implements Watcher{
 	
 	private final ZookeeperManager manager;
-	private final ImportRegistryProvisioning registry;
+	private final RoseMachine machine;
 	
-	public ZooRemoteEndpointWatcher(ZookeeperManager pManager,ImportRegistryProvisioning pRegistry) {
+	public ZooRemoteEndpointWatcher(ZookeeperManager pManager,RoseMachine pMachine) {
 		manager=pManager;
-		registry=pRegistry;
+		machine=pMachine;
 		try {
 			keeper().exists(SEPARATOR, this);
 		} catch (KeeperException e) {
@@ -59,7 +59,7 @@ public class ZooRemoteEndpointWatcher implements Watcher{
 				@SuppressWarnings("unchecked")
 				Map<String, Object> map = json().fromJSON(String.valueOf(desc));
 				EndpointDescription endpoint = new EndpointDescription(map);
-				registry.put(path, endpoint);
+				machine.putRemote(path, endpoint);
 				keeper().exists(path, this); //Watch the node
 			} catch (Exception e) {
 				// TODO: handle exception
@@ -71,11 +71,11 @@ public class ZooRemoteEndpointWatcher implements Watcher{
 		case NodeDeleted:
 			//Remove the endpoint
 			System.out.println("Path "+path);
-			registry.remove(path);
+			machine.removeRemote(path);
 			break;
 		case NodeChildrenChanged:
 			//Remove the endpoint
-			registry.remove(path); //?
+			machine.removeRemote(path); //?
 			break;
 			
 		case None:

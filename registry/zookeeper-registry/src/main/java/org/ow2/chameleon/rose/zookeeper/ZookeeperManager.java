@@ -19,7 +19,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
+import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 
 /**
@@ -40,7 +40,7 @@ public class ZookeeperManager implements Watcher {
 	private String filter;
 
 	@Requires(optional=false)
-	private ImportRegistryProvisioning registry;
+	private RoseMachine machine;
 	
 	@Requires(optional=false)
 	private JSONService json;
@@ -71,6 +71,9 @@ public class ZookeeperManager implements Watcher {
 	private void start() {
 
 		try {
+			//Set the framework id
+			frameworkid = machine.getId();
+			
 			//connect the client.
 			keeper = new ZooKeeper(connectString, sessionTimeout, this);
 			
@@ -146,7 +149,7 @@ public class ZookeeperManager implements Watcher {
 	 * Create the {@link RoseLocalEndpointListener} and the {@link ZooRemoteEndpointWatcher}
 	 */
 	private void createListenerAndProvisioner(){
-		provisioner = new ZooRemoteEndpointWatcher(this, registry);
+		provisioner = new ZooRemoteEndpointWatcher(this, machine);
 		listener = new RoseLocalEndpointListener(this,filter,context);
 	}
 	

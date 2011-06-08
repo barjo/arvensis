@@ -3,7 +3,11 @@ package org.ow2.chameleon.rose.testing;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.ops4j.pax.exam.CoreOptions.felix;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
@@ -25,8 +29,11 @@ import org.ops4j.pax.exam.OptionUtils;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnitOptions;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
@@ -34,7 +41,7 @@ import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
 public abstract class ImporterComponentAbstractTest {
 	
-	protected static String HTTP_PORT = "9027";
+	protected static String HTTP_PORT = "8042";
 	
     /*
      * Number of mock object by test.
@@ -51,7 +58,7 @@ public abstract class ImporterComponentAbstractTest {
     protected RoSeHelper rose;
     
 	@Mock private LogService logService; //Mock LogService
-    //@Mock private Device device; //Mock Device
+    @Mock private LogEntry logEntry; //Mock Device
 
     /**
      * Done some initializations.
@@ -155,91 +162,139 @@ public abstract class ImporterComponentAbstractTest {
         for (int i = 1; i <= MAX_MOCK; i++) {
             proxy.log(LOG_WARNING, "YEAHH!!"+i);
             verify(logService).log(LOG_WARNING, "YEAHH!!"+i);
-        }
+       }
     }
     
     /**
-     * Test the {@link ExporterService#exportService(ServiceReference, Map)} with 
-     * a valid {@link ServiceReference}. export, destroy and re export.
+     * Test the {@link ImporterService#importService(EndpointDescription, Map)} with 
+     * a valid {@link EndpointDescription}.
      */
-//    @Test
-//    public void testReExportService() {
-//        //wait for the service to be available.
-//        waitForIt(100);
-//        
-//        ExporterService exporter = getImporterService(); //get the service
-//        
-//        //Register a mock LogService
-//        ServiceRegistration regLog = rose.registerService(logService,LogService.class);
-//        
-//        //export the logService 
-//        ExportRegistration xreg = exporter.exportService(regLog.getReference(), null);
-//        
-//        //destroy the registration 
-//        xreg.close();
-//        
-//        //re export it
-//        xreg = exporter.exportService(regLog.getReference(), null);
-//        
-//        //check that xreg is not null
-//        assertNotNull(xreg); 
-//        
-//        //check that there is no exception
-//        assertNull(xreg.getException());
-//        
-//        //check that the export reference is not null
-//        assertNotNull(xreg.getExportReference());
-//        
-//        //check that the ServiceReference is equal to the logService one
-//        assertEquals(regLog.getReference(), xreg.getExportReference().getExportedService());
-//        
-//        //Check that the ExportReference has been published
-//        ExportReference xref = rose.getServiceObject(ExportReference.class);
-//        
-//        //Check that the published ExportReference is equal to the ExportRegistration one
-//        assertEquals(xreg.getExportReference(), xref);
-//        
-//        //get a proxy
-//        LogService proxy = getProxy(xreg,LogService.class);
-//        
-//        //check proxy != null
-//        assertNotNull(proxy);
-//        
-//        //check proxy calls
-//        for (int i = 1; i <= MAX_MOCK; i++) {
-//            proxy.log(LOG_WARNING, "YEAHH!!"+i);
-//            verify(logService).log(LOG_WARNING, "YEAHH!!"+i);
-//        }
-//    }
+    @Test
+    public void testImportServiceNoVoid() {
+        //wait for the service to be available.
+        waitForIt(100);
+        
+        ImporterService importer = getImporterService(); //get the service
+        
+        //create an endpoint for logService
+        EndpointDescription desc = createEndpoint("toto", LogEntry.class,logEntry);
+        
+        //import the logService 
+        ImportRegistration ireg = importer.importService(desc, null);
+        
+        //check that xreg is not null
+        assertNotNull(ireg); 
+        
+        //check that there is no exception
+        assertNull(ireg.getException());
+        
+        //check that the import reference is not null
+        assertNotNull(ireg.getImportReference());
+        
+        //check that the EndpointDescription is equal to the endpoint one
+        assertEquals(ireg.getImportReference().getImportedEndpoint(), desc);
+        
+        //get the client
+        LogEntry proxy = (LogEntry) context.getService(ireg.getImportReference().getImportedService());
+        
+        //check that the client is not null
+        assertNotNull(proxy);
+        
+        //check proxy calls
+        for (int i = 1; i <= MAX_MOCK; i++) {
+        	when(logEntry.getMessage()).thenReturn("toto"+i);
+            String msg = proxy.getMessage();
+            assertEquals("toto"+i, msg);
+            verify(logEntry,times(i)).getMessage();
+        }
+        
+        verifyNoMoreInteractions(logEntry);
+    }
     
+    /**
+     * Test the  {@link ImporterService#importService(EndpointDescription, Map)} with 
+     * a valid {@link ServiceReference}. import, destroy and re import.
+     */
+    @Test
+    public void testReImportService() {
+        //wait for the service to be available.
+        waitForIt(100);
+        
+        ImporterService importer = getImporterService(); //get the service
+        
+        //create an endpoint for logService
+        EndpointDescription desc = createEndpoint("toto", LogService.class,logService);
+        
+        //import the logService 
+        ImportRegistration ireg = importer.importService(desc, null);
+        
+        //Close the import
+        ireg.close();
+        
+        //re import
+        ireg = importer.importService(desc, null);
+        
+        //check that xreg is not null
+        assertNotNull(ireg); 
+        
+        //check that there is no exception
+        assertNull(ireg.getException());
+        
+        //check that the import reference is not null
+        assertNotNull(ireg.getImportReference());
+        
+        //check that the EndpointDescription is equal to the endpoint one
+        assertEquals(ireg.getImportReference().getImportedEndpoint(), desc);
+        
+        //get the client
+        LogService proxy = (LogService) context.getService(ireg.getImportReference().getImportedService());
+        
+        //check that the client is not null
+        assertNotNull(proxy);
+        
+        //check proxy calls
+        for (int i = 1; i <= MAX_MOCK; i++) {
+            proxy.log(LOG_WARNING, "YEAHH!!"+i);
+            verify(logService).log(LOG_WARNING, "YEAHH!!"+i);
+        }
+        
+        verifyNoMoreInteractions(logService);
+    }
+  
 
 	/**
-     * Test the {@link ExportRegistration#close()}. (destroy the endpoint)
+     * Test the {@link ImportRegistration#close()}. (destroy the proxy)
      */
-//    @Test
-//    public void testCloseExportRegistration() {
-//        //wait for the service to be available.
-//        waitForIt(100);
-//        
-//        ExporterService exporter = getImporterService(); //get the service
-//        
-//        //Register a mock LogService
-//        ServiceRegistration regLog = rose.registerService(logService,LogService.class);
-//        
-//        //export the logService 
-//        ExportRegistration xreg = exporter.exportService(regLog.getReference(), null);
-//        
-//        //Close the endpoint
-//        xreg.close();
-//        
-//        //Check that the ExportRegistration has been successfully closed
-//        assertNull(xreg.getExportReference());
-//        assertNull(xreg.getException());
-//        
-//        //Check that the ExportReference has been succesfully destroyed
-//        // Ok this cast sôcks
-//        assertNull(((ExporterIntrospection)exporter).getExportReference(regLog.getReference()));
-//    }
+    @Test
+    public void testCloseExportRegistration() {
+        //wait for the service to be available.
+        waitForIt(100);
+        
+        ImporterService importer = getImporterService(); //get the service
+        
+        //create an endpoint for logService
+        EndpointDescription desc = createEndpoint("toto", LogService.class,logService);
+        
+        //import the logService 
+        ImportRegistration ireg = importer.importService(desc, null);
+        
+        //backup the ImportReference & ServiceReference
+        ImportReference iref = ireg.getImportReference();
+        ServiceReference sref = iref.getImportedService();
+        
+        //Close the import
+        ireg.close();
+        
+        //Check that the ImportRegistration has been successfully closed
+        assertNull(ireg.getImportReference());
+        assertNull(ireg.getException());
+        
+        //Check that the ImportReference has been succesfully destroyed
+        assertFalse(importer.getAllImportReference().contains(iref));
+        
+        //Check that the proxy is no more available on the local registry
+        assertNull(context.getService(sref));
+    }
     
     /**
      * @return The {@link ImporterService} to be tested.

@@ -9,11 +9,11 @@ import java.net.URI;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.jabsorb.client.ClientError;
 import org.jabsorb.client.HTTPSession;
 import org.jabsorb.client.Session;
@@ -31,7 +31,7 @@ public class MyHttpSession implements Session {
 
 	public MyHttpSession(URI uri) {
 		this.uri = uri;
-		client = new DefaultHttpClient(new ThreadSafeClientConnManager());
+		client = new DefaultHttpClient();
 	}
 
 	/**
@@ -43,11 +43,11 @@ public class MyHttpSession implements Session {
 	public JSONObject sendAndReceive(JSONObject message) {
 		try {
 			HttpPost postMethod = new HttpPost(uri.toString());
-			postMethod.setEntity(new StringEntity(message.toString(), JSON_CONTENT_TYPE, null));
-			postMethod.addHeader("Content-Type", "text/plain");
+			postMethod.setHeader("Content-Type", JSON_CONTENT_TYPE);
+			postMethod.setEntity(new StringEntity(message.toString()));
 
 			HttpResponse response = client.execute(postMethod);
-
+			
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				throw new ClientError("HTTP Status - "
 						+ response.getStatusLine().toString());
@@ -60,10 +60,15 @@ public class MyHttpSession implements Session {
 			if (responseMessage == null)
 				throw new ClientError("Invalid response type - "
 						+ rawResponseMessage.getClass());
+			
 			return responseMessage;
+		} catch (ClientProtocolException ce) {
+			throw new ClientError(ce);
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new ClientError(e);
 		} catch (JSONException e) {
+			e.printStackTrace();
 			throw new ClientError(e);
 		}
 	}
@@ -97,6 +102,7 @@ public class MyHttpSession implements Session {
 	}
 
 	public void close() {
+		client.getConnectionManager().shutdown();
 	}
 
 }

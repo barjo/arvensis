@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jabsorb.JSONRPCBridge;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
@@ -36,37 +35,25 @@ public class ImporterTest extends ImporterComponentAbstractTest {
     @Configuration
 	public static Option[] endpointCreatorBundle() {
 		return CoreOptions.options(CoreOptions.provision(
-                mavenBundle().groupId("com.sun.grizzly.osgi").artifactId("grizzly-httpservice-bundle").versionAsInProject(),
-				//mavenBundle().groupId("org.json").artifactId("org.ow2.chameleon.commons.json").versionAsInProject(),
-                mavenBundle().groupId("org.apache.servicemix.bundles").artifactId("org.apache.servicemix.bundles.commons-httpclient").versionAsInProject(),
-                mavenBundle().groupId("org.apache.servicemix.bundles").artifactId("org.apache.servicemix.bundles.commons-codec").versionAsInProject(),
+                mavenBundle().groupId("org.apache.felix").artifactId("org.apache.felix.http.jetty").versionAsInProject(),
                 mavenBundle().groupId("commons-logging").artifactId("org.ow2.chameleon.commons.logging").versionAsInProject(),
                 mavenBundle().groupId("org.jabsorb").artifactId("org.ow2.chameleon.commons.jabsorb").versionAsInProject(),
                 mavenBundle().groupId("org.apache.httpcomponents").artifactId("httpcore-osgi").versionAsInProject(),
                 mavenBundle().groupId("org.apache.httpcomponents").artifactId("httpclient-osgi").versionAsInProject(),
                 mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc").artifactId("jabsorb-importer").versionAsInProject()
-               // ,mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc").artifactId("jabsorb-exporter").versionAsInProject()
-
 				),
 				CoreOptions.provision(
-						newBundle().add(MyActivator.class)
-						.set(Constants.BUNDLE_ACTIVATOR, MyActivator.class.getName())
+						newBundle().add(JSONRPCServerActivator.class)
+						.set(Constants.BUNDLE_ACTIVATOR, JSONRPCServerActivator.class.getName())
 						.set(Constants.IMPORT_PACKAGE, "org.osgi.service.http,javax.servlet,org.osgi.util.tracker,org.osgi.framework,org.jabsorb,org.junit")
 						.set(Constants.BUNDLE_SYMBOLICNAME,"My dummy bundle").build()
 				));
 	}
     
-    @Test
-    @Override
-    public void testImportService() {
-    	super.testImportService();
-    }
-    
     @Override
     protected ImporterService getImporterService(){
     	return rose.getServiceObject(ImporterService.class, FILTER);
     }
-
 
 	@Override
 	protected <T> EndpointDescription createEndpoint(String endpointId,

@@ -13,7 +13,7 @@ import org.osgi.service.http.HttpService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-public class MyActivator implements BundleActivator, ServiceTrackerCustomizer{
+public class JSONRPCServerActivator implements BundleActivator, ServiceTrackerCustomizer{
 		private static final String SERVLETNAME = "/JSONRPC"; 
 		ServiceTracker httptracker;
 		private BundleContext context;
@@ -32,7 +32,6 @@ public class MyActivator implements BundleActivator, ServiceTrackerCustomizer{
 			HttpService httpservice = (HttpService) context.getService(reference);
 			Dictionary<String, String> props = new Hashtable<String, String>();
 			props.put("gzip.threshold", "200");
-	        
 			try {
 				httpservice.registerServlet(SERVLETNAME, new JSONRPCServlet(), props, null);
 			} catch (Exception e) {
@@ -48,6 +47,7 @@ public class MyActivator implements BundleActivator, ServiceTrackerCustomizer{
 		public void removedService(ServiceReference reference, Object service) {
 			HttpService httpservice = (HttpService) service;
 			httpservice.unregister(SERVLETNAME);
+
 			context.ungetService(reference);
 		}
 		

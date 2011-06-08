@@ -18,7 +18,6 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.jabsorb.client.Client;
-import org.jabsorb.client.Session;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
@@ -96,8 +95,8 @@ public class ProxyCreator extends AbstractImporterComponent{
         }
         
         try {
-            Session session = new MyHttpSession(new URI(uri));
-            client = new Client(session);
+        	MyHttpSession session = new MyHttpSession(new URI(uri));
+            client = new MyClient(session);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("The property" + PROP_JABSORB_URL + "must be set and a valid String form of the endpoint URL", e);
         }

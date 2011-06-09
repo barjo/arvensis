@@ -17,7 +17,7 @@ import org.ow2.chameleon.rose.DynamicImporter.Builder;
 
 public class ConfigurationParser {
 	
-	public static DynamicImporter parseImportConf(BundleContext context, Map conf) throws InvalidSyntaxException {
+	public static DynamicImporter parseClientConf(BundleContext context, Map conf) throws InvalidSyntaxException {
 		Builder builder;
 		
 		if (!conf.containsKey(endpoint.toString())){
@@ -41,7 +41,7 @@ public class ConfigurationParser {
 		return builder.build();
 	}
 
-	public static DynamicExporter parseExportConf(BundleContext context, Map conf) throws InvalidSyntaxException {
+	public static DynamicExporter parseServerConf(BundleContext context, Map conf) throws InvalidSyntaxException {
 		DynamicExporter.Builder builder;
 		
 		if (!conf.containsKey(service.toString())){

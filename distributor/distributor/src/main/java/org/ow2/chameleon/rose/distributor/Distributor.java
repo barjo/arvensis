@@ -2,8 +2,8 @@ package org.ow2.chameleon.rose.distributor;
 
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.ow2.chameleon.rose.distributor.ConfigurationParser.parseExportConf;
-import static org.ow2.chameleon.rose.distributor.ConfigurationParser.parseImportConf;
+import static org.ow2.chameleon.rose.distributor.ConfigurationParser.parseClientConf;
+import static org.ow2.chameleon.rose.distributor.ConfigurationParser.parseServerConf;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,11 +31,11 @@ import org.ow2.chameleon.rose.DynamicImporter;
 @Provides
 public class Distributor implements ArtifactInstaller{
 
-	private static final String ROSE_FILE_REGX = "^rose-(client|server)-[a-zA-Z_0-9].json$";
+	private static final String ROSE_FILE_REGX = "^rose-config(-[a-zA-Z_0-9]?).json$";
 
-	private static final String IMPORT_REGX = "^rose-client-[a-zA-Z_0-9].json$";
+	private static final String CLIENT_KEY = "client";
 
-	private static final String EXPORT_REGX = "^rose-(export|server)-[a-zA-Z_0-9]\\.json$";
+	private static final String SERVER_KEY = "server";
 	
 	private Map<String,DynamicImporter> dynimps = new HashMap<String, DynamicImporter>();
 	
@@ -78,36 +78,31 @@ public class Distributor implements ArtifactInstaller{
 	 * @see org.apache.felix.fileinstall.ArtifactListener#canHandle(java.io.File)
 	 */
 	public boolean canHandle(File file) {
-		System.out.println("[BOOUM]"+file.getName() +" match? "+file.getName().matches(ROSE_FILE_REGX));
-		//Check if this is a RoSe Scope file
 		return file.getName().matches(ROSE_FILE_REGX);
 	}
 
 	public void install(File file) throws Exception {
-		System.out.println("INSTALL: "+file.getName());
 		String name = file.getName();
+		
 		try{
-		Map json = jsonservice.fromJSON(new FileInputStream(file));
-		System.out.println(json.toString());
+			Map<String, Map> json = jsonservice.fromJSON(new FileInputStream(file));
 		
-		if (name.matches(IMPORT_REGX)){
-			DynamicImporter dynimp = parseImportConf(context, json);
-			dynimps.put(name, dynimp);
-			dynimp.start();
-			logger.log(LOG_INFO, "The file: "+name+" as been correctly handled by the distributor. A DynamicImporter has been started.");
-		}
+			if (json.containsKey(CLIENT_KEY)){
+				DynamicImporter dynimp = parseClientConf(context, json.get(CLIENT_KEY));
+				dynimps.put(name, dynimp);
+				dynimp.start();
+				logger.log(LOG_INFO, "The file: "+name+" as been correctly handled by the distributor. A DynamicImporter has been started.");
+			}
 		
-		if (name.matches(EXPORT_REGX)){
-			DynamicExporter dynexp = parseExportConf(context, json);
-			dynexps.put(name, dynexp);
-			dynexp.start();
-			logger.log(LOG_INFO, "The file: "+name+" as been correctly handled by the distributor. A DynamicExporter has been started.");
-		}
+			if (json.containsKey(SERVER_KEY)){
+				DynamicExporter dynexp = parseServerConf(context, json.get(SERVER_KEY));
+				dynexps.put(name, dynexp);
+				dynexp.start();
+				logger.log(LOG_INFO, "The file: "+name+" as been correctly handled by the distributor. A DynamicExporter has been started.");
+			}
 		}
 		catch(Exception e){
-			logger.log(LOG_WARNING, "Cannot ..",e);
-			e.printStackTrace();
-			return ;
+			logger.log(LOG_WARNING, "Cannot parse "+name+" an exception occured",e);
 		}
 	}
 
@@ -130,22 +125,34 @@ public class Distributor implements ArtifactInstaller{
 
 	public void update(File file) throws Exception {
 		String name = file.getName();
-		
-		
-		if (dynimps.containsKey(name)){
-			dynimps.remove(name).stop();
-			DynamicImporter dynimp = parseImportConf(context, jsonservice.fromJSON(new FileInputStream(file)));
-			dynimps.put(name, dynimp);
-			dynimp.start();
+		try {
+			Map json = (Map) jsonservice.fromJSON(new FileInputStream(file));
+
+			if (dynimps.containsKey(name)) {
+				dynimps.remove(name).stop();
+				DynamicImporter dynimp = parseClientConf(context,
+						(Map) json.get(CLIENT_KEY));
+
+				if (dynimp != null) {
+					dynimps.put(name, dynimp);
+					dynimp.start();
+				}
+			}
+
+			else if (dynexps.containsKey(name)) {
+				dynexps.remove(name).stop();
+				DynamicExporter dynexp = parseServerConf(context,
+						(Map) json.get(SERVER_KEY));
+
+				if (dynexp != null) {
+					dynexps.put(name, dynexp);
+					dynexp.start();
+				}
+			}
+		} catch (Exception e) {
+			logger.log(LOG_WARNING, "Cannot parse " + name
+					+ " an exception occured", e);
 		}
-		
-		else if (dynexps.containsKey(name)){
-			dynexps.remove(name).stop();
-			DynamicExporter dynexp = parseExportConf(context, jsonservice.fromJSON(new FileInputStream(file)));
-			dynexps.put(name,dynexp);
-			dynexp.start();
-		}
-		
 	}
 }
 

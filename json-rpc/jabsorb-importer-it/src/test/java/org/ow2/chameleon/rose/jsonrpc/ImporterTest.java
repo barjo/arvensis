@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jabsorb.JSONRPCBridge;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
@@ -32,6 +33,14 @@ public class ImporterTest extends ImporterComponentAbstractTest {
     protected static final String SERVLETNAME ="/JSONRPC";
     
 
+    @Before
+    @Override
+    public void setUp() {
+    	super.setUp();
+    	ipojo.createComponentInstance("RoSe_machine");
+    	ipojo.createComponentInstance("RoSe_importer.jabsorb");
+    }
+    
     @Configuration
 	public static Option[] endpointCreatorBundle() {
 		return CoreOptions.options(CoreOptions.provision(

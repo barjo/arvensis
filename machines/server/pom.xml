@@ -65,7 +65,7 @@
 						</goals>
 						<configuration>
 							<artifactItems>
-								<!-- RoSe Services, RoseMachine,ImporterService, Networked Registry -->
+								<!-- RoSe Component, RoseMachine,ExporterService, Networked Registry, Configurator -->
 								<artifactItem>
 									<groupId>org.ow2.chameleon.rose</groupId>
 									<artifactId>rose-core</artifactId>
@@ -87,6 +87,14 @@
 									<overWrite>false</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>
+								<artifactItem>
+									<groupId>org.ow2.chameleon.rose</groupId>
+									<artifactId>json-configurator</artifactId>
+									<version>0.1.0-SNAPSHOT</version>
+									<overWrite>false</overWrite>
+									<outputDirectory>${runtime.dir}</outputDirectory>
+								</artifactItem>
+
 								<!-- LogService -->  
 								<artifactItem>
 									<groupId>org.apache.felix</groupId>

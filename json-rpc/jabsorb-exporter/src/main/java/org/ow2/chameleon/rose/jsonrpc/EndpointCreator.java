@@ -15,7 +15,6 @@ import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -34,9 +33,8 @@ import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 
-@Component(name="RoSe.exporter.jsonrpc[jabsorb]")
+@Component(name="RoSe_exporter.jabsorb")
 @Provides(specifications={ExporterService.class,ExporterIntrospection.class})
-@Instantiate(name="RoSe.exporter.jsonrpc[jabsorb]-default")
 public class EndpointCreator extends AbstractExporterComponent implements ExporterService,ExporterIntrospection {
 	
 	/**
@@ -114,7 +112,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	/**
 	 * Require the {@link RoseMachine}.
 	 */
-	@Requires(optional=false)
+	@Requires(optional=false,id="rose.machine")
 	private RoseMachine machine;
 	
 	private final BundleContext context;

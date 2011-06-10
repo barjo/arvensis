@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -33,9 +32,8 @@ import org.ow2.chameleon.rose.util.RoseTools;
  * 
  * TODO Improve the client management, only one client should be created for a given uri.
  */
-@Component(name="RoSe.importer.jsonrpc[jabsorb]")
+@Component(name="RoSe_importer.jabsorb")
 @Provides(specifications={ImporterService.class})
-@Instantiate(name="RoSe.importer.jsonrpc[jabsorb]-default")
 public class ProxyCreator extends AbstractImporterComponent{
 	/**
 	 * Property containing the URL of the JSONRPC orb.
@@ -52,7 +50,7 @@ public class ProxyCreator extends AbstractImporterComponent{
 	/**
 	 * Require the {@link RoseMachine}.
 	 */
-	@Requires(optional=false)
+	@Requires(optional=false,id="rose.machine")
 	private RoseMachine machine;
 	
 	@Requires(optional=true)

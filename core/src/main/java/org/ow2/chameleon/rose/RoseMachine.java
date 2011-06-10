@@ -19,11 +19,6 @@ public interface RoseMachine {
 	 */
 	final static String ROSE_MACHINE_HOST = "rose.machine.host";
 
-	/**
-	 * System property identifying the IP address for this rose machine.
-	 */
-	final static String ROSE_MACHINE_IP = "rose.machine.ip";
-
 	final static String ENDPOINT_LISTENER_INTEREST = "endpoint.listener.interrest";
 
 	enum EndpointListerInterrest {
@@ -57,11 +52,6 @@ public interface RoseMachine {
 	 * @return This rose machine host.
 	 */
 	String getHost();
-
-	/**
-	 * @return This rose machine ip.
-	 */
-	String getIP();
 
 	/**
 	 * @return This RoSe machine properties.

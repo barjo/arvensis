@@ -8,8 +8,7 @@
 	<modules>
 		<module>core</module>
 		<module>testing</module>
-		<module>supervisor/export-supervisor</module>
-		<module>supervisor/export-supervisor-it</module>
+		<module>configurator/configurator-json</module>
 		<module>json-rpc/jabsorb-exporter</module>
 		<module>json-rpc/jabsorb-importer</module>
 		<module>json-rpc/jabsorb-exporter-it</module>

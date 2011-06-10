@@ -26,7 +26,7 @@ import org.ow2.chameleon.rose.util.DefaultLogService;
  * TODO Handle concurrency.
  * @author barjo
  */
-@Component(name="RoSe.registry.zookeeper",propagation=true)
+@Component(name="RoSe_registry.zookeeper",propagation=true)
 public class ZookeeperManager implements Watcher {
 	public static final String SEPARATOR="/";
 	
@@ -39,7 +39,7 @@ public class ZookeeperManager implements Watcher {
 	@Property(name=ENDPOINT_LISTENER_SCOPE,mandatory=false)
 	private String filter;
 
-	@Requires(optional=false)
+	@Requires(optional=false,id="rose.machine")
 	private RoseMachine machine;
 	
 	@Requires(optional=false)

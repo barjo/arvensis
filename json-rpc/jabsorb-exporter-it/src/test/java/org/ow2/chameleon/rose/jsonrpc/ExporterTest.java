@@ -33,6 +33,8 @@ public class ExporterTest extends ExporterComponentAbstractTest {
     @Before
     public void setUp() {
         super.setUp();
+        ipojo.createComponentInstance("RoSe_machine");
+    	ipojo.createComponentInstance("RoSe_exporter.jabsorb");
     }
     
     

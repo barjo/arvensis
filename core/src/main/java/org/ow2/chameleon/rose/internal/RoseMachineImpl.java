@@ -1,5 +1,9 @@
 package org.ow2.chameleon.rose.internal;
 
+import static java.lang.Integer.MAX_VALUE;
+import static org.osgi.framework.Constants.SERVICE_PID;
+import static org.osgi.framework.Constants.SERVICE_RANKING;
+import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
 import static org.ow2.chameleon.rose.util.RoseTools.getAllExporter;
 import static org.ow2.chameleon.rose.util.RoseTools.getAllImporter;
@@ -15,8 +19,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -34,16 +38,11 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
-import org.ow2.chameleon.rose.registry.ExportRegistryListening;
-import org.ow2.chameleon.rose.registry.ExportRegistryProvisioning;
-import org.ow2.chameleon.rose.registry.ImportRegistryListening;
-import org.ow2.chameleon.rose.registry.ImportRegistryProvisioning;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.rose.util.RoseTools;
 
 
-@Component(name="RoSe.machine",immediate=true)
-@Instantiate
+@Component(name="RoSe_machine",immediate=true)
 public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 
 	/**
@@ -79,9 +78,6 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		registrations = new HashMap<Object, ServiceRegistration>(4);
 		context = pContext;
 		
-		//Initialize the machine properties.
-		initProperties(context);
-		
 		//Create the import registry
 		importReg = new ImportRegistryImpl();
 		
@@ -95,9 +91,12 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	@SuppressWarnings("unused")
 	@Validate
 	private void start(){
+		//Initialize the machine properties.
+		initProperties(context);
+		
 		//Register the import service and export service registries.
-		registrations.put(exportReg, context.registerService(new String[]{ExportRegistryListening.class.getName(),ExportRegistryProvisioning.class.getName()},exportReg,properties));
-		registrations.put(importReg, context.registerService(new String[]{ImportRegistryListening.class.getName(),ImportRegistryProvisioning.class.getName()},importReg,properties));
+		//registrations.put(exportReg, context.registerService(new String[]{ExportRegistryListening.class.getName(),ExportRegistryProvisioning.class.getName()},exportReg,properties));
+		//registrations.put(importReg, context.registerService(new String[]{ImportRegistryListening.class.getName(),ImportRegistryProvisioning.class.getName()},importReg,properties));
 		
 		//Register the RoseMachine Service
 		registrations.put(this, context.registerService(RoseMachine.class.getName(), this, properties));
@@ -268,47 +267,51 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	/**
 	 * Default machine IP.
 	 */
-	private static final String DEFAULT_IP = "127.0.0.1";
+	//private static final String DEFAULT_IP = "127.0.0.1";
 
 	/**
 	 * Default machine Host.
 	 */
 	private static final String DEFAULT_HOST = "localhost";
 	
+	@Property(name=ROSE_MACHINE_HOST)
+	private String myhost;
+	
+	@Property(name=ROSE_MACHINE_ID)
+	private String myid;
+	
 	
 	/**
 	 * Initialize the Machine properties thanks to the framework properties.
 	 */
 	private final void initProperties(BundleContext context){
-		final String machineId;
-		final String machineHost;
-		final String machineIP;
 		
 		// Initialize machineID
-		if (context.getProperty(ROSE_MACHINE_ID) != null) {
-			machineId = context.getProperty(ROSE_MACHINE_ID);
-		} else if (context.getProperty(ENDPOINT_FRAMEWORK_UUID) != null) {
-			machineId = context.getProperty(ENDPOINT_FRAMEWORK_UUID);
-		} else {
-			machineId = UUID.randomUUID().toString();
-		}
-		// Initialize machineHost
-		if (context.getProperty(ROSE_MACHINE_HOST) != null) {
-			machineHost = context.getProperty(ROSE_MACHINE_HOST);
-		} else {
-			machineHost = DEFAULT_HOST;
-		}
-
-		// Initialize machineIP
-		if (context.getProperty(ROSE_MACHINE_IP) != null) {
-			machineIP = context.getProperty(ROSE_MACHINE_IP);
-		} else {
-			machineIP = DEFAULT_IP;
+		if (myid==null){
+			if (context.getProperty(ROSE_MACHINE_ID) != null) {
+				myid = context.getProperty(ROSE_MACHINE_ID);
+			} else if (context.getProperty(ENDPOINT_FRAMEWORK_UUID) != null) {
+				myid = context.getProperty(ENDPOINT_FRAMEWORK_UUID);
+			} else {
+				myid = UUID.randomUUID().toString();
+			}
 		}
 		
-		properties.put(ROSE_MACHINE_ID, machineId);
-		properties.put(ROSE_MACHINE_IP, machineIP);
-		properties.put(ROSE_MACHINE_HOST, machineHost);
+		
+		// Initialize machineHost
+		if (myhost==null){
+			if (context.getProperty(ROSE_MACHINE_HOST) != null) {
+				myhost = context.getProperty(ROSE_MACHINE_HOST);
+			} else {
+				myhost = DEFAULT_HOST;
+			}
+		}
+
+		properties.put(ROSE_MACHINE_ID, myid);
+		properties.put(SERVICE_PID, myhost+"-"+myid);
+		properties.put(SERVICE_VENDOR, "org.ow2.chameleon");
+		properties.put(SERVICE_RANKING, MAX_VALUE);
+		properties.put(ROSE_MACHINE_HOST, myhost);
 	}
 	
 	/**
@@ -325,13 +328,6 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		return (String) properties.get(ROSE_MACHINE_HOST);
 	}
 
-	/**
-	 * @return This rose machine ip.
-	 */
-	public final String getIP() {
-		return (String) properties.get(ROSE_MACHINE_IP);
-	}
-	
 	/**
 	 * @return This RoSe machine properties.
 	 */

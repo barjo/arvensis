@@ -5,7 +5,6 @@ import static org.osgi.service.log.LogService.LOG_WARNING;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,7 +83,7 @@ public class Configurator implements ArtifactInstaller{
 		String name = file.getName();
 		logger.log(LOG_INFO, "Start to load configuration file: "+name);
 		
-		Map<String, Map> json;
+		Map<String, Object> json;
 		
 		try{
 			json = jsonservice.fromJSON(new FileInputStream(file));
@@ -95,7 +94,7 @@ public class Configurator implements ArtifactInstaller{
 		
 		
 		try{
-			RoseConfiguration conf = parser.parse(json);
+			RoseConfiguration conf = parser.parse(json,null);
 			conf.start();
 			confs.put(name, conf);
 			logger.log(LOG_INFO, "Configuration "+name+" successfully handled");
@@ -124,7 +123,7 @@ public class Configurator implements ArtifactInstaller{
 		logger.log(LOG_INFO, "Start to reload configuration file: "+name);
 		
 		if (confs.containsKey(name)) {
-			Map<String, Map> json;
+			Map<String, Object> json;
 
 			try {
 				json = jsonservice.fromJSON(new FileInputStream(file));
@@ -134,7 +133,7 @@ public class Configurator implements ArtifactInstaller{
 			}
 
 			try {
-				RoseConfiguration newconf = parser.parse(json);
+				RoseConfiguration newconf = parser.parse(json,null);
 				newconf.start();
 				confs.remove(name).stop();
 				confs.put(name, newconf);

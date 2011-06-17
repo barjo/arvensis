@@ -88,7 +88,8 @@
 							org.osgi.util.tracker,
 							org.apache.felix.fileinstall,
 							org.ow2.chameleon.json,
-							org.apache.felix.ipojo
+							org.apache.felix.ipojo,
+							org.apache.felix.ipojo.parser
 						</Import-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.configurator

@@ -1,6 +1,8 @@
 package org.ow2.chameleon.rose.zookeeper;
 
 import static org.apache.zookeeper.CreateMode.EPHEMERAL;
+import static org.osgi.service.log.LogService.LOG_DEBUG;
+import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
@@ -76,7 +78,7 @@ public class ZookeeperManager implements Watcher {
 			
 			//connect the client.
 			keeper = new ZooKeeper(connectString, sessionTimeout, this);
-			
+
 			//create a node for the framework id.
 			createFrameworkNode();
 		} catch (Exception e) {
@@ -113,6 +115,7 @@ public class ZookeeperManager implements Watcher {
 	 * @see org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent)
 	 */
 	public void process(WatchedEvent event) {
+		getLogger().log(LOG_DEBUG, "An event has been received"+event);
 		switch (event.getState()) {
 		case Expired: // TODO handle expired (i.e create a new connection)
 		case Disconnected:
@@ -139,10 +142,15 @@ public class ZookeeperManager implements Watcher {
 	 * Destroy the {@link RoseLocalEndpointListener} and the {@link ZooRemoteEndpointWatcher}.
 	 */
 	private void destroyListenerAndProvider(){
-		provisioner.stop();
-		listener.destroy();
-		provisioner = null;
-		listener = null;
+		if (provisioner != null){
+			provisioner.stop();
+			provisioner = null;
+		}
+		
+		if (listener != null){
+			listener.destroy();
+			listener = null;
+		}
 	}
 	
 	/**
@@ -159,17 +167,18 @@ public class ZookeeperManager implements Watcher {
 	 */
 	private void createFrameworkNode(){
 		try{
+			byte data[] = {0}; 
 			Stat stat = keeper.exists(SEPARATOR+frameworkid, false);
 			if (stat==null){
-				keeper.create(SEPARATOR+frameworkid, new byte[0], Ids.OPEN_ACL_UNSAFE, EPHEMERAL);
+				keeper.create(SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, EPHEMERAL);
 			}else {
 				//server crash, we just reconnect
 				keeper.delete(SEPARATOR+frameworkid, -1);
-				keeper.create(SEPARATOR+frameworkid, new byte[0], Ids.OPEN_ACL_UNSAFE, EPHEMERAL); //re create the node
+				keeper.create(SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, EPHEMERAL); //re create the node
 			}
-			getLogger().log(LOG_WARNING, "A zookeeper node has been successfully created for this framework, node: "+SEPARATOR+frameworkid);
+			getLogger().log(LOG_DEBUG, "A zookeeper node has been successfully created for this framework, node: "+SEPARATOR+frameworkid);
 		}catch(Exception ke){
-			getLogger().log(LOG_WARNING, "Cannot create a zookeeper node for this framework.",ke);
+			getLogger().log(LOG_ERROR, "Cannot create a zookeeper node for this framework.",ke);
 		}
 	}
 	

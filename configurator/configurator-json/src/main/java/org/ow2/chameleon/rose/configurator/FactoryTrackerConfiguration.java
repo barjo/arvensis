@@ -38,7 +38,6 @@ public class FactoryTrackerConfiguration implements RoseConfiguration,ServiceTra
 			dico.put("requires.filters", 
 					new Hashtable(singletonMap(ROSE_DEP_ID, 
 							    "("+ROSE_MACHINE_ID+"="+machineId+")")));
-			dico.put("instance.name", component+"-"+machineId);
 		}
 		
 		StringBuilder sb = new StringBuilder("(&");

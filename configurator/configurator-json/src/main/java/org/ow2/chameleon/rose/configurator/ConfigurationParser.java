@@ -26,6 +26,9 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.ow2.chameleon.rose.DynamicExporter;
 import org.ow2.chameleon.rose.DynamicImporter;
 
+/**
+ * Create a RoseConfiguration object for a given Map based configuration. 
+ **/
 public class ConfigurationParser {
 	public static int confnum = 0;
 	

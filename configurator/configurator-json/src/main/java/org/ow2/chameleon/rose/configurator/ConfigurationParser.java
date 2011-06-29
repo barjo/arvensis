@@ -110,6 +110,7 @@ public class ConfigurationParser {
 	public enum OutToken {
 		service_filter,
 		exporter_filter,
+		protocol,
 		properties;
 		
 		public Object getValue(Map<String,Object> values){
@@ -224,10 +225,16 @@ public class ConfigurationParser {
 				String service = (String) service_filter.getValue(outmap);
 				DynamicExporter.Builder builder = new DynamicExporter.Builder(context, service);
 			
+				if (OutToken.protocol.isIn(outmap)){
+					builder.protocol((List<String>) OutToken.protocol.getValue(outmap));
+				}
+				
 				//Optional EXPORTER_FILTER
 				if (exporter_filter.isIn(outmap)){
 					builder.exporterFilter((String) exporter_filter.getValue(outmap));
 				}
+				
+				
 			
 				//optional PROPERTIES
 				if(OutToken.properties.isIn(outmap)){

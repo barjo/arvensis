@@ -2,8 +2,10 @@ package org.ow2.chameleon.rose;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
+import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -87,13 +89,28 @@ public class DynamicExporter {
 			context = pContext;
 		}
 
+		public Builder protocol(List<String> protocols) throws InvalidSyntaxException{
+			StringBuilder sb = new StringBuilder("(&");
+			sb.append(xfilter.toString());
+			sb.append("(|");
+			for (String string : protocols) {
+				sb.append("(");
+				sb.append(ENDPOINT_CONFIG_PREFIX);
+				sb.append("=");
+				sb.append(string);
+				sb.append(")");
+			}
+			sb.append("))");
+			xfilter = createFilter(sb.toString());
+			return this;
+		}
+		
 		public Builder exporterFilter(String val) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
-			sb.append(DEFAULT_EXPORTER_FILTER);
+			sb.append(xfilter.toString());
 			sb.append(val);
 			sb.append(")");
 			xfilter = createFilter(sb.toString());
-
 			return this;
 		}
 

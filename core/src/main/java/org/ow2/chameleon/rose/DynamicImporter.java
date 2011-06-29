@@ -2,11 +2,13 @@ package org.ow2.chameleon.rose;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
+import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
 import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.REMOTE;
 
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -93,10 +95,26 @@ public class DynamicImporter {
 			dfilter = createFilter(descriptionFilter);
 			context = pContext;
 		}
+		
+		public Builder protocol(List<String> protocols) throws InvalidSyntaxException{
+			StringBuilder sb = new StringBuilder("(&");
+			sb.append(imfilter.toString());
+			sb.append("(|");
+			for (String string : protocols) {
+				sb.append("(");
+				sb.append(ENDPOINT_CONFIG_PREFIX);
+				sb.append("=");
+				sb.append(string);
+				sb.append(")");
+			}
+			sb.append("))");
+			imfilter = createFilter(sb.toString());
+			return this;
+		}
 
 		public Builder importerFilter(String val) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
-			sb.append(DEFAULT_IMPORTER_FILTER);
+			sb.append(imfilter.toString());
 			sb.append(val);
 			sb.append(")");
 			imfilter = createFilter(sb.toString());

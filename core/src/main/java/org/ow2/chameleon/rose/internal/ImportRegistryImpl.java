@@ -1,12 +1,13 @@
 package org.ow2.chameleon.rose.internal;
 
+import static org.osgi.framework.FrameworkUtil.createFilter;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -181,12 +182,15 @@ public class ImportRegistryImpl implements
 	 */
 	public void addEndpointListener(EndpointListener listener, String filter)
 			throws InvalidSyntaxException {
-		FrameworkUtil.createFilter(filter);
-
+		
+		if (filter != null){
+			createFilter(filter);
+		}
+		
 		synchronized (descriptions) {
 			listeners.put(listener, filter);
 			for (EndpointDescription endpoint : counter.keySet()) {
-				if (endpoint.matches(filter)) {
+				if (filter == null || endpoint.matches(filter)) {
 					listener.endpointAdded(endpoint, filter);
 				}
 			}
@@ -204,7 +208,7 @@ public class ImportRegistryImpl implements
 				String filter = listeners.remove(listener);
 				
 				for (EndpointDescription endpoint : counter.keySet()) {
-					if (endpoint.matches(filter)) {
+					if (filter == null || endpoint.matches(filter)) {
 						listener.endpointRemoved(endpoint, filter);
 					}
 				}

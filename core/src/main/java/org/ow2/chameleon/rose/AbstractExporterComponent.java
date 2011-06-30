@@ -28,6 +28,7 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 public abstract class AbstractExporterComponent implements ExporterService {
 	private final ConcurrentMapOfSet<ServiceReference, MyExportRegistration> registrations;
 	private volatile boolean isValid = false;
+	private static String frameworkId;
 	
 	
 	public  AbstractExporterComponent() {
@@ -82,6 +83,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 protected void start(){
 		 synchronized (registrations) {
 			isValid = true;
+			frameworkId = getRoseMachine().getId(); //Set the machine id
 			
 			if (registrations.size() > 0){
 				getLogService().log(LOG_WARNING, "Internal structures have not been cleared while stopping the instance.");
@@ -134,7 +136,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 				xreg = new MyExportRegistration(registrations.getElem(sref));
 			} else { 
 				//First registration, create the endpoint
-				EndpointDescription enddesc = createEndpoint(sref, computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix()));
+				EndpointDescription enddesc = createEndpoint(sref, computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix(),frameworkId));
 				
 				xreg = new MyExportRegistration(sref,enddesc);
 			}

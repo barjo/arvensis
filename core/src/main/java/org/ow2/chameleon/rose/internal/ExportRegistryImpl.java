@@ -13,7 +13,6 @@ import java.util.Map;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -128,7 +127,7 @@ public class ExportRegistryImpl implements ExportRegistry {
 		
 		//Check the filter if != null
 		if (filter != null){
-			FrameworkUtil.createFilter(filter);
+			createFilter(filter);
 		}
 		
 		//XXX The filter must not contains the ObjectClass filter.

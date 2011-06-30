@@ -3,6 +3,7 @@ package org.ow2.chameleon.rose.util;
 import static java.util.Collections.emptyList;
 import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.framework.Constants.SERVICE_PID;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
 import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
@@ -89,7 +90,7 @@ public final class RoseTools {
 	 */
 	public static Map<String, Object> computeEndpointExtraProperties(
 			ServiceReference sref, Map<String, Object> extraProps,
-			List<String> configPrefix) {
+			List<String> configPrefix, String machineId) {
 		Map<String, Object> properties = new HashMap<String, Object>();
 
 		if (extraProps != null) { // Add given properties
@@ -101,6 +102,9 @@ public final class RoseTools {
 
 		// Set the ENDPOINT_ID property
 		properties.put(ENDPOINT_ID, computeEndpointId(sref, configPrefix));
+		
+		// Set the Framework uuid
+		properties.put(ENDPOINT_FRAMEWORK_UUID, machineId);
 
 		return properties;
 	}

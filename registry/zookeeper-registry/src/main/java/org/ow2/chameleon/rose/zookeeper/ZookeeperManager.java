@@ -1,17 +1,19 @@
 package org.ow2.chameleon.rose.zookeeper;
 
-import static org.apache.zookeeper.CreateMode.EPHEMERAL;
+import static org.apache.zookeeper.CreateMode.PERSISTENT;
 import static org.osgi.service.log.LogService.LOG_DEBUG;
-import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.osgi.service.remoteserviceadmin.EndpointListener.ENDPOINT_LISTENER_SCOPE;
+
+import java.util.List;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -35,7 +37,7 @@ public class ZookeeperManager implements Watcher {
 	@Property(name="connection",mandatory=true)
 	private String connectString;
 	
-	@Property(name="timeout",mandatory=false)
+	@Property(name="timeout",mandatory=false,value="40000")
 	private int sessionTimeout;
 	
 	@Property(name=ENDPOINT_LISTENER_SCOPE,mandatory=false)
@@ -96,6 +98,7 @@ public class ZookeeperManager implements Watcher {
 		try {
 			if(keeper!=null){
 				destroyListenerAndProvider();
+				destroyFrameworkNode();
 				keeper.close();
 				
 			}
@@ -118,6 +121,7 @@ public class ZookeeperManager implements Watcher {
 		getLogger().log(LOG_DEBUG, "An event has been received"+event);
 		switch (event.getState()) {
 		case Expired: // TODO handle expired (i.e create a new connection)
+			break;
 		case Disconnected:
 			getLogger().log(LOG_WARNING, "The zookeeper client has been disconnected.");
 			// The client has been disconnected for some reason, destroy the
@@ -169,16 +173,35 @@ public class ZookeeperManager implements Watcher {
 		try{
 			byte data[] = {0}; 
 			Stat stat = keeper.exists(SEPARATOR+frameworkid, false);
+			
 			if (stat==null){
-				keeper.create(SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, EPHEMERAL);
+				keeper.create(SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, PERSISTENT);
 			}else {
-				//server crash, we just reconnect
-				keeper.delete(SEPARATOR+frameworkid, -1);
-				keeper.create(SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, EPHEMERAL); //re create the node
+				//delete bad children !
+				List<String> childs = keeper.getChildren(SEPARATOR+frameworkid, false);
+				for (String child : childs) {
+					try{
+						keeper.delete(SEPARATOR+frameworkid+SEPARATOR+child, -1);
+					}
+					catch(KeeperException e){
+						//ignore
+					}
+				}
 			}
 			getLogger().log(LOG_DEBUG, "A zookeeper node has been successfully created for this framework, node: "+SEPARATOR+frameworkid);
 		}catch(Exception ke){
-			getLogger().log(LOG_ERROR, "Cannot create a zookeeper node for this framework.",ke);
+			getLogger().log(LOG_WARNING, "An exception occured while creating a zookeeper node for this framework.",ke);
+		}
+	}
+	
+	/**
+	 * Destroy this framework node.
+	 */
+	private void destroyFrameworkNode(){
+		try {
+			keeper.delete(SEPARATOR+frameworkid, -1);
+		} catch (Exception e) {
+			getLogger().log(LOG_WARNING, "An exception occured while deleting the zookeeper node for this framework.",e);
 		}
 	}
 	

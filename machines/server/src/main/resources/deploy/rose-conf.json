@@ -18,7 +18,7 @@
                         },
 			{ 
 			  "factory" : "RoSe_registry.zookeeper",
-			  "properties" : { "connection" : "localhost:2181/rose" }
+			  "properties" : { "connection" : "127.0.0.1/rose" }
 			}
 		],
 	}

@@ -174,6 +174,12 @@ public class ExportRegistryImpl implements ExportRegistry {
 		
 		private ListenerWrapper(EndpointListener pListener,String pFilter) throws InvalidSyntaxException {
 			listener = pListener; 
+			
+			//Check if the filter is null
+			if (pFilter == null){
+				pFilter=""; //set to an empty string.
+			}
+			
 			Filter ofilter = createFilter("(&" +FILTER + pFilter +")");
 			tracker = new ServiceTracker(context, ofilter, this);
 			filter = pFilter;

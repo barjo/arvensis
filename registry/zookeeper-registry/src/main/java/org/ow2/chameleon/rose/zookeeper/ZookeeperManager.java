@@ -118,6 +118,7 @@ public class ZookeeperManager implements Watcher {
 	 * @see org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent)
 	 */
 	public void process(WatchedEvent event) {
+		System.out.println("Event received: "+event);
 		getLogger().log(LOG_DEBUG, "An event has been received"+event);
 		switch (event.getState()) {
 		case Expired: // TODO handle expired (i.e create a new connection)

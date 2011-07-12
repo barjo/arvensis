@@ -28,7 +28,7 @@ import org.ow2.chameleon.json.JSONService;
 public class Configurator implements ArtifactInstaller{
 	private static final String THIS_COMPONENT="RoSe.configurator";
 
-	private static final String ROSE_CONF_REGX = "^rose-conf(-[a-zA-Z_0-9]|).json$";
+	private static final String ROSE_CONF_REGX = "^rose-conf(-[a-zA-Z_0-9]+|).json$";
 	
 	private Map<String,RoseConfiguration> confs = new HashMap<String, RoseConfiguration>();
 	

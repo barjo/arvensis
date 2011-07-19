@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose.zookeeper;
 
 import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.ow2.chameleon.rose.zookeeper.ZookeeperManager.SEPARATOR;
 
 import java.text.ParseException;
@@ -45,8 +46,9 @@ public class ZooRemoteEndpointWatcher {
 				registrations.put(node, new ArrayList<String>());
 				keeper().getChildren(rootNode + SEPARATOR + node,
 						new EndpointWatcher(node));
+				
 			}
-
+		logger().log(LOG_INFO, "Remote endpoints watcher successfully created");	
 		} catch (KeeperException e) {
 			logger().log(LOG_ERROR, "Can not create a watcher for nodes", e);
 		} catch (InterruptedException e) {
@@ -69,6 +71,7 @@ public class ZooRemoteEndpointWatcher {
 			machine.removeRemote(node + SEPARATOR + endpoint);
 		}
 		registrations.remove(node);
+		logger().log(LOG_INFO, "Machine: "+node+" removed");
 	}
 
 	private void processEndpointAdded(String node, String endpoint)
@@ -81,11 +84,13 @@ public class ZooRemoteEndpointWatcher {
 				.getEndpointDescription(map);
 		machine.putRemote(node + SEPARATOR + endpoint, endp);
 		registrations.get(node).add(endpoint);
+		logger().log(LOG_INFO, "Added from machine: "+node+" ,endpoint: " +endpoint);
 	}
 
 	private void processEndpointRemoved(String node, String endpoint) {
 		machine.removeRemote(node + SEPARATOR + endpoint);
 		registrations.get(node).remove(endpoint);
+		logger().log(LOG_INFO, "Removed from machine: "+node+" ,endpoint: " +endpoint);
 	}
 
 	private class MachineWatcher implements Watcher {
@@ -120,6 +125,7 @@ public class ZooRemoteEndpointWatcher {
 				if (newNodes.containsAll(nodes)) {// new node
 					for (String node : (List<String>) ListUtils.subtract(
 							newNodes, nodes)) {
+						logger().log(LOG_INFO, "Machine: "+node+" found");
 						registrations.put(node, new ArrayList<String>());
 						new EndpointWatcher(node);
 					}

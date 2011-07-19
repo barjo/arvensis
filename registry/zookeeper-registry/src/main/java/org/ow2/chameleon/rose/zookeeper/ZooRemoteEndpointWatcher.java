@@ -1,5 +1,6 @@
 package org.ow2.chameleon.rose.zookeeper;
 
+import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.ow2.chameleon.rose.zookeeper.ZookeeperManager.SEPARATOR;
 
 import java.text.ParseException;
@@ -13,6 +14,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
@@ -46,11 +48,9 @@ public class ZooRemoteEndpointWatcher {
 			}
 
 		} catch (KeeperException e) {
-			e.printStackTrace();
+			logger().log(LOG_ERROR, "Can not create a watcher for nodes", e);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}catch (Exception e) {
-			e.printStackTrace();
+			logger().log(LOG_ERROR, "Can not create a watcher for nodes", e);
 		}
 	}
 
@@ -73,33 +73,19 @@ public class ZooRemoteEndpointWatcher {
 
 	private void processEndpointAdded(String node, String endpoint)
 			throws KeeperException, InterruptedException, ParseException {
-		try {
-			byte[] desc = keeper().getData(
-					rootNode + SEPARATOR + node + SEPARATOR + endpoint, true,
-					null);
-
-			@SuppressWarnings("unchecked")
-			Map<String, Object> map = json().fromJSON(new String(desc));
-			EndpointDescription endp = RoseEndpointDescription
-					.getEndpointDescription(map);
-			machine.putRemote(node + SEPARATOR + endpoint, endp);
-			registrations.get(node).add(endpoint);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		byte[] desc = keeper().getData(
+				rootNode + SEPARATOR + node + SEPARATOR + endpoint, true, null);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> map = json().fromJSON(new String(desc));
+		EndpointDescription endp = RoseEndpointDescription
+				.getEndpointDescription(map);
+		machine.putRemote(node + SEPARATOR + endpoint, endp);
+		registrations.get(node).add(endpoint);
 	}
 
 	private void processEndpointRemoved(String node, String endpoint) {
 		machine.removeRemote(node + SEPARATOR + endpoint);
 		registrations.get(node).remove(endpoint);
-	}
-
-	private ZooKeeper keeper() {
-		return manager.getKeeper();
-	}
-
-	private JSONService json() {
-		return manager.getJson();
 	}
 
 	private class MachineWatcher implements Watcher {
@@ -138,19 +124,13 @@ public class ZooRemoteEndpointWatcher {
 						new EndpointWatcher(node);
 					}
 				}
-
 				nodes = newNodes;
-
-			} catch (KeeperException e) {
-				e.printStackTrace();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
+				logger().log(LOG_ERROR, "Can not get childrens(endpoints) for node", e);
+			} catch (KeeperException e) {
+				logger().log(LOG_ERROR, "Can not get childrens(endpoints) for node", e);
 			}
-
 		}
-
 	}
 
 	private class EndpointWatcher implements Watcher {
@@ -171,12 +151,10 @@ public class ZooRemoteEndpointWatcher {
 					this.process(null);
 				}
 			} catch (KeeperException e) {
-				e.printStackTrace();
+				logger().log(LOG_ERROR, "Can not find a node: "+node, e);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+				logger().log(LOG_ERROR, "Can not find a node: "+node, e);
+			} 
 
 		}
 
@@ -225,15 +203,25 @@ public class ZooRemoteEndpointWatcher {
 					getAll = false;
 				}
 			} catch (KeeperException e) {
-				e.printStackTrace();
+				logger().log(LOG_ERROR, "Can not find a node",e);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				logger().log(LOG_ERROR, "Can not find a node",e);
 			} catch (ParseException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
+				logger().log(LOG_ERROR, "Can not add an endpoint",e);
 			}
 		}
+	}
+
+	private ZooKeeper keeper() {
+		return manager.getKeeper();
+	}
+
+	private JSONService json() {
+		return manager.getJson();
+	}
+
+	private LogService logger() {
+		return manager.getLogger();
 	}
 
 }

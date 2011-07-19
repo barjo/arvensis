@@ -3,197 +3,237 @@ package org.ow2.chameleon.rose.zookeeper;
 import static org.ow2.chameleon.rose.zookeeper.ZookeeperManager.SEPARATOR;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
 
-public class ZooRemoteEndpointWatcher implements Watcher{
-	
+public class ZooRemoteEndpointWatcher {
+
 	private final ZookeeperManager manager;
 	private final RoseMachine machine;
-	
-	public ZooRemoteEndpointWatcher(ZookeeperManager pManager,RoseMachine pMachine) {
-		manager=pManager;
-		machine=pMachine;
+	private final String rootNode;
+	private ConcurrentHashMap<String, List<String>> registrations;
+	private List<String> nodes;
+	private boolean running = false;
+
+	public ZooRemoteEndpointWatcher(ZookeeperManager pManager,
+			RoseMachine pMachine, String pRootNode) {
+		manager = pManager;
+		machine = pMachine;
+		this.rootNode = pRootNode;
+		registrations = new ConcurrentHashMap<String, List<String>>();
 		try {
-			keeper().exists(SEPARATOR, this);
-			System.out.println("Start watcher");
-			List<String> nodes = keeper().getChildren(SEPARATOR, this);
-			System.out.println("nodes: "+nodes);
-			for (String gw : nodes) {
-				if (gw.equals(manager.frameworkid)){
-					continue; //ignore myself
+			nodes = keeper().getChildren(rootNode, new MachineWatcher());
+			running = true;
+			for (String node : nodes) {
+				if (node.equals(manager.frameworkid)) {
+					continue; // ignore myself
 				}
-				processMachineAdded(SEPARATOR+gw);
+				registrations.put(node, new ArrayList<String>());
+				keeper().getChildren(rootNode + SEPARATOR + node,
+						new EndpointWatcher(node));
 			}
-			
+
 		} catch (KeeperException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} catch (ParseException e) {
+		}catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public void stop(){
-		
-	}
-	
-	/*-----------------------------------*
-	 *  Zookeeper Watcher method         *
-	 *-----------------------------------*/
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent)
-	 */
-	public void process(WatchedEvent event) {
-		System.out.println("Provisionning event "+event);
-		// TODO Auto-generated method stub
-		String path = event.getPath();
-		
-		//Description published by this framework. do nothing
-		if (path.startsWith(SEPARATOR+manager.frameworkid)){
+	public void stop() {
+		running = false;
+		for (String node : nodes) {
+			processMachineRemoved(node);
+		}
+	}
+
+	private void processMachineRemoved(String node) {
+
+		if (node.equals(manager.frameworkid))
 			return;
+		for (String endpoint : registrations.get(node)) {
+			machine.removeRemote(node + SEPARATOR + endpoint);
 		}
-		
-		switch (event.getType()) {
-		case NodeCreated:
-			//Add the endpoint
-			try {
-				if (path.matches("^/([a-zA-Z_0-9]|-|_)+/([a-zA-Z_0-9]|-|_)+\\$")){
-					System.out.println("register Endpoint");
-					processEndpointAdded(event.getPath());
-				} else if (path.matches("^/([a-zA-Z_0-9]|-|_)+\\$")) {
-					System.out.println("add gateway");
-					processMachineAdded(path);
-				}
-				
-			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-			}
-			
-			break;
-		case NodeDataChanged:
-			break;
-		case NodeDeleted:
-			try {
-				//Remove endpoint
-				if (path.matches("^/([a-zA-Z_0-9]|-|_)+/([a-zA-Z_0-9]|-|_)+\\$")){
-					System.out.println("Removed Endpoint");
-					machine.removeRemote(path);
-				} else if (path.matches("^/([a-zA-Z_0-9]|-|_)+$")) {
-					System.out.println("Removed gateway");
-					processMachineRemoved(path);
-				}
-			}catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-			}
-			break;
-		case NodeChildrenChanged:
-			try {
-				keeper().exists(path, this);
-			} catch (Exception e) {
-			}
-			break;
-			
-		case None:
-		default:
-			break;
+		registrations.remove(node);
+	}
+
+	private void processEndpointAdded(String node, String endpoint)
+			throws KeeperException, InterruptedException, ParseException {
+		try {
+			byte[] desc = keeper().getData(
+					rootNode + SEPARATOR + node + SEPARATOR + endpoint, true,
+					null);
+
+			@SuppressWarnings("unchecked")
+			Map<String, Object> map = json().fromJSON(new String(desc));
+			EndpointDescription endp = RoseEndpointDescription
+					.getEndpointDescription(map);
+			machine.putRemote(node + SEPARATOR + endpoint, endp);
+			registrations.get(node).add(endpoint);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
-	
-	private void processMachineAdded(String gwpth) throws KeeperException, InterruptedException, ParseException{
-		List<String> endpoints = keeper().getChildren(gwpth,this);
-		keeper().exists(gwpth, true);
-		for (String endpoint : endpoints) {
-			processEndpointAdded(gwpth+SEPARATOR+endpoint);
-		}
+
+	private void processEndpointRemoved(String node, String endpoint) {
+		machine.removeRemote(node + SEPARATOR + endpoint);
+		registrations.get(node).remove(endpoint);
 	}
-	
-	private void processMachineRemoved(String gw) throws KeeperException, InterruptedException{
-		List<String> endpoints = keeper().getChildren(gw,this);
-		for (String endpoint : endpoints) {
-			machine.removeRemote(gw+SEPARATOR+endpoint);
-		}
-	}
-	
-	private void processEndpointAdded(String endpath) throws KeeperException, InterruptedException, ParseException{
-		byte[] desc = keeper().getData(endpath, true, null);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> map = json().fromJSON(new String(desc));
-		EndpointDescription endpoint = new EndpointDescription(map);
-		machine.putRemote(endpath, endpoint);
-	}
-	
-	private ZooKeeper keeper(){
+
+	private ZooKeeper keeper() {
 		return manager.getKeeper();
 	}
-	
-	private JSONService json(){
+
+	private JSONService json() {
 		return manager.getJson();
 	}
-	
+
+	private class MachineWatcher implements Watcher {
+
+		List<String> newNodes;
+
+		/*-----------------------------------*
+		 *  Zookeeper Watcher method         *
+		 *-----------------------------------*/
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent
+		 * )
+		 */
+
+		@SuppressWarnings("unchecked")
+		public void process(WatchedEvent event) {
+			if (running == false)
+				return;
+			try {
+				newNodes = keeper().getChildren(rootNode, this);
+				if (nodes.containsAll(newNodes)) {// node deleted
+					for (String node : (List<String>) ListUtils.subtract(nodes,
+							newNodes)) {
+						processMachineRemoved(node);
+					}
+
+				}
+				if (newNodes.containsAll(nodes)) {// new node
+					for (String node : (List<String>) ListUtils.subtract(
+							newNodes, nodes)) {
+						registrations.put(node, new ArrayList<String>());
+						new EndpointWatcher(node);
+					}
+				}
+
+				nodes = newNodes;
+
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+
+	}
+
 	private class EndpointWatcher implements Watcher {
 
-		public void process(WatchedEvent event) {
-			System.out.println("Children event "+event);
-			String path = event.getPath();
-			
-			//Description published by this framework. do nothing
-			if (path.startsWith(SEPARATOR+manager.frameworkid)){
-				return;
+		private List<String> endpoints;
+		private String node;
+		private List<String> newEndpoints;
+		private boolean getAll = false; // register all endpoints, run at the
+										// beginning of node discovered
+
+		public EndpointWatcher(String node) {
+			this.node = node;
+			try {
+				endpoints = keeper().getChildren(rootNode + SEPARATOR + node,
+						false);
+				if (endpoints.size() > 0) {
+					getAll = true;
+					this.process(null);
+				}
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			
-			switch (event.getType()) {
-			case NodeCreated:
-						System.out.println("register Endpoint");
-				try {
-					processEndpointAdded(event.getPath());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-				
-				break;
-			case NodeDataChanged:
-				break;
-			case NodeDeleted:
-				try {
-					//Remove endpoint
-					if (path.matches("^/([a-zA-Z_0-9]|-|_)+/([a-zA-Z_0-9]|-|_)+\\$")){
-						System.out.println("Removed Endpoint");
-						machine.removeRemote(path);
-					} else if (path.matches("^/([a-zA-Z_0-9]|-|_)+$")) {
-						System.out.println("Removed gateway");
-						processMachineRemoved(path);
+
+		}
+
+		/*-----------------------------------*
+		 *  Zookeeper Watcher method         *
+		 *-----------------------------------*/
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent
+		 * )
+		 */
+
+		@SuppressWarnings("unchecked")
+		public void process(WatchedEvent event) {
+			if (running == false)
+				return;
+			try {
+				if (keeper().exists(rootNode + SEPARATOR + this.node, false) == null)
+					return; // node has been deleted
+
+				newEndpoints = keeper().getChildren(
+						rootNode + SEPARATOR + node, this);
+
+				if (nodes.containsAll(newEndpoints)) {// endpoint deleted
+					for (String endpoint : (List<String>) ListUtils.subtract(
+							endpoints, newEndpoints)) {
+						processEndpointRemoved(node, endpoint);
 					}
-				}catch (Exception e) {
-					// TODO: handle exception
-					e.printStackTrace();
 				}
-				break;
-			case NodeChildrenChanged:
-				try {
-					keeper().exists(path, this);
-				} catch (Exception e) {
+
+				if (newEndpoints.containsAll(endpoints)) {// endpoint added
+					if (getAll == true) {
+						for (String endpoint : newEndpoints) {
+							processEndpointAdded(this.node, endpoint);
+						}
+					} else {
+						for (String endpoint : (List<String>) ListUtils
+								.subtract(newEndpoints, endpoints)) {
+
+							processEndpointAdded(this.node, endpoint);
+						}
+					}
+					getAll = false;
 				}
-				break;
-				
-			case None:
-			default:
-				break;
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
-		
 	}
+
 }

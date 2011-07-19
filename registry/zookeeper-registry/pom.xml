@@ -66,6 +66,11 @@
 			<artifactId>json-service</artifactId>
 			<version>${json-service.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>com.springsource.org.apache.commons.collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
 	</dependencies>
 
 	<!-- Project repositories -->

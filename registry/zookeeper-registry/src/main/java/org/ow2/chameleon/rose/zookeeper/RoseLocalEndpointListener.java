@@ -36,7 +36,7 @@ public class RoseLocalEndpointListener implements EndpointListener {
 			props.put(ENDPOINT_LISTENER_SCOPE, filter); //scope filter
 
 		}
-		//TODO bartek check it!!
+
 		registration = context.registerService(EndpointListener.class.getName(), this, props);
 		logger().log(LOG_INFO, "The zookeeper ExportedEndpointListener service has been registered.");
 	}

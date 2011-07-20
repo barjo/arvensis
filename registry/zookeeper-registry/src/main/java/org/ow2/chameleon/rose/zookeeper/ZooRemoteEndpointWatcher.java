@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections.ListUtils;
+import org.ow2.chameleon.rose.util.RoseTools;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -46,9 +46,10 @@ public class ZooRemoteEndpointWatcher {
 				registrations.put(node, new ArrayList<String>());
 				keeper().getChildren(rootNode + SEPARATOR + node,
 						new EndpointWatcher(node));
-				
+
 			}
-		logger().log(LOG_INFO, "Remote endpoints watcher successfully created");	
+			logger().log(LOG_INFO,
+					"Remote endpoints watcher successfully created");
 		} catch (KeeperException e) {
 			logger().log(LOG_ERROR, "Can not create a watcher for nodes", e);
 		} catch (InterruptedException e) {
@@ -71,7 +72,7 @@ public class ZooRemoteEndpointWatcher {
 			machine.removeRemote(node + SEPARATOR + endpoint);
 		}
 		registrations.remove(node);
-		logger().log(LOG_INFO, "Machine: "+node+" removed");
+		logger().log(LOG_INFO, "Machine: " + node + " removed");
 	}
 
 	private void processEndpointAdded(String node, String endpoint)
@@ -84,13 +85,15 @@ public class ZooRemoteEndpointWatcher {
 				.getEndpointDescription(map);
 		machine.putRemote(node + SEPARATOR + endpoint, endp);
 		registrations.get(node).add(endpoint);
-		logger().log(LOG_INFO, "Added from machine: "+node+" ,endpoint: " +endpoint);
+		logger().log(LOG_INFO,
+				"Added from machine: " + node + " ,endpoint: " + endpoint);
 	}
 
 	private void processEndpointRemoved(String node, String endpoint) {
 		machine.removeRemote(node + SEPARATOR + endpoint);
 		registrations.get(node).remove(endpoint);
-		logger().log(LOG_INFO, "Removed from machine: "+node+" ,endpoint: " +endpoint);
+		logger().log(LOG_INFO,
+				"Removed from machine: " + node + " ,endpoint: " + endpoint);
 	}
 
 	private class MachineWatcher implements Watcher {
@@ -116,25 +119,27 @@ public class ZooRemoteEndpointWatcher {
 			try {
 				newNodes = keeper().getChildren(rootNode, this);
 				if (nodes.containsAll(newNodes)) {// node deleted
-					for (String node : (List<String>) ListUtils.subtract(nodes,
-							newNodes)) {
+					for (String node : (List<String>) RoseTools.listSubtract(
+							nodes, newNodes)) {
 						processMachineRemoved(node);
 					}
 
 				}
 				if (newNodes.containsAll(nodes)) {// new node
-					for (String node : (List<String>) ListUtils.subtract(
+					for (String node : (List<String>) RoseTools.listSubtract(
 							newNodes, nodes)) {
-						logger().log(LOG_INFO, "Machine: "+node+" found");
+						logger().log(LOG_INFO, "Machine: " + node + " found");
 						registrations.put(node, new ArrayList<String>());
 						new EndpointWatcher(node);
 					}
 				}
 				nodes = newNodes;
 			} catch (InterruptedException e) {
-				logger().log(LOG_ERROR, "Can not get childrens(endpoints) for node", e);
+				logger().log(LOG_ERROR,
+						"Can not get childrens(endpoints) for node", e);
 			} catch (KeeperException e) {
-				logger().log(LOG_ERROR, "Can not get childrens(endpoints) for node", e);
+				logger().log(LOG_ERROR,
+						"Can not get childrens(endpoints) for node", e);
 			}
 		}
 	}
@@ -157,10 +162,10 @@ public class ZooRemoteEndpointWatcher {
 					this.process(null);
 				}
 			} catch (KeeperException e) {
-				logger().log(LOG_ERROR, "Can not find a node: "+node, e);
+				logger().log(LOG_ERROR, "Can not find a node: " + node, e);
 			} catch (InterruptedException e) {
-				logger().log(LOG_ERROR, "Can not find a node: "+node, e);
-			} 
+				logger().log(LOG_ERROR, "Can not find a node: " + node, e);
+			}
 
 		}
 
@@ -188,8 +193,8 @@ public class ZooRemoteEndpointWatcher {
 						rootNode + SEPARATOR + node, this);
 
 				if (nodes.containsAll(newEndpoints)) {// endpoint deleted
-					for (String endpoint : (List<String>) ListUtils.subtract(
-							endpoints, newEndpoints)) {
+					for (String endpoint : (List<String>) RoseTools
+							.listSubtract(endpoints, newEndpoints)) {
 						processEndpointRemoved(node, endpoint);
 					}
 				}
@@ -200,8 +205,8 @@ public class ZooRemoteEndpointWatcher {
 							processEndpointAdded(this.node, endpoint);
 						}
 					} else {
-						for (String endpoint : (List<String>) ListUtils
-								.subtract(newEndpoints, endpoints)) {
+						for (String endpoint : (List<String>) RoseTools
+								.listSubtract(newEndpoints, endpoints)) {
 
 							processEndpointAdded(this.node, endpoint);
 						}
@@ -209,11 +214,11 @@ public class ZooRemoteEndpointWatcher {
 					getAll = false;
 				}
 			} catch (KeeperException e) {
-				logger().log(LOG_ERROR, "Can not find a node",e);
+				logger().log(LOG_ERROR, "Can not find a node", e);
 			} catch (InterruptedException e) {
-				logger().log(LOG_ERROR, "Can not find a node",e);
+				logger().log(LOG_ERROR, "Can not find a node", e);
 			} catch (ParseException e) {
-				logger().log(LOG_ERROR, "Can not add an endpoint",e);
+				logger().log(LOG_ERROR, "Can not add an endpoint", e);
 			}
 		}
 	}

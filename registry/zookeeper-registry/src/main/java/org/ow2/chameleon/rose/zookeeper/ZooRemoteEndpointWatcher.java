@@ -77,6 +77,7 @@ public class ZooRemoteEndpointWatcher {
 
 	private void processEndpointAdded(String node, String endpoint)
 			throws KeeperException, InterruptedException, ParseException {
+		try{
 		byte[] desc = keeper().getData(
 				rootNode + SEPARATOR + node + SEPARATOR + endpoint, true, null);
 		@SuppressWarnings("unchecked")
@@ -87,6 +88,11 @@ public class ZooRemoteEndpointWatcher {
 		registrations.get(node).add(endpoint);
 		logger().log(LOG_INFO,
 				"Added from machine: " + node + " ,endpoint: " + endpoint);
+		}
+		catch (Exception e) {
+			logger().log(LOG_ERROR,
+					"Cant register : " + node + " ,endpoint: " + endpoint, e);
+		}
 	}
 
 	private void processEndpointRemoved(String node, String endpoint) {

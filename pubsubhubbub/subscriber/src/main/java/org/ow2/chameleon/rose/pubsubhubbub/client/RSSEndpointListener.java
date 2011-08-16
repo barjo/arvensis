@@ -3,7 +3,9 @@ package org.ow2.chameleon.rose.pubsubhubbub.client;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -17,12 +19,13 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.RoseEndpointDescription;
+import org.ow2.chameleon.rose.RoseMachine;
 
 
 @Component(name="Rose_Pubsubhubbub.subscriber")
@@ -34,10 +37,16 @@ public class RSSEndpointListener extends HttpServlet{
 	private static final long serialVersionUID = -6485125168680274690L;
 
 	@Requires
-	HttpService httpService;
+	private HttpService httpService;
 	
 	@Requires
-	JSONService json;
+	private RoseMachine machine;
+	
+	@Requires
+	private JSONService json;
+	
+	@Requires
+	private LogService logger;
 	
 	@Property(name="callback.url")
 	private String callBackUrl;
@@ -45,10 +54,11 @@ public class RSSEndpointListener extends HttpServlet{
 	@Property(name="hub.url")
 	private String hubUrl;
 	
-	private String endpointfilter = "(endpoint.id=*)";
+	private String endpointfilter;
 	private Subscriber subscritpion;
 	private BundleContext context;
 	private int responseCode;
+	private List<String> endpointRegistrations;
 	
 	public RSSEndpointListener(BundleContext context){
 		this.context=context;
@@ -57,8 +67,11 @@ public class RSSEndpointListener extends HttpServlet{
 	@Validate
 	void start(){
 		try {
+			if((endpointfilter=machine.getImportEndpointFilter())!=null){
+			endpointRegistrations = new ArrayList<String>();
 			httpService.registerServlet(callBackUrl, this, null, null);
 			subscritpion = new Subscriber(hubUrl,callBackUrl,endpointfilter,context);
+			}
 		} catch (ServletException e) {
 			e.printStackTrace();
 		} catch (NamespaceException e) {
@@ -74,6 +87,9 @@ public class RSSEndpointListener extends HttpServlet{
 			subscritpion.unsubscribe();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		for (String endpoint : endpointRegistrations) {
+			machine.removeRemote(endpoint);
 		}
 	}
 
@@ -91,14 +107,17 @@ public class RSSEndpointListener extends HttpServlet{
 
 			try {
 				@SuppressWarnings("unchecked")
-				EndpointDescription endp = getEndpointDescriptionFromJSON(json.fromJSON(req.getParameter("content")));
+				EndpointDescription endp =  RoseEndpointDescription
+				.getEndpointDescription(json.fromJSON(req.getParameter("content")));
 				if(req.getParameter("subscription").equals("endpoint.add")){
-					System.out.println("add endpoint");
-					System.out.println(endp);
+					machine.putRemote(endp.toString(), endp);
+					endpointRegistrations.add(endp.toString());
+					logger.log(LogService.LOG_INFO, "Remote endpoint "+endp.getId()+" added");
 				}
 				else if(req.getParameter("subscription").equals("endpoint.remove")){
-					System.out.println("add remove");
-					System.out.println(endp);
+					machine.removeRemote(endp.toString());
+					endpointRegistrations.remove(endp.toString());
+					logger.log(LogService.LOG_INFO, "Remote endpoint "+endp.getId()+" removed");
 				}
 				this.responseCode=HttpStatus.SC_OK;
 			} catch (ParseException e) {
@@ -109,24 +128,5 @@ public class RSSEndpointListener extends HttpServlet{
 
 		resp.setStatus(responseCode);
 		
-	}
-	
-	@SuppressWarnings("unchecked")
-	private EndpointDescription getEndpointDescriptionFromJSON(
-			Map<String, Object> map) {
-
-		if (map.get(Constants.OBJECTCLASS) instanceof ArrayList<?>) {
-			map.put(Constants.OBJECTCLASS, ((ArrayList<String>) map
-					.get(Constants.OBJECTCLASS)).toArray(new String[0]));
-		}
-
-		if (map.get(RemoteConstants.ENDPOINT_SERVICE_ID) instanceof Integer) {
-			Integer id = (Integer) map
-					.get((RemoteConstants.ENDPOINT_SERVICE_ID));
-			map.put(RemoteConstants.ENDPOINT_SERVICE_ID, id.longValue());
-		}
-		return new EndpointDescription(map);
-	}
-	
-	
+	}	
 }

@@ -47,12 +47,14 @@ public class EndpointTrackerRSS implements EndpointListener {
 	private static final String WRITER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedWriter";
 	private static final String WRITER_FILER_PROPERTY = "org.ow2.chameleon.syndication.feed.url";
 
+	
 	@Property(mandatory = true, name = "rss.url")
 	private String rss_url;
 	
 	@Property(name="hub.url")
 	private String hubUrl;
 
+	
 	@Requires(optional = true)
 	LogService logger;
 
@@ -223,7 +225,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 			} catch (ConfigurationException e) {
 				e.printStackTrace();
 			}
-			return null;
+			return writer;
 		}
 
 		public void modifiedService(ServiceReference reference, Object service) {

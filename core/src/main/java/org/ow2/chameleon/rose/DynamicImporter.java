@@ -41,6 +41,8 @@ public class DynamicImporter {
 	private final Filter ifilter;
 	private final Map<String, Object> extraProperties;
 	private final DynamicImporterCustomizer customizer;
+	
+	private static String edfilterStatic;
 
 	private DynamicImporter(Builder builder) {
 		extraProperties = builder.extraProperties;
@@ -49,6 +51,8 @@ public class DynamicImporter {
 		ifilter = builder.imfilter;
 		customizer = builder.customizer;
 
+		edfilterStatic = edfilter.toString();
+		
 		imptracker = new ImporterTracker();
 	}
 
@@ -71,6 +75,10 @@ public class DynamicImporter {
 	 */
 	public ImportReference[] getImportReferences(){
 		return customizer.getImportReferences();
+	}
+	
+	public static String getImportEndpointFilter(){
+		return edfilterStatic;
 	}
 	
 

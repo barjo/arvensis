@@ -41,7 +41,7 @@ public class Publisher {
 		this.urlHub = pUrlHub;
 		this.rssUrl = "http://" + InetAddress.getLocalHost().getHostAddress()
 				+ ":" + context.getProperty("org.osgi.service.http.port")
-				+ pRssUrl;
+				+ pRssUrl+"/";
 		client = new DefaultHttpClient();
 
 		postMethod = new HttpPost(this.urlHub);
@@ -57,6 +57,7 @@ public class Publisher {
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
+			response.getEntity().getContent().close();
 			throw new ClientProtocolException("Server didn register a topic");
 		}
 		//read an empty entity and close a connection

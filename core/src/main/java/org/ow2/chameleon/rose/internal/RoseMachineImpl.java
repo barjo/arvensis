@@ -35,6 +35,7 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
+import org.ow2.chameleon.rose.DynamicImporter;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
@@ -355,4 +356,8 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		return context;
 	}
 
+	public String getImportEndpointFilter(){
+		return DynamicImporter.getImportEndpointFilter();
+	}
+	
 }

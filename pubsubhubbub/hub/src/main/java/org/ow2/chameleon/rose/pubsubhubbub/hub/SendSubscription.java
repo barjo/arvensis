@@ -131,6 +131,7 @@ public class SendSubscription extends Thread {
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+			response.getEntity().getContent().close();
 			throw new ClientProtocolException(
 					"Error in sendind an update to subscriber: " + callBackUrl);
 		}

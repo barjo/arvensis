@@ -58,9 +58,6 @@ public class Hub extends HttpServlet {
 	private static final String ENDPOINT_REMOVE = "endpoint.remove";
 
 	private static final String TOPIC_DELETE = "topic.delete";
-
-	@Requires
-	private FeedReader reader;
 	
 	@Requires
 	private HttpService httpService;
@@ -181,9 +178,8 @@ public class Hub extends HttpServlet {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
-			FeedEntry feed = reader.getLastEntry();
 
-//			FeedEntry feed = readers.get(rssUrl).getLastEntry();
+			FeedEntry feed = readers.get("http://Bartek-PC:8080//roserss").getLastEntry();
 			try {
 				@SuppressWarnings("unchecked")
 				EndpointDescription edp = getEndpointDescriptionFromJSON(json
@@ -270,11 +266,11 @@ public class Hub extends HttpServlet {
 
 		public FeedReaderTracker(String rss_url) throws InvalidSyntaxException {
 
-			this.rss_url = rss_url;
+			this.rss_url = "http://Bartek-PC:8080//roserss";
 
 			String readerFilter = ("(&(" + Constants.OBJECTCLASS + "="
 					+ READER_SERVICE_CLASS + ")(" + READER_FILTER_PROPERTY
-					+ "=" + rss_url + "))");
+					+ "=" + this.rss_url + "))");
 			feedReaderTracker = new ServiceTracker(context,
 					createFilter(readerFilter), this);
 			feedReaderTracker.open();
@@ -301,11 +297,11 @@ public class Hub extends HttpServlet {
 
 		public FactoryTracker(String rss_url) throws InvalidSyntaxException {
 
-			this.rss_url = rss_url;
+			this.rss_url = "http://Bartek-PC:8080//roserss";
 
 			instanceDictionary = new Hashtable<String, Object>();
-			instanceDictionary.put("feed.url", rss_url);
-
+			instanceDictionary.put("feed.url", this.rss_url);
+			instanceDictionary.put("feed.period", 1);
 			factoryTracker = new ServiceTracker(context,
 					createFilter(FEED_READER_FACTORY_FILTER), this);
 			factoryTracker.open();
@@ -324,7 +320,7 @@ public class Hub extends HttpServlet {
 			} catch (ConfigurationException e) {
 				e.printStackTrace();
 			}
-			return null;
+			return readers.get(rss_url);
 		}
 
 		public void modifiedService(ServiceReference reference, Object service) {

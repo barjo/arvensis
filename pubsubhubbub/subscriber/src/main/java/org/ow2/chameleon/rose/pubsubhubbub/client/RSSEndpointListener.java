@@ -3,9 +3,7 @@ package org.ow2.chameleon.rose.pubsubhubbub.client;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

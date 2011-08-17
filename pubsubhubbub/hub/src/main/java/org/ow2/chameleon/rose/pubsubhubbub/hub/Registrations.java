@@ -99,7 +99,8 @@ public class Registrations {
 
 		return allEndpoints;
 	}
-
+	
+	
 	public void clearTopic(String rssURL) {
 		for (EndpointDescription endpoint : topics.get(rssURL)) {
 
@@ -115,6 +116,7 @@ public class Registrations {
 			EndpointDescription edp) {
 		subscribers.get(callBackUrl).removeEndpoint(edp);
 	}
+	
 
 	private class EndpointsByFilter {
 		private String filter;
@@ -142,5 +144,4 @@ public class Registrations {
 		}
 
 	}
-
 }

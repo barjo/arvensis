@@ -18,7 +18,6 @@
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<json-service.version>0.4.0</json-service.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 
 		<!-- Plugins version -->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>

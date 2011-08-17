@@ -71,7 +71,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 	private ServiceTracker factoryTracker;
 	private ServiceTracker feedWriterTracker;
 	private Dictionary<String, Object> instanceDictionary;
-	private boolean running = false; // don`t update RSS after stop
 	private Map<String, Object> eventProperties;
 	private Event event;
 	private Publisher subscriber;
@@ -84,7 +83,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 
 	@Validate
 	public void start() {
-		running = true;
 
 		// tracking an FeedWriter and Feed servlet factory
 		startTracking();
@@ -95,7 +93,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 		eventProperties.put("Feed url", rss_url);
 
 
-		// TODO pubsubhubbub
 		try {
 			subscriber = new Publisher(hubUrl, rss_url, context);
 		} catch (IOException e) {
@@ -113,7 +110,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 
 	@Invalidate
 	public void stop() {
-		running = false;
 		endpointListener.unregister();
 		if (factoryTracker != null) {
 			factoryTracker.close();
@@ -138,7 +134,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_NEW,
 					json.toJSON(endp.getProperties()));
 			
-			// TODO pubsubhubbub
+
 			subscriber.update();
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updateing a feed", e);
@@ -149,7 +145,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 	}
 
 	public void endpointRemoved(EndpointDescription endp, String arg1) {
-		if (running) {
+		
 			FeedEntry feed = writer.createFeedEntry();
 			feed.title(RoseRSSConstants.FEED_TITLE_REMOVE);
 			feed.content(json.toJSON(endp.getProperties()));
@@ -160,7 +156,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 				sendEndpointEvent(RoseRSSConstants.FEED_TITLE_REMOVE,
 						json.toJSON(endp.getProperties()));
 				
-				// TODO pubsubhubbub
 				subscriber.update();
 			} catch (IOException e) {
 				logger.log(LOG_WARNING, "Error in updateing a feed", e);
@@ -168,7 +163,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 			catch (Exception e) {
 				logger.log(LOG_WARNING, "Error in sending a feed", e);
 			}
-		}
+		
 	}
 
 	private void sendEndpointEvent(String title, String content) {

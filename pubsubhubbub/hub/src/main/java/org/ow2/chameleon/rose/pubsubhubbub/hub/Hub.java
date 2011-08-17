@@ -88,7 +88,7 @@ public class Hub extends HttpServlet {
 
 
 	public enum HubMode {
-		publish, unpublish, update, subscribe, unsubscribe;
+		publish, unpublish, update, subscribe, unsubscribe, getAllEndpoints;
 
 		public Object getValue(Map<String, Object> values) {
 			return values.get(this.toString());
@@ -224,6 +224,14 @@ public class Hub extends HttpServlet {
 				break;
 			}
 			registrations.removeSubscribtion(callBackUrl);
+			responseCode = HttpStatus.SC_ACCEPTED;
+			break;
+			
+		case getAllEndpoints:
+			resp.setContentType("text/html");
+			for (EndpointDescription endpoint : registrations.getAllEndpoints()) {
+				resp.getWriter().append(endpoint.toString()+"<br><br>");
+			}
 			responseCode = HttpStatus.SC_ACCEPTED;
 			break;
 

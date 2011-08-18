@@ -274,7 +274,7 @@ public class Hub extends HttpServlet {
 
 		public FeedReaderTracker(String rss_url) throws InvalidSyntaxException {
 
-			this.rss_url = "http://Bartek-PC:8080//roserss";
+			this.rss_url = rss_url;
 
 			String readerFilter = ("(&(" + Constants.OBJECTCLASS + "="
 					+ READER_SERVICE_CLASS + ")(" + READER_FILTER_PROPERTY
@@ -305,7 +305,7 @@ public class Hub extends HttpServlet {
 
 		public FactoryTracker(String rss_url) throws InvalidSyntaxException {
 
-			this.rss_url = "http://Bartek-PC:8080//roserss";
+			this.rss_url = rss_url;
 
 			instanceDictionary = new Hashtable<String, Object>();
 			instanceDictionary.put("feed.url", this.rss_url);

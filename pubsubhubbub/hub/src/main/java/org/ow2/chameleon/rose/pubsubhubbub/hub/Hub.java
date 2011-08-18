@@ -24,6 +24,9 @@ import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -84,6 +87,8 @@ public class Hub extends HttpServlet {
 
 	private static Registrations registrations;
 	private SendSubscription sendSubscription;
+	//client to send notification to subscribers;
+	private HttpClient client;
 
 
 
@@ -105,6 +110,7 @@ public class Hub extends HttpServlet {
 			httpService.registerServlet(hubServlet, this, null, null);
 			registrations = new Registrations();
 			readers = new HashMap<String, FeedReader>();
+			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
 
 		} catch (ServletException e) {
 			e.printStackTrace();
@@ -163,8 +169,8 @@ public class Hub extends HttpServlet {
 
 			if (rssUrl != null) {
 				// remove a topic
-				sendSubscription = new SendSubscription(rssUrl, ENDPOINT_REMOVE,
-						this,TOPIC_DELETE);
+				sendSubscription = new SendSubscription(client, rssUrl,
+						ENDPOINT_REMOVE,this, TOPIC_DELETE);
 				sendSubscription.start();
 				
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -186,13 +192,13 @@ public class Hub extends HttpServlet {
 						.fromJSON(feed.content()));
 				if (feed.title().equals("Endpoint added")) {
 					registrations.addEndpoint(rssUrl, edp);
-					sendSubscription = new SendSubscription(edp, ENDPOINT_ADD,
-							this);
+					sendSubscription = new SendSubscription(client, edp,
+							ENDPOINT_ADD, this);
 					sendSubscription.start();
 				} else if (feed.title().equals("Endpoint removed")) {
 					registrations.removeEndpoint(rssUrl, edp);
-					sendSubscription = new SendSubscription(edp,
-							ENDPOINT_REMOVE, this);
+					sendSubscription = new SendSubscription(client,
+							edp, ENDPOINT_REMOVE, this);
 					sendSubscription.start();
 				}
 
@@ -211,8 +217,8 @@ public class Hub extends HttpServlet {
 				responseCode = HttpStatus.SC_ACCEPTED;
 				// check if already register an endpoint which match the filter
 
-				sendSubscription = new SendSubscription(callBackUrl,
-						ENDPOINT_ADD, this);
+				sendSubscription = new SendSubscription(client,
+						callBackUrl, ENDPOINT_ADD, this);
 				sendSubscription.start();
 			}
 

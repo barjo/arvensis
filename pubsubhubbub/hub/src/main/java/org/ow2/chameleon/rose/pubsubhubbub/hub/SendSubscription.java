@@ -14,7 +14,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -24,56 +23,58 @@ public class SendSubscription extends Thread {
 	private EndpointDescription edp;
 	private String callBackUrl;
 	private HttpPost postMethod;
-	private HttpClient client;
 	private Hub server;
 	private String updateOption;
 	private String rssURL;
+	private HttpClient client;
 
 	/**
 	 * Send an endpointDescriptions after subscribe
-	 * 
+	 * @param client TODO
 	 * @param callBackUrl
 	 * @param updateOption
 	 * @param server
 	 * @param registrations
 	 */
-	public SendSubscription(String callBackUrl, String updateOption,
-			Hub server) {
+	public SendSubscription(HttpClient client, String callBackUrl,
+			String updateOption, Hub server) {
 		this.callBackUrl = callBackUrl;
-		client = new DefaultHttpClient();
+		this.client = client;
 		this.server = server;
 		this.updateOption = updateOption;
 	}
 
 	/**
 	 * Send an endpointDescriptions after publisher update
-	 * 
+	 * @param client TODO
 	 * @param edp
 	 * @param server
 	 * @param registrations
 	 */
-	public SendSubscription(EndpointDescription edp, String updateOption,
-			Hub server) {
+	public SendSubscription(HttpClient client, EndpointDescription edp,
+			String updateOption, Hub server) {
 		this.edp = edp;
-		client = new DefaultHttpClient(new ThreadSafeClientConnManager());
+		this.client=client;
 		this.server = server;
 		this.updateOption = updateOption;
 	}
 
 	/**
 	 * Send a remove endpointDescription when topic is deleted
-	 * 
+	 * @param client TODO
 	 * @param rssUrl
+	 * @param topicDelete
 	 * @param endpointRemove
 	 * @param server2
-	 * @param topicDelete
 	 */
-	public SendSubscription(String rssUrl, String updateOption,
-			Hub server, String topicDelete) {
+	public SendSubscription(HttpClient client, String rssUrl,
+			String updateOption, Hub server, String topicDelete) {
+		if(topicDelete.equals("topic.delete")){
 		this.rssURL=rssUrl;
-		client = new DefaultHttpClient();
+		this.client=client;
 		this.server = server;
 		this.updateOption = updateOption;
+		}
 	}
 
 	private void sendAfterSubscribe() {

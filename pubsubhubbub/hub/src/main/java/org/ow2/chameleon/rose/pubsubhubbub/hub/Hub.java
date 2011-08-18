@@ -42,6 +42,13 @@ import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 
+/**
+ * Component class to work as Hub in Pubsubhubbub technology, specially modified
+ * to work with Rose
+ * 
+ * @author Bartek
+ * 
+ */
 @Component(name = "Rose_Pubsubhubbub.hub")
 public class Hub extends HttpServlet {
 
@@ -61,7 +68,7 @@ public class Hub extends HttpServlet {
 	private static final String ENDPOINT_REMOVE = "endpoint.remove";
 
 	private static final String TOPIC_DELETE = "topic.delete";
-	
+
 	@Requires
 	private HttpService httpService;
 
@@ -71,13 +78,12 @@ public class Hub extends HttpServlet {
 	@Requires(optional = true)
 	private LogService logger;
 
-	@Property(name="hub.url")
+	@Property(name = "hub.url")
 	private String hubServlet = "/hub";
-	
-	
-	
+
 	// Http response status code
 	int responseCode;
+	
 	// store instances of RSS reader for different topics
 	private Map<String, FeedReader> readers;
 	private ServiceTracker feedReaderTracker;
@@ -86,11 +92,9 @@ public class Hub extends HttpServlet {
 	private Dictionary<String, Object> instanceDictionary;
 
 	private static Registrations registrations;
-	private SendSubscription sendSubscription;
-	//client to send notification to subscribers;
+	
+	// client to send notification to subscribers;
 	private HttpClient client;
-
-
 
 	public enum HubMode {
 		publish, unpublish, update, subscribe, unsubscribe, getAllEndpoints;
@@ -123,6 +127,10 @@ public class Hub extends HttpServlet {
 		httpService.unregister(hubServlet);
 	}
 
+	/** Run trackers for Feed readers and Feed read factories
+	 * @param rssUrl url address to read feeds
+	 * @return
+	 */
 	private boolean createReader(String rssUrl) {
 		try {
 			new FeedReaderTracker(rssUrl);
@@ -134,6 +142,9 @@ public class Hub extends HttpServlet {
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -169,10 +180,10 @@ public class Hub extends HttpServlet {
 
 			if (rssUrl != null) {
 				// remove a topic
-				sendSubscription = new SendSubscription(client, rssUrl,
-						ENDPOINT_REMOVE,this, TOPIC_DELETE);
-				sendSubscription.start();
+				new SendSubscription(client, rssUrl,
+						ENDPOINT_REMOVE, this, TOPIC_DELETE);
 				
+
 				responseCode = HttpStatus.SC_ACCEPTED;
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
@@ -192,14 +203,12 @@ public class Hub extends HttpServlet {
 						.fromJSON(feed.content()));
 				if (feed.title().equals("Endpoint added")) {
 					registrations.addEndpoint(rssUrl, edp);
-					sendSubscription = new SendSubscription(client, edp,
+					new SendSubscription(client, edp,
 							ENDPOINT_ADD, this);
-					sendSubscription.start();
 				} else if (feed.title().equals("Endpoint removed")) {
 					registrations.removeEndpoint(rssUrl, edp);
-					sendSubscription = new SendSubscription(client,
-							edp, ENDPOINT_REMOVE, this);
-					sendSubscription.start();
+					new SendSubscription(client, edp,
+							ENDPOINT_REMOVE, this);
 				}
 
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -217,9 +226,8 @@ public class Hub extends HttpServlet {
 				responseCode = HttpStatus.SC_ACCEPTED;
 				// check if already register an endpoint which match the filter
 
-				sendSubscription = new SendSubscription(client,
-						callBackUrl, ENDPOINT_ADD, this);
-				sendSubscription.start();
+				new SendSubscription(client, callBackUrl,
+						ENDPOINT_ADD, this);
 			}
 
 			break;
@@ -232,11 +240,11 @@ public class Hub extends HttpServlet {
 			registrations.removeSubscribtion(callBackUrl);
 			responseCode = HttpStatus.SC_ACCEPTED;
 			break;
-			
+
 		case getAllEndpoints:
 			resp.setContentType("text/html");
 			for (EndpointDescription endpoint : registrations.getAllEndpoints()) {
-				resp.getWriter().append(endpoint.toString()+"<br><br>");
+				resp.getWriter().append(endpoint.toString() + "<br><br>");
 			}
 			responseCode = HttpStatus.SC_ACCEPTED;
 			break;
@@ -250,6 +258,10 @@ public class Hub extends HttpServlet {
 		resp.setStatus(responseCode);
 	}
 
+	/**Creates an EndpointDescription from JSON map, checks for errors which occurs after parsing from string to JSON  
+	 * @param map endpoint description map property
+	 * @return proper endpoint description 
+	 */
 	@SuppressWarnings("unchecked")
 	private EndpointDescription getEndpointDescriptionFromJSON(
 			Map<String, Object> map) {
@@ -275,9 +287,17 @@ public class Hub extends HttpServlet {
 		return registrations;
 	}
 
+	/**Tracker for Feed reader
+	 * @author Bartek
+	 *
+	 */
 	private class FeedReaderTracker implements ServiceTrackerCustomizer {
 		private String rss_url;
 
+		/** Set a filter properties and run feed reader tracker
+		 * @param rss_url url to RSS
+		 * @throws InvalidSyntaxException
+		 */
 		public FeedReaderTracker(String rss_url) throws InvalidSyntaxException {
 
 			this.rss_url = rss_url;
@@ -306,9 +326,17 @@ public class Hub extends HttpServlet {
 		}
 	}
 
+	/**Tracker for Feed reader factory
+	 * @author Bartek
+	 *
+	 */
 	private class FactoryTracker implements ServiceTrackerCustomizer {
 		private String rss_url;
 
+		/** Set instance properties and run a tracker
+		 * @param rss_url Url to RSS
+		 * @throws InvalidSyntaxException
+		 */
 		public FactoryTracker(String rss_url) throws InvalidSyntaxException {
 
 			this.rss_url = rss_url;

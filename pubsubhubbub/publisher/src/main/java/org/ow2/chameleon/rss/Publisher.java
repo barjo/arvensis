@@ -18,6 +18,10 @@ import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
+/**Connect and register as a publisher to Rose Hub, sends an update and unregister command
+ * @author Bartek
+ *
+ */
 public class Publisher {
 
 	private String urlHub;
@@ -64,6 +68,9 @@ public class Publisher {
 		response.getEntity().getContent().close();
 	}
 
+	/**Send an update to hub
+	 * @throws IOException
+	 */
 	public void update() throws IOException {
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",
@@ -89,6 +96,9 @@ public class Publisher {
 		
 	}
 
+	/**
+	 * Send an unregister to hub
+	 */
 	public void unregister() {
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",

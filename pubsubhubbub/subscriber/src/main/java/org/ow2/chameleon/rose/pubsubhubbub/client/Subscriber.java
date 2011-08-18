@@ -18,6 +18,10 @@ import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
+/**Connect and register a subscription to Rose Hub
+ * @author Bartek
+ *
+ */
 public class Subscriber {
 
 	private String urlHub;
@@ -25,6 +29,13 @@ public class Subscriber {
 	private HttpClient client;
 	private String callBackUrl;
 	
+	/**Register a subscription
+	 * @param pUrlHub url address to Rose Hub, full path
+	 * @param callBackUrl servlet relative path
+	 * @param endpointFilter endpoint filter
+	 * @param context BundleContext
+	 * @throws IOException
+	 */
 	public Subscriber(String pUrlHub, String callBackUrl, String endpointFilter,BundleContext context) throws IOException {
 		this.urlHub = pUrlHub;
 		this.callBackUrl = "http://" + InetAddress.getLocalHost().getHostAddress()
@@ -54,6 +65,9 @@ public class Subscriber {
 		response.getEntity().getContent().close();
 	}
 
+	/**Send s unsubscription to Rose Hub
+	 * @throws IOException
+	 */
 	public void unsubscribe() throws IOException{
 
 		postMethod = new HttpPost(this.urlHub);

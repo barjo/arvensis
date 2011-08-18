@@ -26,6 +26,10 @@ import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
 
 
+/**Listen to all matched endpoints from hub and register them in Rose.
+ * @author Bartek
+ *
+ */
 @Component(name="Rose_Pubsubhubbub.subscriber")
 public class RSSEndpointListener extends HttpServlet{
 

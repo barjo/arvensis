@@ -37,6 +37,10 @@ import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedWriter;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
+/**Tracking and publish RSS feed for local endpoints, send events to webcosole plugin
+ * @author Bartek
+ *
+ */
 @Component(name = "Rose_Pubsubhubbub.publisher")
 public class EndpointTrackerRSS implements EndpointListener {
 
@@ -122,6 +126,9 @@ public class EndpointTrackerRSS implements EndpointListener {
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org.osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
+	 */
 	public void endpointAdded(EndpointDescription endp, String filter) {
 		FeedEntry feed = writer.createFeedEntry();
 		feed.title(RoseRSSConstants.FEED_TITLE_NEW);
@@ -144,6 +151,9 @@ public class EndpointTrackerRSS implements EndpointListener {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.osgi.service.remoteserviceadmin.EndpointListener#endpointRemoved(org.osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
+	 */
 	public void endpointRemoved(EndpointDescription endp, String arg1) {
 		
 			FeedEntry feed = writer.createFeedEntry();
@@ -166,6 +176,10 @@ public class EndpointTrackerRSS implements EndpointListener {
 		
 	}
 
+	/**Sends an event to {@link RoseRSSConstants.RSS_EVENT_TOPIC}  
+	 * @param title event title
+	 * @param content event content
+	 */
 	private void sendEndpointEvent(String title, String content) {
 		// check if eventAdmin service is available
 		if (eventAdmin != null) {
@@ -181,6 +195,9 @@ public class EndpointTrackerRSS implements EndpointListener {
 		}
 	}
 
+	/**
+	 * Run trackers for Feed writer and Feed writer factories 
+	 */
 	private void startTracking() {
 		try {
 			new FeedWriterTracker();
@@ -190,8 +207,15 @@ public class EndpointTrackerRSS implements EndpointListener {
 		}
 	}
 
+	/**Tracker for writer factory
+	 * @author Bartek
+	 *
+	 */
 	private class FactoryTracker implements ServiceTrackerCustomizer {
 
+		/**Set instance properties and run a tracker
+		 * @throws InvalidSyntaxException
+		 */
 		public FactoryTracker() throws InvalidSyntaxException {
 
 			instanceDictionary = new Hashtable<String, Object>();
@@ -231,8 +255,15 @@ public class EndpointTrackerRSS implements EndpointListener {
 		}
 	}
 
+	/**Tracker for Feed writer
+	 * @author Bartek
+	 *
+	 */
 	private class FeedWriterTracker implements ServiceTrackerCustomizer {
 
+		/** Set a filter properties and run feed reader tracker
+		 * @throws InvalidSyntaxException
+		 */
 		public FeedWriterTracker() throws InvalidSyntaxException {
 
 			String writerFilter = ("(&(" + Constants.OBJECTCLASS + "="

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
@@ -14,31 +15,42 @@ public class Registrations {
 	private Map<String, Set<EndpointDescription>> topics;
 	// subscriber name(callBackUrl), filter
 	private Map<String, EndpointsByFilter> subscribers;
-	private Lock lock;
+	private ReentrantReadWriteLock lock;
 
 	public Registrations() {
 		topics = new ConcurrentHashMap<String, Set<EndpointDescription>>();
 		subscribers = new ConcurrentHashMap<String, EndpointsByFilter>();
+		lock = new ReentrantReadWriteLock();
 	}
 
 	public void addTopic(String rssURL) {
+		lock.writeLock().lock();
 		topics.put(rssURL, new HashSet<EndpointDescription>());
+		lock.writeLock().unlock();
 	}
 
 	public void addEndpoint(String rssUrl, EndpointDescription endp) {
+		lock.writeLock().lock();
 		topics.get(rssUrl).add(endp);
+		lock.writeLock().unlock();
 	}
 
 	public void removeEndpoint(String rssUrl, EndpointDescription endp) {
+		lock.writeLock().lock();
 		topics.get(rssUrl).remove(endp);
+		lock.writeLock().unlock();
 	}
 
 	public void addSubscrition(String callBackUrl, String endpointFilter) {
+		lock.writeLock().lock();
 		subscribers.put(callBackUrl, new EndpointsByFilter(endpointFilter));
+		lock.writeLock().unlock();
 	}
 
 	public void removeSubscribtion(String callBackUrl) {
+		lock.writeLock().lock();
 		subscribers.remove(callBackUrl);
+		lock.writeLock().unlock();
 	}
 
 	/**
@@ -49,7 +61,7 @@ public class Registrations {
 	 */
 	public Set<EndpointDescription> getEndpointsForCallBackUrl(
 			String callBackUrl) {
-		lock.lock();
+		lock.readLock().lock();
 		Set<EndpointDescription> matchedEndpointDescriptions = new HashSet<EndpointDescription>();
 		String filter = subscribers.get(callBackUrl).getFilter();
 
@@ -59,13 +71,13 @@ public class Registrations {
 				subscribers.get(callBackUrl).addEndpoint(endpoint);
 			}
 		}
-		lock.unlock();
+		lock.readLock().unlock();
 		return matchedEndpointDescriptions;
 	}
 
 	public Set<String> getSubscribersByEndpoint(EndpointDescription endp) {
 		Set<String> matchedSubscribers = new HashSet<String>();
-		lock.lock();
+		lock.readLock().lock();
 		for (String subscriber : subscribers.keySet()) {
 
 			if (endp.matches(subscribers.get(subscriber).getFilter())) {
@@ -73,7 +85,7 @@ public class Registrations {
 				subscribers.get(subscriber).addEndpoint(endp);
 			}
 		}
-		lock.unlock();
+		lock.readLock().unlock();
 		return matchedSubscribers;
 	}
 
@@ -81,7 +93,7 @@ public class Registrations {
 			String callBackUrl) {
 
 		Map<String, Set<EndpointDescription>> subscriberEndpoints = new ConcurrentHashMap<String, Set<EndpointDescription>>();
-		lock.lock();
+		lock.readLock().lock();
 		for (String subscriber : subscribers.keySet()) {
 			subscriberEndpoints.put(subscriber,
 					new HashSet<EndpointDescription>());
@@ -92,24 +104,24 @@ public class Registrations {
 				}
 			}
 		}
-		lock.unlock();
+		lock.readLock().unlock();
 		return subscriberEndpoints;
 	}
 
 	public Set<EndpointDescription> getAllEndpoints() {
 
 		Set<EndpointDescription> allEndpoints = new HashSet<EndpointDescription>();
-		lock.lock();
+		lock.readLock().lock();
 		for (String publisher : topics.keySet()) {
 			allEndpoints.addAll(topics.get(publisher));
 		}
-		lock.unlock();
+		lock.readLock().unlock();
 		return allEndpoints;
 	}
 	
 	
 	public void clearTopic(String rssURL) {
-		lock.lock();
+		lock.readLock().lock();
 		for (EndpointDescription endpoint : topics.get(rssURL)) {
 
 			for (String subscriber : subscribers.keySet()) {
@@ -117,14 +129,14 @@ public class Registrations {
 			}
 		}
 		topics.remove(rssURL);
-		lock.unlock();
+		lock.readLock().unlock();
 	}
 
 	public void removeInterestedEndpoint(String callBackUrl,
 			EndpointDescription edp) {
-		lock.lock();
+		lock.writeLock().lock();
 		subscribers.get(callBackUrl).removeEndpoint(edp);
-		lock.unlock();
+		lock.writeLock().unlock();
 	}
 	
 

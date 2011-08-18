@@ -37,9 +37,12 @@ import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedWriter;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
-/**Tracking and publish RSS feed for local endpoints, send events to webcosole plugin
+/**
+ * Tracking and publish RSS feed for local endpoints, send events to webcosole
+ * plugin
+ * 
  * @author Bartek
- *
+ * 
  */
 @Component(name = "Rose_Pubsubhubbub.publisher")
 public class EndpointTrackerRSS implements EndpointListener {
@@ -47,18 +50,15 @@ public class EndpointTrackerRSS implements EndpointListener {
 	private static final String SERVLET_FACTORY_FILTER = "(&("
 			+ Constants.OBJECTCLASS
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.servlet))";
-
 	private static final String WRITER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedWriter";
 	private static final String WRITER_FILER_PROPERTY = "org.ow2.chameleon.syndication.feed.url";
 
-	
 	@Property(mandatory = true, name = "rss.url")
 	private String rss_url;
-	
-	@Property(name="hub.url")
+
+	@Property(name = "hub.url")
 	private String hubUrl;
 
-	
 	@Requires(optional = true)
 	LogService logger;
 
@@ -68,7 +68,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 	@Requires(optional = true)
 	private EventAdmin eventAdmin;
 
-	
 	private FeedWriter writer;
 	private BundleContext context;
 	private ServiceRegistration endpointListener;
@@ -78,7 +77,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 	private Map<String, Object> eventProperties;
 	private Event event;
 	private Publisher subscriber;
-	
 
 	public EndpointTrackerRSS(BundleContext context) {
 		super();
@@ -90,12 +88,11 @@ public class EndpointTrackerRSS implements EndpointListener {
 
 		// tracking an FeedWriter and Feed servlet factory
 		startTracking();
-		
+
 		// Configure an event properties
 		eventProperties = new HashMap<String, Object>();
 		eventProperties.put("Author", RoseRSSConstants.FEED_AUTHOR);
 		eventProperties.put("Feed url", rss_url);
-
 
 		try {
 			subscriber = new Publisher(hubUrl, rss_url, context);
@@ -108,7 +105,6 @@ public class EndpointTrackerRSS implements EndpointListener {
 		endpointListener = context.registerService(
 				EndpointListener.class.getName(), this, null);
 		logger.log(LOG_INFO, "EndpointTrackerRSS sucessfully started");
-
 
 	}
 
@@ -123,11 +119,15 @@ public class EndpointTrackerRSS implements EndpointListener {
 			feedWriterTracker.close();
 		}
 		subscriber.unregister();
-		
+
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org.osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org
+	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
 	 */
 	public void endpointAdded(EndpointDescription endp, String filter) {
 		FeedEntry feed = writer.createFeedEntry();
@@ -140,45 +140,51 @@ public class EndpointTrackerRSS implements EndpointListener {
 			// sending an event
 			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_NEW,
 					json.toJSON(endp.getProperties()));
-			
 
 			subscriber.update();
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updateing a feed", e);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.log(LOG_WARNING, "Error in sending a feed", e);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.osgi.service.remoteserviceadmin.EndpointListener#endpointRemoved(org.osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointRemoved(
+	 * org.osgi.service.remoteserviceadmin.EndpointDescription,
+	 * java.lang.String)
 	 */
 	public void endpointRemoved(EndpointDescription endp, String arg1) {
-		
-			FeedEntry feed = writer.createFeedEntry();
-			feed.title(RoseRSSConstants.FEED_TITLE_REMOVE);
-			feed.content(json.toJSON(endp.getProperties()));
-			try {
-				// publish a feed
-				writer.addEntry(feed);
-				// sending an event
-				sendEndpointEvent(RoseRSSConstants.FEED_TITLE_REMOVE,
-						json.toJSON(endp.getProperties()));
-				
-				subscriber.update();
-			} catch (IOException e) {
-				logger.log(LOG_WARNING, "Error in updateing a feed", e);
-			}
-			catch (Exception e) {
-				logger.log(LOG_WARNING, "Error in sending a feed", e);
-			}
-		
+
+		FeedEntry feed = writer.createFeedEntry();
+		feed.title(RoseRSSConstants.FEED_TITLE_REMOVE);
+		feed.content(json.toJSON(endp.getProperties()));
+		try {
+			// publish a feed
+			writer.addEntry(feed);
+			// sending an event
+			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_REMOVE,
+					json.toJSON(endp.getProperties()));
+
+			subscriber.update();
+		} catch (IOException e) {
+			logger.log(LOG_WARNING, "Error in updateing a feed", e);
+		} catch (Exception e) {
+			logger.log(LOG_WARNING, "Error in sending a feed", e);
+		}
+
 	}
 
-	/**Sends an event to {@link RoseRSSConstants.RSS_EVENT_TOPIC}  
-	 * @param title event title
-	 * @param content event content
+	/**
+	 * Sends an event to {@link RoseRSSConstants.RSS_EVENT_TOPIC}
+	 * 
+	 * @param title
+	 *            event title
+	 * @param content
+	 *            event content
 	 */
 	private void sendEndpointEvent(String title, String content) {
 		// check if eventAdmin service is available
@@ -196,7 +202,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 	}
 
 	/**
-	 * Run trackers for Feed writer and Feed writer factories 
+	 * Run trackers for Feed writer and Feed writer factories
 	 */
 	private void startTracking() {
 		try {
@@ -207,13 +213,17 @@ public class EndpointTrackerRSS implements EndpointListener {
 		}
 	}
 
-	/**Tracker for writer factory
+	/**
+	 * Tracker for writer factory
+	 * 
 	 * @author Bartek
-	 *
+	 * 
 	 */
 	private class FactoryTracker implements ServiceTrackerCustomizer {
 
-		/**Set instance properties and run a tracker
+		/**
+		 * Set instance properties and run a tracker
+		 * 
 		 * @throws InvalidSyntaxException
 		 */
 		public FactoryTracker() throws InvalidSyntaxException {
@@ -255,13 +265,17 @@ public class EndpointTrackerRSS implements EndpointListener {
 		}
 	}
 
-	/**Tracker for Feed writer
+	/**
+	 * Tracker for Feed writer
+	 * 
 	 * @author Bartek
-	 *
+	 * 
 	 */
 	private class FeedWriterTracker implements ServiceTrackerCustomizer {
 
-		/** Set a filter properties and run feed reader tracker
+		/**
+		 * Set a filter properties and run feed reader tracker
+		 * 
 		 * @throws InvalidSyntaxException
 		 */
 		public FeedWriterTracker() throws InvalidSyntaxException {

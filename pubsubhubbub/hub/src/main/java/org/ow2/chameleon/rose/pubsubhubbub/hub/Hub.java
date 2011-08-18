@@ -60,15 +60,13 @@ public class Hub extends HttpServlet {
 	private static final String FEED_READER_FACTORY_FILTER = "(&("
 			+ Constants.OBJECTCLASS
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
-
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
 	private static final String READER_FILTER_PROPERTY = "org.ow2.chameleon.syndication.feed.url";
-
 	private static final String ENDPOINT_ADD = "endpoint.add";
 	private static final String ENDPOINT_REMOVE = "endpoint.remove";
-
 	private static final String TOPIC_DELETE = "topic.delete";
 
+	
 	@Requires
 	private HttpService httpService;
 
@@ -79,10 +77,12 @@ public class Hub extends HttpServlet {
 	private LogService logger;
 
 	@Property(name = "hub.url")
-	private String hubServlet = "/hub";
+	private String hubServlet;
 
-	// Http response status code
-	int responseCode;
+	
+	
+	// HTTP response status code
+	private int responseCode;
 	
 	// store instances of RSS reader for different topics
 	private Map<String, FeedReader> readers;
@@ -90,8 +90,7 @@ public class Hub extends HttpServlet {
 	private ServiceTracker factoryTracker;
 	private BundleContext context;
 	private Dictionary<String, Object> instanceDictionary;
-
-	private static Registrations registrations;
+	private Registrations registrations;
 	
 	// client to send notification to subscribers;
 	private HttpClient client;

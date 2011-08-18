@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -118,8 +117,7 @@ public class Registrations {
 		lock.readLock().unlock();
 		return allEndpoints;
 	}
-	
-	
+
 	public void clearTopic(String rssURL) {
 		lock.readLock().lock();
 		for (EndpointDescription endpoint : topics.get(rssURL)) {
@@ -138,7 +136,6 @@ public class Registrations {
 		subscribers.get(callBackUrl).removeEndpoint(edp);
 		lock.writeLock().unlock();
 	}
-	
 
 	private class EndpointsByFilter {
 		private String filter;

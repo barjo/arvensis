@@ -18,9 +18,12 @@ import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
-/**Connect and register as a publisher to Rose Hub, sends an update and unregister command
+/**
+ * Connect and register as a publisher to Rose Hub, sends an update and
+ * unregister command
+ * 
  * @author Bartek
- *
+ * 
  */
 public class Publisher {
 
@@ -45,7 +48,7 @@ public class Publisher {
 		this.urlHub = pUrlHub;
 		this.rssUrl = "http://" + InetAddress.getLocalHost().getHostAddress()
 				+ ":" + context.getProperty("org.osgi.service.http.port")
-				+ pRssUrl+"/";
+				+ pRssUrl + "/";
 		client = new DefaultHttpClient();
 
 		postMethod = new HttpPost(this.urlHub);
@@ -64,11 +67,13 @@ public class Publisher {
 			response.getEntity().getContent().close();
 			throw new ClientProtocolException("Server didn register a topic");
 		}
-		//read an empty entity and close a connection
+		// read an empty entity and close a connection
 		response.getEntity().getContent().close();
 	}
 
-	/**Send an update to hub
+	/**
+	 * Send an update to hub
+	 * 
 	 * @throws IOException
 	 */
 	public void update() throws IOException {
@@ -88,12 +93,12 @@ public class Publisher {
 				response.getEntity().getContent().close();
 				throw new ClientProtocolException("Server didnt update");
 			}
-			//read an empty entity and close a connection
+			// read an empty entity and close a connection
 			response.getEntity().getContent().close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	/**
@@ -116,11 +121,11 @@ public class Publisher {
 				response.getEntity().getContent().close();
 				throw new ClientProtocolException("Server didnt update");
 			}
-			//read an empty entity and close a connection
+			// read an empty entity and close a connection
 			response.getEntity().getContent().close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 }

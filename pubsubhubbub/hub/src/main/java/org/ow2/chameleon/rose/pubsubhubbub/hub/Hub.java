@@ -179,7 +179,7 @@ public class Hub extends HttpServlet {
 				break;
 			}
 
-			FeedEntry feed = readers.get("http://Bartek-PC:8080//roserss").getLastEntry();
+			FeedEntry feed = readers.get(rssUrl).getLastEntry();
 			try {
 				@SuppressWarnings("unchecked")
 				EndpointDescription edp = getEndpointDescriptionFromJSON(json

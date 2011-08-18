@@ -14,6 +14,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -54,7 +55,7 @@ public class SendSubscription extends Thread {
 	public SendSubscription(EndpointDescription edp, String updateOption,
 			Hub server) {
 		this.edp = edp;
-		client = new DefaultHttpClient();
+		client = new DefaultHttpClient(new ThreadSafeClientConnManager());
 		this.server = server;
 		this.updateOption = updateOption;
 	}

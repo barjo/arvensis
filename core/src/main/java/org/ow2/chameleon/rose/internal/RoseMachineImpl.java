@@ -355,9 +355,5 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	protected BundleContext getContext(){
 		return context;
 	}
-
-	public String getImportEndpointFilter(){
-		return DynamicImporter.getImportEndpointFilter();
-	}
 	
 }

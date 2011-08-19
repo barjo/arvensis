@@ -58,5 +58,4 @@ public interface RoseMachine {
 	 */
 	Map<String, Object> getProperties();
 	
-	String getImportEndpointFilter();
 }

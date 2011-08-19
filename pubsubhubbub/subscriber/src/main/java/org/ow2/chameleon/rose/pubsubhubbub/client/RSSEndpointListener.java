@@ -51,13 +51,16 @@ public class RSSEndpointListener extends HttpServlet {
 	@Requires
 	private LogService logger;
 
+	
 	@Property(name = "callback.url")
 	private String callBackUrl;
 
 	@Property(name = "hub.url")
 	private String hubUrl;
+		
+	@Property(name = "endpoint.filter")
+	private String endpointFilter;
 
-	private String endpointfilter;
 	private Subscriber subscritpion;
 	private BundleContext context;
 	private int responseCode;
@@ -70,12 +73,10 @@ public class RSSEndpointListener extends HttpServlet {
 	@Validate
 	void start() {
 		try {
-			if ((endpointfilter = machine.getImportEndpointFilter()) != null) {
 				endpointRegistrations = new ArrayList<String>();
 				httpService.registerServlet(callBackUrl, this, null, null);
 				subscritpion = new Subscriber(hubUrl, callBackUrl,
-						endpointfilter, context);
-			}
+						endpointFilter, context);
 		} catch (ServletException e) {
 			e.printStackTrace();
 		} catch (NamespaceException e) {

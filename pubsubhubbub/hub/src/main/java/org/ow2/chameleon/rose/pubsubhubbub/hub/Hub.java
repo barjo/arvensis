@@ -190,12 +190,13 @@ public class Hub extends HttpServlet {
 			break;
 
 		case update:
-			if (rssUrl == null) {
+			if ((rssUrl == null)||(readers.get(rssUrl)==null)) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
 
 			FeedEntry feed = readers.get(rssUrl).getLastEntry();
+			
 			try {
 				@SuppressWarnings("unchecked")
 				EndpointDescription edp = getEndpointDescriptionFromJSON(json

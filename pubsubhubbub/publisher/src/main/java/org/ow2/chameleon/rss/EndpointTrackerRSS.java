@@ -130,6 +130,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
 	 */
 	public void endpointAdded(EndpointDescription endp, String filter) {
+		if (writer==null) return;
 		FeedEntry feed = writer.createFeedEntry();
 		feed.title(RoseRSSConstants.FEED_TITLE_NEW);
 		feed.content(json.toJSON(endp.getProperties()));
@@ -158,7 +159,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 	 * java.lang.String)
 	 */
 	public void endpointRemoved(EndpointDescription endp, String arg1) {
-
+		if (writer==null) return;
 		FeedEntry feed = writer.createFeedEntry();
 		feed.title(RoseRSSConstants.FEED_TITLE_REMOVE);
 		feed.content(json.toJSON(endp.getProperties()));

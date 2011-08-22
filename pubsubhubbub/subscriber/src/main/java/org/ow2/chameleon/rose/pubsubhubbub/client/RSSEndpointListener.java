@@ -48,7 +48,7 @@ public class RSSEndpointListener extends HttpServlet {
 	@Requires
 	private JSONService json;
 
-	@Requires
+	@Requires(optional=true)
 	private LogService logger;
 
 	

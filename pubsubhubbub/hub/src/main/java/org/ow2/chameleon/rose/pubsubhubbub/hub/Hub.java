@@ -76,7 +76,7 @@ public class Hub extends HttpServlet {
 	@Requires(optional = true)
 	private LogService logger;
 
-	@Property(name = "hub.url")
+	@Property(name = "hub.url", mandatory=true)
 	private String hubServlet;
 
 	

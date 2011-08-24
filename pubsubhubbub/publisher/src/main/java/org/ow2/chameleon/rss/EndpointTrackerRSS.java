@@ -3,6 +3,8 @@ package org.ow2.chameleon.rss;
 import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
+import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.LOCAL;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -35,6 +37,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedWriter;
+import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
 /**
@@ -100,10 +103,11 @@ public class EndpointTrackerRSS implements EndpointListener {
 			e.printStackTrace();
 
 		}
-
+		Dictionary<String, Object> props= new Hashtable<String, Object>();
+		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
 		// Register an EndpointListener
 		endpointListener = context.registerService(
-				EndpointListener.class.getName(), this, null);
+				EndpointListener.class.getName(), this, props);
 		logger.log(LOG_INFO, "EndpointTrackerRSS sucessfully started");
 
 	}

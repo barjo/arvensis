@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rss;
+package org.ow2.chameleon.rose.pubsubhubbub.publisher;
 
 import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.osgi.service.log.LogService.LOG_INFO;

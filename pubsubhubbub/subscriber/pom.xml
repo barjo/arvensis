@@ -135,7 +135,7 @@
 						</Bundle-SymbolicName>
 						<Import-Package>*</Import-Package>
 						<Private-Package>
-							org.ow2.chameleon.rss
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber
 						</Private-Package>
 					</instructions>
 				</configuration>

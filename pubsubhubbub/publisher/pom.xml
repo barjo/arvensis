@@ -132,7 +132,7 @@
 						</Bundle-SymbolicName>
 						<Import-Package>*</Import-Package>
 						<Private-Package>
-							org.ow2.chameleon.rss
+							org.ow2.chameleon.rose.pubsubhubbub.publisher
 						</Private-Package>
 					</instructions>
 				</configuration>

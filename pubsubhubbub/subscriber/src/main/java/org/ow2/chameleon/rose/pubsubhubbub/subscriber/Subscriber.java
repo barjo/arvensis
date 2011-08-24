@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose.pubsubhubbub.client;
+package org.ow2.chameleon.rose.pubsubhubbub.subscriber;
 
 import java.io.IOException;
 import java.net.InetAddress;

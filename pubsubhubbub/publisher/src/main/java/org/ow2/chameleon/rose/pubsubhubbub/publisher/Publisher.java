@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rss;
+package org.ow2.chameleon.rose.pubsubhubbub.publisher;
 
 import java.io.IOException;
 import java.net.InetAddress;

@@ -31,6 +31,7 @@ public class Publisher {
 	private String rssUrl;
 	private HttpPost postMethod;
 	private HttpClient client;
+	private String port;
 
 	/**
 	 * Register a topic in hub
@@ -46,9 +47,13 @@ public class Publisher {
 	public Publisher(String pUrlHub, String pRssUrl, BundleContext context)
 			throws ClientProtocolException, IOException {
 		this.urlHub = pUrlHub;
+		port = context.getProperty("org.osgi.service.http.port");
+		if (port == null)
+		{	//setting default felix http server port
+			port = "8080";
+		}
 		this.rssUrl = "http://" + InetAddress.getLocalHost().getHostAddress()
-				+ ":" + context.getProperty("org.osgi.service.http.port")
-				+ pRssUrl + "/";
+				+ ":" + port + pRssUrl + "/";
 		client = new DefaultHttpClient();
 
 		postMethod = new HttpPost(this.urlHub);
@@ -119,7 +124,7 @@ public class Publisher {
 			HttpResponse response = client.execute(postMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
 				response.getEntity().getContent().close();
-				throw new ClientProtocolException("Server didnt update");
+				throw new ClientProtocolException("Server didnt unregister");
 			}
 			// read an empty entity and close a connection
 			response.getEntity().getContent().close();

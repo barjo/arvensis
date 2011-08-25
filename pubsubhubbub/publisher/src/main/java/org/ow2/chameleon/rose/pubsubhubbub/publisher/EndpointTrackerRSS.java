@@ -102,7 +102,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 			e.printStackTrace();
 
 		}
-		Dictionary<String, Object> props= new Hashtable<String, Object>();
+		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
 		// Register an EndpointListener
 		endpointListener = context.registerService(
@@ -121,8 +121,9 @@ public class EndpointTrackerRSS implements EndpointListener {
 		if (feedWriterTracker != null) {
 			feedWriterTracker.close();
 		}
-		subscriber.unregister();
-
+		if (subscriber != null) {
+			subscriber.unregister();
+		}
 	}
 
 	/*
@@ -133,7 +134,8 @@ public class EndpointTrackerRSS implements EndpointListener {
 	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
 	 */
 	public void endpointAdded(EndpointDescription endp, String filter) {
-		if (writer==null) return;
+		if (writer == null)
+			return;
 		FeedEntry feed = writer.createFeedEntry();
 		feed.title(RoseRSSConstants.FEED_TITLE_NEW);
 		feed.content(json.toJSON(endp.getProperties()));
@@ -162,7 +164,8 @@ public class EndpointTrackerRSS implements EndpointListener {
 	 * java.lang.String)
 	 */
 	public void endpointRemoved(EndpointDescription endp, String arg1) {
-		if (writer==null) return;
+		if (writer == null)
+			return;
 		FeedEntry feed = writer.createFeedEntry();
 		feed.title(RoseRSSConstants.FEED_TITLE_REMOVE);
 		feed.content(json.toJSON(endp.getProperties()));

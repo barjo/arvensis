@@ -16,6 +16,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.http.HttpService;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
 /**
@@ -47,10 +48,11 @@ public class Publisher {
 	public Publisher(String pUrlHub, String pRssUrl, BundleContext context)
 			throws ClientProtocolException, IOException {
 		this.urlHub = pUrlHub;
-		port = context.getProperty("org.osgi.service.http.port");
-		if (port == null)
-		{	//setting default felix http server port
-			port = "8080";
+		port = (String) context
+				.getServiceReference(HttpService.class.getName()).getProperty(
+						"org.osgi.service.http.port");
+		if (port == null) {
+			port = context.getProperty("org.osgi.service.http.port");
 		}
 		this.rssUrl = "http://" + InetAddress.getLocalHost().getHostAddress()
 				+ ":" + port + pRssUrl + "/";

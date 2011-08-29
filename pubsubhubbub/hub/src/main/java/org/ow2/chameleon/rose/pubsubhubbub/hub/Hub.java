@@ -9,6 +9,11 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAME
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_REMOVE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
+
+
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 
 
@@ -71,10 +76,7 @@ public class Hub extends HttpServlet {
 			+ Constants.OBJECTCLASS
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
-	private static final String READER_FILTER_PROPERTY = "org.ow2.chameleon.syndication.feed.url";
-	private static final String ENDPOINT_ADD = "endpoint.add";
-	private static final String ENDPOINT_REMOVE = "endpoint.remove";
-	private static final String TOPIC_DELETE = "topic.delete";
+	private static final String READER_FILTER_PROPERTY = FeedReader.FEED_URL_PROPERTY;
 
 	
 	@Requires
@@ -182,7 +184,7 @@ public class Hub extends HttpServlet {
 			if (rssUrl != null) {
 				// remove a topic
 				new SendSubscription(client, rssUrl,
-						ENDPOINT_REMOVE, this, TOPIC_DELETE);
+						HUB_UPDATE_ENDPOINT_REMOVED, this, HUB_UPDATE_TOPIC_DELETE);
 				
 
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -206,11 +208,11 @@ public class Hub extends HttpServlet {
 				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpoint(rssUrl, edp);
 					new SendSubscription(client, edp,
-							ENDPOINT_ADD, this);
+							HUB_UPDATE_ENDPOINT_ADDED, this);
 				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
 					registrations.removeEndpoint(rssUrl, edp);
 					new SendSubscription(client, edp,
-							ENDPOINT_REMOVE, this);
+							HUB_UPDATE_ENDPOINT_REMOVED, this);
 				}
 
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -229,7 +231,7 @@ public class Hub extends HttpServlet {
 				// check if already register an endpoint which matches the filter
 
 				new SendSubscription(client, callBackUrl,
-						ENDPOINT_ADD, this);
+						HUB_UPDATE_ENDPOINT_ADDED, this);
 			}
 
 			break;

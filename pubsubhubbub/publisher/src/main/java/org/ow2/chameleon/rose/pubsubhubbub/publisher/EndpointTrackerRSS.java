@@ -36,6 +36,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.syndication.FeedEntry;
+import org.ow2.chameleon.syndication.FeedReader;
 import org.ow2.chameleon.syndication.FeedWriter;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
@@ -134,8 +135,10 @@ public class EndpointTrackerRSS implements EndpointListener {
 	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
 	 */
 	public void endpointAdded(EndpointDescription endp, String filter) {
-		if (writer == null)
+		if (writer == null){
+			logger.log(LOG_WARNING, "Rss feed not published, Rss writer not found");
 			return;
+		}
 		FeedEntry feed = writer.createFeedEntry();
 		feed.title(RoseRSSConstants.FEED_TITLE_NEW);
 		feed.content(json.toJSON(endp.getProperties()));
@@ -235,8 +238,9 @@ public class EndpointTrackerRSS implements EndpointListener {
 		 */
 		public FactoryTracker() throws InvalidSyntaxException {
 
+			
 			instanceDictionary = new Hashtable<String, Object>();
-			instanceDictionary.put("org.ow2.chameleon.syndication.feed.title",
+			instanceDictionary.put(FeedReader.FEED_TITLE_PROPERTY,
 					"RoseRss");
 			instanceDictionary
 					.put("org.ow2.chameleon.syndication.feed.servlet.alias",

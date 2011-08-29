@@ -16,6 +16,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
+
 
 /**
  * Sending a notification to subscribers
@@ -80,7 +82,7 @@ public class SendSubscription extends Thread {
 	 */
 	public SendSubscription(HttpClient client, String rssUrl,
 			String updateOption, Hub server, String topicDelete) {
-		if (topicDelete.equals("topic.delete")) {
+		if (topicDelete.equals(HUB_UPDATE_TOPIC_DELETE)) {
 			this.rssURL = rssUrl;
 			this.client = client;
 			this.server = server;

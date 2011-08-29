@@ -17,7 +17,11 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+
 
 /**
  * Connect and register as a publisher to Rose Hub, sends an update and
@@ -60,13 +64,13 @@ public class Publisher {
 
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
+				HTTP_POST_HEADER_TYPE);
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE, "publish"));
+				HTTP_POST_PARAMETER_HUB_MODE, HubMode.publish.toString()));
 		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL, this.rssUrl));
+				HTTP_POST_PARAMETER_RSS_TOPIC_URL, this.rssUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);
@@ -90,9 +94,9 @@ public class Publisher {
 		try {
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(
-					RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE, "update"));
+					HTTP_POST_PARAMETER_HUB_MODE, HubMode.update.toString()));
 			nvps.add(new BasicNameValuePair(
-					RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL,
+					HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 					this.rssUrl));
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 			HttpResponse response = client.execute(postMethod);
@@ -118,9 +122,9 @@ public class Publisher {
 		try {
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(
-					RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE, "unpublish"));
+					HTTP_POST_PARAMETER_HUB_MODE, HubMode.unpublish.toString()));
 			nvps.add(new BasicNameValuePair(
-					RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL,
+					HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 					this.rssUrl));
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 			HttpResponse response = client.execute(postMethod);

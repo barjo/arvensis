@@ -16,7 +16,13 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import org.osgi.service.http.HttpService;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+
 
 /**
  * Connect and register a subscription to Rose Hub
@@ -30,6 +36,7 @@ public class Subscriber {
 	private HttpPost postMethod;
 	private HttpClient client;
 	private String callBackUrl;
+	private String port;
 
 	/**
 	 * Register a subscription
@@ -47,29 +54,32 @@ public class Subscriber {
 	public Subscriber(String pUrlHub, String callBackUrl,
 			String endpointFilter, BundleContext context) throws IOException {
 		this.urlHub = pUrlHub;
+		port = (String) context
+				.getServiceReference(HttpService.class.getName()).getProperty(
+						"org.osgi.service.http.port");
+		if (port == null) {
+			port = context.getProperty("org.osgi.service.http.port");
+		}
 		this.callBackUrl = "http://"
-				+ InetAddress.getLocalHost().getHostAddress() + ":"
-				+ context.getProperty("org.osgi.service.http.port")
+				+ InetAddress.getLocalHost().getHostAddress() + ":" + port
 				+ callBackUrl;
 		client = new DefaultHttpClient();
 
 		postMethod = new HttpPost(this.urlHub);
-		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
+		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE, "subscribe"));
-		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER,
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
+				HubMode.subscribe.toString()));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_ENDPOINT_FILTER,
 				endpointFilter));
 		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK,
+				HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);
-		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
 			response.getEntity().getContent().close();
 			throw new ClientProtocolException("Error in subscription");
 		}
@@ -78,7 +88,7 @@ public class Subscriber {
 	}
 
 	/**
-	 * Send s unsubscription to Rose Hub
+	 * Sends unsubscription to Rose Hub
 	 * 
 	 * @throws IOException
 	 */
@@ -86,13 +96,13 @@ public class Subscriber {
 
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
+				HTTP_POST_HEADER_TYPE);
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE, "unsubscribe"));
+				HTTP_POST_PARAMETER_HUB_MODE, HubMode.unsubscribe.toString()));
 		nvps.add(new BasicNameValuePair(
-				RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK,
+				HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));

@@ -24,6 +24,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
 /**
  * Listen to all matched endpoints from hub and register them in Rose.
@@ -116,13 +117,13 @@ public class RSSEndpointListener extends HttpServlet {
 				EndpointDescription endp = RoseEndpointDescription
 						.getEndpointDescription(json.fromJSON(req
 								.getParameter("content")));
-				if (req.getParameter("subscription").equals("endpoint.add")) {
+				if (req.getParameter("subscription").equals(RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED)) {
 					machine.putRemote(endp.toString(), endp);
 					endpointRegistrations.add(endp.toString());
 					logger.log(LogService.LOG_INFO,
 							"Remote endpoint " + endp.getId() + " added");
 				} else if (req.getParameter("subscription").equals(
-						"endpoint.remove")) {
+						RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED)) {
 					machine.removeRemote(endp.toString());
 					endpointRegistrations.remove(endp.toString());
 					logger.log(LogService.LOG_INFO,

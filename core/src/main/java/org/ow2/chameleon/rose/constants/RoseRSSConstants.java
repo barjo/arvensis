@@ -15,6 +15,7 @@ public class RoseRSSConstants {
 	public static final String HTTP_POST_PARAMETER_ENDPOINT_FILTER="hub.endp.filter";
 	public static final String HUB_UPDATE_ENDPOINT_ADDED = "endpoint.add";
 	public static final String HUB_UPDATE_ENDPOINT_REMOVED = "endpoint.remove";
+	public static final String HUB_UPDATE_TOPIC_DELETE = "endpoint.remove";
 	
 	public enum HubMode {
 		publish, unpublish, update, subscribe, unsubscribe, getAllEndpoints;

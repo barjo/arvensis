@@ -31,7 +31,7 @@ import org.ow2.chameleon.json.JSONService;
  * @author Bartek
  * 
  */
-class TestHub extends HttpServlet {
+class DummyHub extends HttpServlet {
 
 	/**
 	 * 
@@ -43,7 +43,7 @@ class TestHub extends HttpServlet {
 	private HttpPost postMethod;
 	private HttpClient client;
 
-	public TestHub(HttpService http, int responseStatus) {
+	public DummyHub(HttpService http, int responseStatus) {
 		this.http = http;
 		this.responseStatus = responseStatus;
 	}

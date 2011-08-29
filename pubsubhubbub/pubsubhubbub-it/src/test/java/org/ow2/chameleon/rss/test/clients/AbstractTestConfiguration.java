@@ -38,7 +38,7 @@ public class AbstractTestConfiguration {
 
 	protected IPOJOHelper ipojo;
 
-	protected TestHub hub;
+	protected DummyHub hub;
 
 	protected EndpointDescription endp;
 
@@ -63,7 +63,7 @@ public class AbstractTestConfiguration {
 
 		// run a test hub, first response status accepted for registration a
 		// tested publisher
-		hub = new TestHub(http, HttpStatus.SC_CREATED);
+		hub = new DummyHub(http, HttpStatus.SC_CREATED);
 		hub.start();
 
 		// prepare test endpoint description

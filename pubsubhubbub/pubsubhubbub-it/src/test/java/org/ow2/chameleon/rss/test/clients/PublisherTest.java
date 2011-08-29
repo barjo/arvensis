@@ -1,19 +1,14 @@
-package org.ow2.chameleon.rss.test;
+package org.ow2.chameleon.rss.test.clients;
 
-import static org.mockito.MockitoAnnotations.initMocks;
 import static org.ops4j.pax.exam.CoreOptions.felix;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.provision;
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -24,14 +19,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
 import org.ops4j.pax.exam.junit.JUnitOptions;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.http.HttpService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.ow2.chameleon.json.JSONService;
@@ -39,44 +31,20 @@ import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
-import org.ow2.chameleon.testing.helpers.IPOJOHelper;
-import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
 @RunWith(JUnit4TestRunner.class)
-public class PublisherTest {
+public class PublisherTest extends AbstractTestConfiguration{
 
 	private static final String PUBLISHER_INSTANCE_NAME = "Rose_Pubsubhubbub.publisher-1";
-	
-	protected HttpService http;
-
-	@Inject
-	protected BundleContext context;
-
-	private OSGiHelper osgi;
-
-	private IPOJOHelper ipojo;
-
-	private TestHub hub;
-
-	private EndpointDescription endp;
 
 	private FeedReader reader;
 	
 	private  String publisherRssUrl;
 
 	@Before
+	@Override
 	public void setUp() throws UnknownHostException {
-		osgi = new OSGiHelper(context);
-		ipojo = new IPOJOHelper(context);
-		initMocks(this);
-
-		// gathering a http service
-		http = (HttpService) osgi.getServiceObject(HttpService.class.getName(),
-				null);
-		// run a test hub, first response status accepted for registration a
-		// tested publisher
-		hub = new TestHub(http, HttpStatus.SC_CREATED);
-		hub.start();
+		super.setUp();
 
 		// create publisher instance, register publisher in hub
 		Dictionary<String, String> props = new Hashtable<String, String>();
@@ -87,14 +55,6 @@ public class PublisherTest {
 
 		// change hub response status
 		hub.changeResponseStatus(HttpStatus.SC_ACCEPTED);
-
-		// prepare test endpoint description
-		Map<String, Object> endpProps = new HashMap<String, Object>();
-		endpProps.put(OBJECTCLASS, new String[] { "testObject" });
-		endpProps.put(ENDPOINT_ID, "1");
-		endpProps.put(SERVICE_IMPORTED_CONFIGS,
-				new String[] { "import configs" });
-		endp = new EndpointDescription(endpProps);
 
 		// prepare rss feed reader, created by publisher
 		reader = (FeedReader) osgi.getServiceObject(FeedReader.class.getName(),
@@ -109,7 +69,7 @@ public class PublisherTest {
 	public void tearDown() {
 
 		// response to unregister publisher
-		System.out.println("ending");
+
 		hub.changeResponseStatus(HttpStatus.SC_ACCEPTED);
 		
 		// stop publisher, waits for response from test hub
@@ -127,37 +87,15 @@ public class PublisherTest {
 		Option[] platform = options(felix());
 
 		Option[] bundles = options(provision(
-				mavenBundle().groupId("org.apache.felix")
-						.artifactId("org.apache.felix.ipojo")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.osgi")
-						.artifactId("org.osgi.compendium").versionAsInProject(),
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-api")
 						.versionAsInProject(),
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.testing")
-						.artifactId("osgi-helpers").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.json")
-						.artifactId("json-service-json.org")
 						.versionAsInProject(),
 				mavenBundle().groupId("org.jabsorb")
 						.artifactId("org.ow2.chameleon.commons.jabsorb")
 						.versionAsInProject(),
 				mavenBundle().groupId("org.apache.felix")
 						.artifactId("org.apache.felix.eventadmin")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.apache.felix")
-						.artifactId("org.apache.felix.http.jetty")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.apache.httpcomponents")
-						.artifactId("httpclient-osgi").versionAsInProject(),
-				mavenBundle().groupId("org.apache.httpcomponents")
-						.artifactId("httpcore-osgi").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose")
-						.artifactId("rose-core").versionAsInProject(),
-				mavenBundle().groupId("commons-logging")
-						.artifactId("org.ow2.chameleon.commons.logging")
 						.versionAsInProject(),
 				mavenBundle().groupId("org.ow2.chameleon.syndication")
 						.artifactId("syndication-service").versionAsInProject(),
@@ -190,7 +128,7 @@ public class PublisherTest {
 	/**
 	 * Check publisher instance status
 	 */
-//	@Test
+	@Test
 	public void testActivity() {
 		// wait for the service to be available.
 		waitForIt(100);
@@ -209,7 +147,7 @@ public class PublisherTest {
 	 * @throws UnknownHostException 
 	 */
 	@Test
-	public void testRegistrationParameters() throws UnknownHostException {
+	public void testRegistrationParameters() {
 
 		Map<String, Object> parameters;
 
@@ -426,13 +364,5 @@ public class PublisherTest {
 		// check RSS topic
 		Assert.assertNull(reader.getLastEntry());
 
-	}
-
-	public static void waitForIt(int time) {
-		try {
-			Thread.sleep(time);
-		} catch (InterruptedException e) {
-			assert false;
-		}
 	}
 }

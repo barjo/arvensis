@@ -34,6 +34,8 @@
 
 		<!-- Tested version -->
 		<pubsubhubbub-publisher.version>0.1.0-SNAPSHOT</pubsubhubbub-publisher.version>
+		<pubsubhubbub-subscriber.version>0.1.0-SNAPSHOT</pubsubhubbub-subscriber.version>
+		
 
 	</properties>
 
@@ -125,6 +127,12 @@
 			<groupId>org.ow2.chameleon.rss</groupId>
 			<artifactId>pubsubhubbub-publisher</artifactId>
 			<version>${pubsubhubbub-publisher.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.rss</groupId>
+			<artifactId>pubsubhubbub-subscriber</artifactId>
+			<version>${pubsubhubbub-subscriber.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

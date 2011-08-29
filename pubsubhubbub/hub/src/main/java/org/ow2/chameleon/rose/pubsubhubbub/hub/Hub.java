@@ -2,6 +2,16 @@ package org.ow2.chameleon.rose.pubsubhubbub.hub;
 
 import static org.osgi.framework.FrameworkUtil.createFilter;
 
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_NEW;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_REMOVE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
+
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -95,14 +105,6 @@ public class Hub extends HttpServlet {
 	// client to send notification to subscribers;
 	private HttpClient client;
 
-	public enum HubMode {
-		publish, unpublish, update, subscribe, unsubscribe, getAllEndpoints;
-
-		public Object getValue(Map<String, Object> values) {
-			return values.get(this.toString());
-		}
-	}
-
 	public Hub(BundleContext context) {
 		this.context = context;
 	}
@@ -154,16 +156,16 @@ public class Hub extends HttpServlet {
 
 		// check the content type, must be application/x-www-form-urlencoded
 		if ((!(req.getHeader("Content-Type")
-				.equals("application/x-www-form-urlencoded")))
-				|| (req.getParameter("hub.mode") == null)) {
+				.equals(HTTP_POST_HEADER_TYPE)))
+				|| (req.getParameter(HTTP_POST_PARAMETER_HUB_MODE) == null)) {
 			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 			return;
 		}
-		rssUrl = req.getParameter("hub.topic");
-		endpointFilter = req.getParameter("hub.endp.filter");
-		callBackUrl = req.getParameter("hub.callback");
+		rssUrl = req.getParameter(HTTP_POST_PARAMETER_RSS_TOPIC_URL);
+		endpointFilter = req.getParameter(HTTP_POST_PARAMETER_ENDPOINT_FILTER);
+		callBackUrl = req.getParameter(HTTP_POST_PARAMETER_URL_CALLBACK);
 		// check the hub mode
-		switch (HubMode.valueOf(req.getParameter("hub.mode"))) {
+		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
 		case publish:
 
 			if ((rssUrl != null) && (createReader(rssUrl))) {
@@ -201,11 +203,11 @@ public class Hub extends HttpServlet {
 				@SuppressWarnings("unchecked")
 				EndpointDescription edp = getEndpointDescriptionFromJSON(json
 						.fromJSON(feed.content()));
-				if (feed.title().equals("Endpoint added")) {
+				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpoint(rssUrl, edp);
 					new SendSubscription(client, edp,
 							ENDPOINT_ADD, this);
-				} else if (feed.title().equals("Endpoint removed")) {
+				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
 					registrations.removeEndpoint(rssUrl, edp);
 					new SendSubscription(client, edp,
 							ENDPOINT_REMOVE, this);
@@ -223,8 +225,8 @@ public class Hub extends HttpServlet {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			} else {
 				registrations.addSubscrition(callBackUrl, endpointFilter);
-				responseCode = HttpStatus.SC_ACCEPTED;
-				// check if already register an endpoint which match the filter
+				responseCode = HttpStatus.SC_CREATED;
+				// check if already register an endpoint which matches the filter
 
 				new SendSubscription(client, callBackUrl,
 						ENDPOINT_ADD, this);
@@ -242,6 +244,7 @@ public class Hub extends HttpServlet {
 			break;
 
 		case getAllEndpoints:
+			//for Rose Pubsuhhubbub webconsole purpose
 			resp.setContentType("text/html");
 			for (EndpointDescription endpoint : registrations.getAllEndpoints()) {
 				resp.getWriter().append(endpoint.toString() + "<br><br>");

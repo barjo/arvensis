@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose.pubsubhubbub.hub;
+package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
 import java.util.HashSet;
 import java.util.Map;

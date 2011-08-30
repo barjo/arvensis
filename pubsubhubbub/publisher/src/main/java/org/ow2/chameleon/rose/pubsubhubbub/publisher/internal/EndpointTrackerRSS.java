@@ -1,10 +1,11 @@
-package org.ow2.chameleon.rose.pubsubhubbub.publisher;
+package org.ow2.chameleon.rose.pubsubhubbub.publisher.internal;
 
 import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.LOCAL;
+import static org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher.COMPONENT_NAME;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -39,6 +40,7 @@ import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 import org.ow2.chameleon.syndication.FeedWriter;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
 
 /**
  * Tracking and publish RSS feed for local endpoints, send events to webcosole
@@ -47,8 +49,8 @@ import org.ow2.chameleon.rose.constants.RoseRSSConstants;
  * @author Bartek
  * 
  */
-@Component(name = "Rose_Pubsubhubbub.publisher")
-public class EndpointTrackerRSS implements EndpointListener {
+@Component(name = COMPONENT_NAME)
+public class EndpointTrackerRSS implements Publisher,EndpointListener {
 
 	private static final String SERVLET_FACTORY_FILTER = "(&("
 			+ Constants.OBJECTCLASS
@@ -56,10 +58,10 @@ public class EndpointTrackerRSS implements EndpointListener {
 	private static final String WRITER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedWriter";
 	private static final String WRITER_FILER_PROPERTY = "org.ow2.chameleon.syndication.feed.url";
 
-	@Property(mandatory = true, name = "rss.url")
+	@Property(mandatory = true, name = INSTANCE_PROPERTY_RSS_URL)
 	private String rss_url;
 
-	@Property(name = "hub.url")
+	@Property(name = INSTANCE_PROPERTY_HUB_URL)
 	private String hubUrl;
 
 	@Requires(optional = true)
@@ -79,7 +81,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 	private Dictionary<String, Object> instanceDictionary;
 	private Map<String, Object> eventProperties;
 	private Event event;
-	private Publisher subscriber;
+	private HubPublisher hubPublisher;
 
 	public EndpointTrackerRSS(BundleContext context) {
 		super();
@@ -94,11 +96,11 @@ public class EndpointTrackerRSS implements EndpointListener {
 
 		// Configure an event properties
 		eventProperties = new HashMap<String, Object>();
-		eventProperties.put("Author", RoseRSSConstants.FEED_AUTHOR);
-		eventProperties.put("Feed url", rss_url);
+		eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, RoseRSSConstants.FEED_AUTHOR);
+		eventProperties.put(FeedReader.ENTRY_URL_KEY, rss_url);
 
 		try {
-			subscriber = new Publisher(hubUrl, rss_url, context);
+			hubPublisher = new HubPublisher(hubUrl, rss_url, context);
 		} catch (IOException e) {
 			e.printStackTrace();
 
@@ -122,8 +124,8 @@ public class EndpointTrackerRSS implements EndpointListener {
 		if (feedWriterTracker != null) {
 			feedWriterTracker.close();
 		}
-		if (subscriber != null) {
-			subscriber.unregister();
+		if (hubPublisher != null) {
+			hubPublisher.unregister();
 		}
 	}
 
@@ -150,7 +152,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_NEW,
 					json.toJSON(endp.getProperties()));
 
-			subscriber.update();
+			hubPublisher.update();
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updateing a feed", e);
 		} catch (Exception e) {
@@ -179,7 +181,7 @@ public class EndpointTrackerRSS implements EndpointListener {
 			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_REMOVE,
 					json.toJSON(endp.getProperties()));
 
-			subscriber.update();
+			hubPublisher.update();
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updateing a feed", e);
 		} catch (Exception e) {
@@ -200,8 +202,8 @@ public class EndpointTrackerRSS implements EndpointListener {
 		// check if eventAdmin service is available
 		if (eventAdmin != null) {
 			// prepare event properties
-			eventProperties.put("Title", title);
-			eventProperties.put("Content", content);
+			eventProperties.put(FeedReader.ENTRY_TITLE_KEY, title);
+			eventProperties.put(FeedReader.ENTRY_CONTENT_KEY, content);
 			eventProperties.put(EventConstants.TIMESTAMP,
 					System.currentTimeMillis());
 

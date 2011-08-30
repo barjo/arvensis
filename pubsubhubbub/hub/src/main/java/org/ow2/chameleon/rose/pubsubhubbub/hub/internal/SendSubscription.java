@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose.pubsubhubbub.hub;
+package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +17,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
 
 
 /**
@@ -30,7 +32,7 @@ public class SendSubscription extends Thread {
 	private EndpointDescription edp;
 	private String callBackUrl;
 	private HttpPost postMethod;
-	private Hub server;
+	private HubImpl server;
 	private String updateOption;
 	private String rssURL;
 	private HttpClient client;
@@ -45,7 +47,7 @@ public class SendSubscription extends Thread {
 	 * @param registrations
 	 */
 	public SendSubscription(HttpClient client, String callBackUrl,
-			String updateOption, Hub server) {
+			String updateOption, HubImpl server) {
 		this.callBackUrl = callBackUrl;
 		this.client = client;
 		this.server = server;
@@ -62,7 +64,7 @@ public class SendSubscription extends Thread {
 	 * @param registrations
 	 */
 	public SendSubscription(HttpClient client, EndpointDescription edp,
-			String updateOption, Hub server) {
+			String updateOption, HubImpl server) {
 		this.edp = edp;
 		this.client = client;
 		this.server = server;
@@ -81,7 +83,7 @@ public class SendSubscription extends Thread {
 	 * @param server2
 	 */
 	public SendSubscription(HttpClient client, String rssUrl,
-			String updateOption, Hub server, String topicDelete) {
+			String updateOption, HubImpl server, String topicDelete) {
 		if (topicDelete.equals(HUB_UPDATE_TOPIC_DELETE)) {
 			this.rssURL = rssUrl;
 			this.client = client;
@@ -163,8 +165,8 @@ public class SendSubscription extends Thread {
 				"application/x-www-form-urlencoded");
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair("subscription", updateOption));
-		nvps.add(new BasicNameValuePair("content", server.json().toJSON(
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION, updateOption));
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, server.json().toJSON(
 				edp.getProperties())));
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);

@@ -134,8 +134,11 @@
 							${project.artifactId}
 						</Bundle-SymbolicName>
 						<Import-Package>*</Import-Package>
+						<Export-Packages>
+						org.ow2.chameleon.rose.pubsubhubbub.subscriber
+						</Export-Packages>
 						<Private-Package>
-							org.ow2.chameleon.rose.pubsubhubbub.subscriber
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal
 						</Private-Package>
 					</instructions>
 				</configuration>

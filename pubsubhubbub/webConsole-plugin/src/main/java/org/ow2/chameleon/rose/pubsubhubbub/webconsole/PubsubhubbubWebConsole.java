@@ -6,8 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -59,7 +61,7 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 	private JSONService json;
 
 
-	private List<String> localEndpoints;
+	private Set<String> localEndpoints;
 	private BundleContext context;
 	private ServiceRegistration eventService;
 	private HttpClient client;
@@ -73,7 +75,7 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 	@Validate
 	void start() {
 
-		localEndpoints = new ArrayList<String>();
+		localEndpoints = new HashSet<String>();
 		registerEventHandler();
 	}
 
@@ -83,8 +85,8 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 	}
 
 	private void registerEventHandler() {
-		String eventTitleFilter = "(|(Title=" + RoseRSSConstants.FEED_TITLE_NEW
-				+ ")(Title=" + RoseRSSConstants.FEED_TITLE_REMOVE + "))";
+		String eventTitleFilter = "(|(entry.title=" + RoseRSSConstants.FEED_TITLE_NEW
+				+ ")(entry.title=" + RoseRSSConstants.FEED_TITLE_REMOVE + "))";
 		Dictionary<String, String> props = new Hashtable<String, String>();
 		props.put(EventConstants.EVENT_TOPIC, RoseRSSConstants.RSS_EVENT_TOPIC);
 		props.put(EventConstants.EVENT_FILTER, eventTitleFilter);
@@ -147,12 +149,12 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 
 	public void handleEvent(Event event) {
 
-		if (event.getProperty("Title").equals(RoseRSSConstants.FEED_TITLE_NEW)) {
-			localEndpoints.add((String) event.getProperty("Content"));
+		if (event.getProperty("entry.title").equals(RoseRSSConstants.FEED_TITLE_NEW)) {
+			localEndpoints.add((String) event.getProperty("entry.content"));
 
-		} else if (event.getProperty("Title").equals(
+		} else if (event.getProperty("entry.title").equals(
 				RoseRSSConstants.FEED_TITLE_REMOVE)) {
-			localEndpoints.remove((String) event.getProperty("Content"));
+			localEndpoints.remove((String) event.getProperty("entry.content"));
 		}
 
 	}

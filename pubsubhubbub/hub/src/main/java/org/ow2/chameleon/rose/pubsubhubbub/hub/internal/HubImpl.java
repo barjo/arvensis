@@ -1,20 +1,17 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
 import static org.osgi.framework.FrameworkUtil.createFilter;
-
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_REMOVE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
-
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -29,10 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.felix.ipojo.ConfigurationException;
 import org.apache.felix.ipojo.Factory;
-import org.apache.felix.ipojo.MissingHandlerException;
-import org.apache.felix.ipojo.UnacceptableConfiguration;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
@@ -53,6 +47,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
@@ -76,7 +71,6 @@ public class HubImpl extends HttpServlet implements Hub {
 			+ Constants.OBJECTCLASS
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
-	private static final String READER_FILTER_PROPERTY = FeedReader.FEED_URL_PROPERTY;
 
 	@Requires
 	private HttpService httpService;
@@ -94,9 +88,8 @@ public class HubImpl extends HttpServlet implements Hub {
 	private int responseCode;
 
 	// store instances of RSS reader for different topics
-	private Map<String, FeedReader> readers;
+	private Map<Object, FeedReader> readers;
 	private ServiceTracker feedReaderTracker;
-	private ServiceTracker factoryTracker;
 	private BundleContext context;
 	private Dictionary<String, Object> instanceDictionary;
 	private Registrations registrations;
@@ -113,17 +106,21 @@ public class HubImpl extends HttpServlet implements Hub {
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
 			registrations = new Registrations();
-			readers = new HashMap<String, FeedReader>();
+			readers = new HashMap<Object, FeedReader>();
 			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
 
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (NamespaceException e) {
-			e.printStackTrace();
+
+			// start tracking for all feed readers
+			feedReaderTracker = new ServiceTracker(context, FeedReader.class.getName(), new FeedReaderTracker());
+			feedReaderTracker.open();
+
+		} catch (Exception e) {
+			logger.log(LogService.LOG_ERROR, "Error in starting a hub");
 		}
 	}
 
 	void stop() {
+		feedReaderTracker.close();
 		httpService.unregister(hubServlet);
 	}
 
@@ -135,14 +132,54 @@ public class HubImpl extends HttpServlet implements Hub {
 	 * @return
 	 */
 	private boolean createReader(String rssUrl) {
-		try {
-			new FeedReaderTracker(rssUrl);
-			new FactoryTracker(rssUrl);
+
+		if (readers.containsKey(rssUrl)) {
 			return true;
-		} catch (InvalidSyntaxException e) {
-			logger.log(LogService.LOG_ERROR, "Tracker not stared", e);
 		}
-		return false;
+
+		// set reader instance filter
+		String readerFilter = ("(&(" + Constants.OBJECTCLASS + "="
+				+ READER_SERVICE_CLASS + ")(" + FeedReader.FEED_URL_PROPERTY
+				+ "=" + rssUrl + "))");
+		try {
+
+			ServiceReference[] sref = context.getServiceReferences(
+					FeedReader.class.getName(), readerFilter);
+			// check if reader is already available
+			if (sref == null) {
+
+				// find feed reader factory
+				ServiceReference factorySref = context.getServiceReferences(
+						Factory.class.getName(), FEED_READER_FACTORY_FILTER)[0];
+				if (factorySref == null) {
+					logger.log(LogService.LOG_ERROR,
+							"Feed reader factory not found");
+					return false;
+				}
+
+				Factory readerFactory = (Factory) context
+						.getService(factorySref);
+
+				// create instanace
+				instanceDictionary = new Hashtable<String, Object>();
+				instanceDictionary.put("feed.url", rssUrl);
+				instanceDictionary.put("feed.period", 1);
+				readerFactory.createComponentInstance(instanceDictionary);
+
+				sref = context.getServiceReferences(READER_SERVICE_CLASS,
+						readerFilter);
+
+			}
+			// store reader
+			readers.put(rssUrl, (FeedReader) context.getService(sref[0]));
+
+		} catch (Exception e) {
+			logger.log(LogService.LOG_ERROR, "Can not create reader for "
+					+ rssUrl, e);
+			return false;
+		}
+
+		return true;
 	}
 
 	/*
@@ -307,30 +344,15 @@ public class HubImpl extends HttpServlet implements Hub {
 	 * 
 	 */
 	private class FeedReaderTracker implements ServiceTrackerCustomizer {
-		private String rss_url;
-
-		/**
-		 * Set a filter properties and run feed reader tracker
-		 * 
-		 * @param rss_url
-		 *            url to RSS
-		 * @throws InvalidSyntaxException
-		 */
-		public FeedReaderTracker(String rss_url) throws InvalidSyntaxException {
-
-			this.rss_url = rss_url;
-
-			String readerFilter = ("(&(" + Constants.OBJECTCLASS + "="
-					+ READER_SERVICE_CLASS + ")(" + READER_FILTER_PROPERTY
-					+ "=" + this.rss_url + "))");
-			feedReaderTracker = new ServiceTracker(context,
-					createFilter(readerFilter), this);
-			feedReaderTracker.open();
-		}
 
 		public Object addingService(ServiceReference reference) {
 			FeedReader reader = (FeedReader) context.getService(reference);
-			readers.put(this.rss_url, reader);
+			if (!(readers.containsKey(reference
+					.getProperty(FeedReader.FEED_URL_PROPERTY)))) {
+				readers.put(
+						reference.getProperty(FeedReader.FEED_URL_PROPERTY),
+						reader);
+			}
 			return reader;
 		}
 
@@ -339,61 +361,8 @@ public class HubImpl extends HttpServlet implements Hub {
 		}
 
 		public void removedService(ServiceReference reference, Object service) {
-			readers.remove(this.rss_url);
+			readers.remove(reference.getProperty(FeedReader.FEED_URL_PROPERTY));
 
 		}
 	}
-
-	/**
-	 * Tracker for Feed reader factory
-	 * 
-	 * @author Bartek
-	 * 
-	 */
-	private class FactoryTracker implements ServiceTrackerCustomizer {
-		private String rss_url;
-
-		/**
-		 * Set instance properties and run a tracker
-		 * 
-		 * @param rss_url
-		 *            Url to RSS
-		 * @throws InvalidSyntaxException
-		 */
-		public FactoryTracker(String rss_url) throws InvalidSyntaxException {
-
-			this.rss_url = rss_url;
-
-			instanceDictionary = new Hashtable<String, Object>();
-			instanceDictionary.put("feed.url", this.rss_url);
-			instanceDictionary.put("feed.period", 1);
-			factoryTracker = new ServiceTracker(context,
-					createFilter(FEED_READER_FACTORY_FILTER), this);
-			factoryTracker.open();
-		}
-
-		public Object addingService(ServiceReference reference) {
-			Factory factory = (Factory) context.getService(reference);
-			try {
-				if (!(readers.containsKey(this.rss_url))) {
-					return factory.createComponentInstance(instanceDictionary);
-				}
-			} catch (UnacceptableConfiguration e) {
-				e.printStackTrace();
-			} catch (MissingHandlerException e) {
-				e.printStackTrace();
-			} catch (ConfigurationException e) {
-				e.printStackTrace();
-			}
-			return readers.get(rss_url);
-		}
-
-		public void modifiedService(ServiceReference reference, Object service) {
-		}
-
-		public void removedService(ServiceReference reference, Object service) {
-			readers.remove(this.rss_url);
-		}
-	}
-
 }

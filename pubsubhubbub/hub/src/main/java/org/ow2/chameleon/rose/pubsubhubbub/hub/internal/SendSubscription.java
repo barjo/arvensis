@@ -160,8 +160,6 @@ public class SendSubscription extends Thread {
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 
 			HttpResponse response = client.execute(postMethod);
-			System.out.println("subscriber url address: "+callBackUrl);
-			System.out.println("got repsonse: " +response.getStatusLine().getStatusCode());
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				server.logger().log(
 						LogService.LOG_ERROR,

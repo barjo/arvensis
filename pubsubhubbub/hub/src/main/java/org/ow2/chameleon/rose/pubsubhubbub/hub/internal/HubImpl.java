@@ -161,7 +161,7 @@ public class HubImpl extends HttpServlet implements Hub {
 				// create instanace
 				instanceDictionary = new Hashtable<String, Object>();
 				instanceDictionary.put("feed.url", rssUrl);
-				instanceDictionary.put("feed.period", 1);
+				instanceDictionary.put("feed.period", 10);
 				readerFactory.createComponentInstance(instanceDictionary);
 
 				sref = context.getServiceReferences(READER_SERVICE_CLASS,
@@ -237,11 +237,8 @@ public class HubImpl extends HttpServlet implements Hub {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
-			
 			feed =readers.get(rssUrl).getLastEntry();
-			
 			if (feed == null) {
-				
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}

@@ -28,6 +28,8 @@ import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.subscriber.Subscriber;
+import org.ow2.chameleon.rose.util.DefaultLogService;
+
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
@@ -55,7 +57,7 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 	@Requires
 	private JSONService json;
 
-	@Requires(optional = true)
+	@Requires(optional=true)
 	private LogService logger;
 
 	@Property(name = INSTANCE_PROPERTY_CALLBACK_URL)

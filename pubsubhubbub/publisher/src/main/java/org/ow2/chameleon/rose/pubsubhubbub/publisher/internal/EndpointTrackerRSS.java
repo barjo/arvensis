@@ -41,6 +41,7 @@ import org.ow2.chameleon.syndication.FeedReader;
 import org.ow2.chameleon.syndication.FeedWriter;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 
 /**
  * Tracking and publish RSS feed for local endpoints, send events to webcosole
@@ -64,7 +65,7 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	@Property(name = INSTANCE_PROPERTY_HUB_URL)
 	private String hubUrl;
 
-	@Requires(optional = true)
+	@Requires(optional=true)
 	LogService logger;
 
 	@Requires

@@ -35,7 +35,8 @@
 		<!-- Tested version -->
 		<pubsubhubbub-publisher.version>0.1.0-SNAPSHOT</pubsubhubbub-publisher.version>
 		<pubsubhubbub-subscriber.version>0.1.0-SNAPSHOT</pubsubhubbub-subscriber.version>
-		
+		<pubsubhubbub-hub.version>0.1.0-SNAPSHOT</pubsubhubbub-hub.version>
+
 
 	</properties>
 
@@ -136,6 +137,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.ow2.chameleon.rss</groupId>
+			<artifactId>pubsubhubbub-hub</artifactId>
+			<version>${pubsubhubbub-hub.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
 			<version>${rose.core.version}</version>
@@ -159,21 +166,21 @@
 			<groupId>org.ow2.chameleon.testing</groupId>
 			<artifactId>osgi-helpers</artifactId>
 			<version>0.2.0</version>
-			<scope>compile</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.6.1</version>
 			<type>jar</type>
-			<scope>compile</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.6.1</version>
 			<type>jar</type>
-			<scope>compile</scope>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- Test dependencies -->

@@ -88,17 +88,13 @@ public class SubscriberTest extends AbstractTestConfiguration{
 
 	@Configuration
 	public static Option[] configure() {
-		Option[] platform = options(felix());
-
 		Option[] bundles = options(provision(
 				mavenBundle().groupId("org.ow2.chameleon.rss")
 						.artifactId("pubsubhubbub-subscriber")
 						.versionAsInProject()
 		));
 
-		Option[] r = OptionUtils.combine(platform, bundles);
-
-		return r;
+		return bundles;
 	}
 
 	/**
@@ -157,12 +153,13 @@ public class SubscriberTest extends AbstractTestConfiguration{
 	 */
 	@Test
 	public void testEndpointAddedNotification() {
-
+		waitForIt(100);
 		hub.sendUpdate(RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
-		waitForIt(100);
+		
 
 		// check if endpoint successfully registered
+		System.out.println("have: "+rose.containsRemote(endp));
 		Assert.assertTrue(rose.containsRemote(endp));
 	}
 
@@ -180,10 +177,6 @@ public class SubscriberTest extends AbstractTestConfiguration{
 		// check if endpoint successfully unregistered
 		Assert.assertFalse(rose.containsRemote(endp));
 	}
-
-	/**
-	 * Check POST request parameters after stop subscribing
-	 */
 
 	/**
 	 * Check POST request parameters after stop subscribing

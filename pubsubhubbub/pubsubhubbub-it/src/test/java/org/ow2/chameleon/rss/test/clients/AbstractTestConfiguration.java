@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
-import org.junit.Before;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
@@ -38,14 +37,13 @@ public class AbstractTestConfiguration {
 
 	protected IPOJOHelper ipojo;
 
-	protected DummyHub hub;
+	protected TestHubImpl hub;
 
 	protected EndpointDescription endp;
 
 	protected JSONService json;
 
 	
-	@Before
 	public void setUp() throws UnknownHostException {
 
 		osgi = new OSGiHelper(context);
@@ -63,7 +61,7 @@ public class AbstractTestConfiguration {
 
 		// run a test hub, first response status accepted for registration a
 		// tested publisher
-		hub = new DummyHub(http, HttpStatus.SC_CREATED);
+		hub = new TestHubImpl(http, HttpStatus.SC_CREATED);
 		hub.start();
 
 		// prepare test endpoint description

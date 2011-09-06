@@ -1,6 +1,5 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
-import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
@@ -37,10 +36,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -49,6 +46,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 
@@ -78,7 +76,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	@Requires
 	private JSONService json;
 
-	@Requires(optional = true)
+	@Requires(optional=true)
 	private LogService logger;
 
 	@Property(name = INSTANCE_PROPERTY_HUB_URL, mandatory = true)
@@ -109,9 +107,9 @@ public class HubImpl extends HttpServlet implements Hub {
 			readers = new HashMap<Object, FeedReader>();
 			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
 
-
 			// start tracking for all feed readers
-			feedReaderTracker = new ServiceTracker(context, FeedReader.class.getName(), new FeedReaderTracker());
+			feedReaderTracker = new ServiceTracker(context,
+					FeedReader.class.getName(), new FeedReaderTracker());
 			feedReaderTracker.open();
 
 		} catch (Exception e) {
@@ -196,6 +194,7 @@ public class HubImpl extends HttpServlet implements Hub {
 		String rssUrl;
 		String endpointFilter;
 		String callBackUrl;
+		FeedEntry feed;
 
 		// check the content type, must be application/x-www-form-urlencoded
 		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
@@ -238,9 +237,14 @@ public class HubImpl extends HttpServlet implements Hub {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
-
-			FeedEntry feed = readers.get(rssUrl).getLastEntry();
-
+			
+			feed =readers.get(rssUrl).getLastEntry();
+			
+			if (feed == null) {
+				
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
 			try {
 				@SuppressWarnings("unchecked")
 				EndpointDescription edp = getEndpointDescriptionFromJSON(json
@@ -254,11 +258,10 @@ public class HubImpl extends HttpServlet implements Hub {
 					new SendSubscription(client, edp,
 							HUB_UPDATE_ENDPOINT_REMOVED, this);
 				}
-
 				responseCode = HttpStatus.SC_ACCEPTED;
 			} catch (ParseException e) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
-				e.printStackTrace();
+				logger.log(LogService.LOG_ERROR, "Update false",e);
 			}
 			break;
 
@@ -300,7 +303,6 @@ public class HubImpl extends HttpServlet implements Hub {
 			responseCode = HttpStatus.SC_BAD_REQUEST;
 			break;
 		}
-
 		resp.setStatus(responseCode);
 	}
 
@@ -335,6 +337,10 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	public Registrations registrations() {
 		return registrations;
+	}
+	
+	public LogService logger() {
+		return logger;
 	}
 
 	/**

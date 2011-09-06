@@ -1,5 +1,9 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,17 +13,13 @@ import java.util.Set;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
-
 
 /**
  * Sending a notification to subscribers
@@ -100,11 +100,7 @@ public class SendSubscription extends Thread {
 	private void sendAfterSubscribe() {
 		for (EndpointDescription edp : server.registrations()
 				.getEndpointsForCallBackUrl(this.callBackUrl)) {
-			try {
-				sendUpdate(edp, this.callBackUrl);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			sendUpdate(edp, this.callBackUrl);
 		}
 	}
 
@@ -114,14 +110,10 @@ public class SendSubscription extends Thread {
 	private void sendAfterPublisherUpdate() {
 		for (String callBackUrl : server.registrations()
 				.getSubscribersByEndpoint(this.edp)) {
-			try {
-				sendUpdate(edp, callBackUrl);
-				if (updateOption.equals("endpoint.remove")) {
-					server.registrations().removeInterestedEndpoint(
-							callBackUrl, edp);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			sendUpdate(edp, callBackUrl);
+			if (updateOption.equals("endpoint.remove")) {
+				server.registrations().removeInterestedEndpoint(callBackUrl,
+						edp);
 			}
 		}
 
@@ -137,11 +129,7 @@ public class SendSubscription extends Thread {
 		for (String subscriber : subscriberEndpoins.keySet()) {
 			for (EndpointDescription endpoint : subscriberEndpoins
 					.get(subscriber)) {
-				try {
-					sendUpdate(endpoint, subscriber);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				sendUpdate(endpoint, subscriber);
 			}
 
 		}
@@ -157,27 +145,37 @@ public class SendSubscription extends Thread {
 	 *            url address where to send a notification
 	 * @throws IOException
 	 */
-	private void sendUpdate(EndpointDescription edp, String callBackUrl)
-			throws IOException {
+	private void sendUpdate(EndpointDescription edp, String callBackUrl) {
 
 		postMethod = new HttpPost(callBackUrl);
 		postMethod.setHeader("Content-Type",
 				"application/x-www-form-urlencoded");
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION, updateOption));
-		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, server.json().toJSON(
-				edp.getProperties())));
-		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-		HttpResponse response = client.execute(postMethod);
-		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-			response.getEntity().getContent().close();
-			throw new ClientProtocolException(
-					"Error in sendind an update to subscriber: " + callBackUrl);
-		}
-		// read an empty entity and close a connection
-		response.getEntity().getContent().close();
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION,
+				updateOption));
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, server.json()
+				.toJSON(edp.getProperties())));
+		try {
+			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 
+			HttpResponse response = client.execute(postMethod);
+			System.out.println("subscriber url address: "+callBackUrl);
+			System.out.println("got repsonse: " +response.getStatusLine().getStatusCode());
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				server.logger().log(
+						LogService.LOG_ERROR,
+						"Error in sending an update to subscriber: "
+								+ callBackUrl + ", got response "
+								+ response.getStatusLine().getStatusCode());
+				response.getEntity().getContent().close();
+			}
+			// read an empty entity and close a connection
+			response.getEntity().getContent().close();
+		} catch (Exception e) {
+			server.logger().log(LogService.LOG_ERROR,
+					"Error in sending an update to subscriber", e);
+		}
 	}
 
 	@Override

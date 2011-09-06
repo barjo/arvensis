@@ -24,6 +24,9 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;;
 
 /**
  * Testing Hub
@@ -31,7 +34,7 @@ import org.ow2.chameleon.json.JSONService;
  * @author Bartek
  * 
  */
-class DummyHub extends HttpServlet {
+class TestHubImpl extends HttpServlet {
 
 	/**
 	 * 
@@ -43,7 +46,7 @@ class DummyHub extends HttpServlet {
 	private HttpPost postMethod;
 	private HttpClient client;
 
-	public DummyHub(HttpService http, int responseStatus) {
+	public TestHubImpl(HttpService http, int responseStatus) {
 		this.http = http;
 		this.responseStatus = responseStatus;
 	}
@@ -90,11 +93,11 @@ class DummyHub extends HttpServlet {
 		
 		postMethod = new HttpPost(publisherCallBackUrl);
 		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
+				HTTP_POST_HEADER_TYPE);
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair("subscription", updateOption));
-		nvps.add(new BasicNameValuePair("content", json.toJSON(
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION, updateOption));
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, json.toJSON(
 				endp.getProperties())));
 		try {
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));

@@ -29,6 +29,7 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 
@@ -48,8 +49,8 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 		// create publisher instance, register publisher in hub
 		Dictionary<String, String> props = new Hashtable<String, String>();
-		props.put("hub.url", "http://localhost:8080/hub");
-		props.put("rss.url", "/roserss");
+		props.put(Publisher.INSTANCE_PROPERTY_HUB_URL, "http://localhost:8080/hub");
+		props.put(Publisher.INSTANCE_PROPERTY_RSS_URL, "/roserss");
 		props.put("instance.name", PUBLISHER_INSTANCE_NAME);
 		ipojo.createComponentInstance("Rose_Pubsubhubbub.publisher", props);
 
@@ -84,8 +85,6 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 	@Configuration
 	public static Option[] configure() {
-		Option[] platform = options(felix());
-
 		Option[] bundles = options(provision(
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-api")
 						.versionAsInProject(),
@@ -112,9 +111,7 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 		));
 
-		Option[] r = OptionUtils.combine(platform, bundles);
-
-		return r;
+		return bundles;
 	}
 
 	/**

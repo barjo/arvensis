@@ -63,7 +63,6 @@ public class Registrations {
 		lock.readLock().lock();
 		Set<EndpointDescription> matchedEndpointDescriptions = new HashSet<EndpointDescription>();
 		String filter = subscribers.get(callBackUrl).getFilter();
-
 		for (EndpointDescription endpoint : getAllEndpoints()) {
 			if (endpoint.matches(filter)) {
 				matchedEndpointDescriptions.add(endpoint);

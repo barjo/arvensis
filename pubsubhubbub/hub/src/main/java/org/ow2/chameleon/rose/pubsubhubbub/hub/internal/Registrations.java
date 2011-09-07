@@ -24,8 +24,11 @@ public class Registrations {
 
 	public void addTopic(String rssURL) {
 		lock.writeLock().lock();
-		topics.put(rssURL, new HashSet<EndpointDescription>());
-		lock.writeLock().unlock();
+		try {
+			topics.put(rssURL, new HashSet<EndpointDescription>());
+		} finally {
+			lock.writeLock().unlock();
+		}
 	}
 
 	public void addEndpoint(String rssUrl, EndpointDescription endp) {
@@ -42,14 +45,20 @@ public class Registrations {
 
 	public void addSubscrition(String callBackUrl, String endpointFilter) {
 		lock.writeLock().lock();
-		subscribers.put(callBackUrl, new EndpointsByFilter(endpointFilter));
-		lock.writeLock().unlock();
+		try {
+			subscribers.put(callBackUrl, new EndpointsByFilter(endpointFilter));
+		} finally {
+			lock.writeLock().unlock();
+		}
 	}
 
 	public void removeSubscribtion(String callBackUrl) {
 		lock.writeLock().lock();
-		subscribers.remove(callBackUrl);
-		lock.writeLock().unlock();
+		try {
+			subscribers.remove(callBackUrl);
+		} finally {
+			lock.writeLock().unlock();
+		}
 	}
 
 	/**
@@ -136,7 +145,7 @@ public class Registrations {
 		lock.writeLock().unlock();
 	}
 
-	private class EndpointsByFilter {
+	static private class EndpointsByFilter {
 		private String filter;
 		private Set<EndpointDescription> matchedEndpoints;
 

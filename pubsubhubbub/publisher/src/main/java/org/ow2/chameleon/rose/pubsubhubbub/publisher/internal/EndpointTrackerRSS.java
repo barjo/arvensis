@@ -36,12 +36,11 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 import org.ow2.chameleon.syndication.FeedWriter;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
-import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
-import org.ow2.chameleon.rose.util.DefaultLogService;
 
 /**
  * Tracking and publish RSS feed for local endpoints, send events to webcosole

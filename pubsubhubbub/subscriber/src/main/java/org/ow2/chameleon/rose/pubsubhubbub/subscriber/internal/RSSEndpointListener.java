@@ -1,5 +1,8 @@
 package org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal;
 
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
 import static org.ow2.chameleon.rose.pubsubhubbub.subscriber.Subscriber.COMPONENT_NAME;
 
 import java.io.IOException;
@@ -28,11 +31,6 @@ import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.subscriber.Subscriber;
-import org.ow2.chameleon.rose.util.DefaultLogService;
-
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
 
 /**
  * Listen to all matched endpoints from hub and register them in Rose.
@@ -48,18 +46,20 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 	 */
 	private static final long serialVersionUID = -6485125168680274690L;
 
+	
 	@Requires
-	private HttpService httpService;
+	transient private HttpService httpService;
 
 	@Requires
-	private RoseMachine machine;
+	transient private RoseMachine machine;
 
 	@Requires
-	private JSONService json;
+	transient private JSONService json;
 
 	@Requires(optional=true)
-	private LogService logger;
+	transient private LogService logger;
 
+	
 	@Property(name = INSTANCE_PROPERTY_CALLBACK_URL)
 	private String callBackUrl;
 
@@ -69,8 +69,9 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 	@Property(name = INSTANCE_PROPERTY_ENDPOINT_FILTER)
 	private String endpointFilter;
 
-	private HubSubscriber subscritpion;
-	private BundleContext context;
+	
+	transient private HubSubscriber subscritpion;
+	transient private BundleContext context;
 	private int responseCode;
 	private List<String> endpointRegistrations;
 

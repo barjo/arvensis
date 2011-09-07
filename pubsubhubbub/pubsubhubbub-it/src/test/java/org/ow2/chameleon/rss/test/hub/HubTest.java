@@ -8,7 +8,15 @@ import static org.ops4j.pax.exam.CoreOptions.provision;
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.*;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rss.test.clients.AbstractTestConfiguration.waitForIt;
 
 import java.io.IOException;
@@ -20,10 +28,8 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -118,7 +124,7 @@ public class HubTest {
 	}
 
 	/**
-	 * Global bundle configuration
+	 * Global bundle configuration.
 	 */
 	@Configuration
 	public static Option[] globalConfigure() {
@@ -172,7 +178,7 @@ public class HubTest {
 	}
 
 	/**
-	 * Mockito bundles
+	 * Mockito bundles.
 	 */
 	@Configuration
 	public static Option[] mockitoBundle() {
@@ -180,9 +186,9 @@ public class HubTest {
 	}
 
 	/**
-	 * Check hub instance status
+	 * Check hub instance status.
 	 */
-//	@Test
+	 @Test
 	public void testActivity() {
 		// wait for the service to be available.
 		waitForIt(100);
@@ -193,9 +199,9 @@ public class HubTest {
 
 	/**
 	 * Publisher send publish and unpublish notification to Hub (without
-	 * creating a RSS topic)
+	 * creating a RSS topic).
 	 */
-//	@Test
+	 @Test
 	public void testPublisherConnectNoRSS() {
 		TestPublisher publisher;
 
@@ -214,9 +220,9 @@ public class HubTest {
 
 	/**
 	 * Publisher send publish and unpublish notification to Hub (with creating a
-	 * RSS topic)
+	 * RSS topic).
 	 */
-//	@Test
+	 @Test
 	public void testPublisherConnectWithRSS() {
 		TestPublisher publisher;
 
@@ -236,9 +242,9 @@ public class HubTest {
 	}
 
 	/**
-	 * Publisher send update for new endpoint added into RSS topic
+	 * Publisher send update for new endpoint added into RSS topic.
 	 */
-//	@Test
+	 @Test
 	public void testPublisherUpdateNewEndpoint() {
 		TestPublisher publisher;
 
@@ -270,9 +276,9 @@ public class HubTest {
 
 	/**
 	 * Publisher send update for new endpoint added into RSS topic, but no feed
-	 * in topic
+	 * in topic.
 	 */
-//	@Test
+	 @Test
 	public void testPublisherUpdateNewEndpointWithoutRSSfeed() {
 		TestPublisher publisher;
 
@@ -302,9 +308,9 @@ public class HubTest {
 	}
 
 	/**
-	 * Publisher send update for remove endpoint,
+	 * Publisher send update for remove endpoint.
 	 */
-//	@Test
+	 @Test
 	public void testPublisherUpdateRemoveEndpoint() {
 		TestPublisher publisher;
 
@@ -344,9 +350,9 @@ public class HubTest {
 	}
 
 	/**
-	 * Subscriber registrations and unregistration
+	 * Subscriber registrations and unregistration.
 	 */
-//	@Test
+	 @Test
 	public void testSubscriber() {
 		TestSubscriber subscriber;
 
@@ -372,9 +378,9 @@ public class HubTest {
 
 	/**
 	 * Hub sends update (Endpoint added )notification to subscriber. Publisher
-	 * shows first
+	 * shows first.
 	 */
-//	@Test
+	 @Test
 	public void testSubscriberUpdateFromHubEndpointAdded() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -420,9 +426,9 @@ public class HubTest {
 
 	/**
 	 * Hub sends update (Endpoint added )notification to subscriber. Subscriber
-	 * shows first
+	 * shows first.
 	 */
-//	@Test
+	 @Test
 	public void testSubscriberUpdateFromHubEndpointAdded2() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -467,9 +473,9 @@ public class HubTest {
 
 	/**
 	 * Check subscriber endpoint filter, 2 endpoint are register into hub only
-	 * one matches
+	 * one matches.
 	 */
-//	@Test
+	 @Test
 	public void testSubscriberEndpointFilter() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -523,9 +529,9 @@ public class HubTest {
 
 	/**
 	 * Check subscriber endpoint filter, 3 endpoints are register into hub only
-	 * 2 matches
+	 * 2 matches.
 	 */
-//	@Test
+	 @Test
 	public void testSubscriberEndpointComplexFilter() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -595,7 +601,7 @@ public class HubTest {
 	}
 
 	/**
-	 * Check updates from hub when publisher removes
+	 * Check updates from hub when publisher removes.
 	 */
 	@Test
 	public void testSubscriberTopicDeleted() {
@@ -605,7 +611,7 @@ public class HubTest {
 
 		// wait for the service to be available.
 		waitForIt(100);
-		
+
 		// prepare endpoints;
 		createEndpoints();
 
@@ -634,13 +640,12 @@ public class HubTest {
 		// send update to hub
 		publisher.sendUpdateToHub();
 
-		
 		// create publisher2 and send publish notification to Hub
 		publisher2 = new TestPublisher("/rss2");
-		
+
 		// create RSS topic
 		publisher2.createRSSTopic();
-		
+
 		// send publish notification to Hub (register endpoint id=2)
 		publisher2.registerPublisher();
 		publisher2.addRSSFeed(testEndpoints.get(2),
@@ -652,14 +657,13 @@ public class HubTest {
 		publisher2.sendUpdateToHub();
 
 		// create subscriber, try to get only endpoint 0 and 2
-		subscriber = new TestSubscriber("/sub1",
-				"(endpoint.id=*)");
+		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)");
 
 		// start subscriber
 		subscriber.start();
 		waitForIt(100);
 
-		//publisher2 stops
+		// publisher2 stops
 		publisher.stop();
 		waitForIt(100);
 		// create expected updates
@@ -683,6 +687,9 @@ public class HubTest {
 
 	}
 
+	/**
+	 * Fill testEndpoints with simple @EndpointDescription.
+	 */
 	private void createEndpoints() {
 		Map<String, Object> endpProps = new HashMap<String, Object>();
 		EndpointDescription endp;
@@ -699,7 +706,13 @@ public class HubTest {
 		}
 	}
 
-	private class TestSubscriber extends HttpServlet {
+	/**
+	 * Subscriber for testing purpose.
+	 * 
+	 * @author Bartek
+	 * 
+	 */
+	private final class TestSubscriber extends HttpServlet {
 
 		/**
 		 * 
@@ -761,8 +774,9 @@ public class HubTest {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-				throws ServletException, IOException {
+		protected void doPost(final HttpServletRequest req,
+				final HttpServletResponse resp) throws ServletException,
+				IOException {
 			System.out.println("got something");
 			try {
 				postParameters.add(new EndpointTitle(RoseEndpointDescription
@@ -777,13 +791,13 @@ public class HubTest {
 		}
 
 		/**
-		 * Check last update
+		 * Check last update.
 		 * 
 		 * @param endp
 		 * @param title
 		 * @return
 		 */
-		private boolean checkUpdate(EndpointTitle expected) {
+		private boolean checkUpdate(final EndpointTitle expected) {
 
 			// check if got any update
 			Assert.assertEquals("Subscriber didnt get update from hub", 1,
@@ -804,7 +818,7 @@ public class HubTest {
 		 * @return
 		 */
 		private boolean checkUpdates(List<EndpointTitle> expectUpdates) {
-			
+
 			// check if expected and received are the same, order doesn`t count
 			if ((new HashSet<EndpointTitle>(postParameters))
 					.equals(new HashSet<EndpointTitle>(expectUpdates))) {
@@ -925,7 +939,7 @@ public class HubTest {
 	 * @author Bartek
 	 * 
 	 */
-	private class EndpointTitle {
+	private static class EndpointTitle {
 		private EndpointDescription endp;
 		private String title;
 

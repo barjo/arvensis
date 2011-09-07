@@ -34,17 +34,18 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER
  * @author Bartek
  * 
  */
+
 class TestHubImpl extends HttpServlet {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1780507086548421628L;
+	private static final long serialVersionUID = 3950189218292421821L;
 	private int responseStatus;
 	private Map<String, Object> reqParams;
-	private HttpService http;
-	private HttpPost postMethod;
-	private HttpClient client;
+	transient private HttpService http;
+	transient private HttpPost postMethod;
+	transient private HttpClient client;
 
 	public TestHubImpl(HttpService http, int responseStatus) {
 		this.http = http;

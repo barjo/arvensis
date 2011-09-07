@@ -6,6 +6,7 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +39,7 @@ public class SendSubscription extends Thread {
 	private HttpClient client;
 
 	/**
-	 * Run a thread to send an endpointDescriptions after subscriber appears
+	 * Prepare a  thread to send an endpointDescriptions after subscriber appears
 	 * 
 	 * @param client
 	 * @param callBackUrl
@@ -52,11 +53,10 @@ public class SendSubscription extends Thread {
 		this.client = client;
 		this.server = server;
 		this.updateOption = updateOption;
-		this.start();
 	}
 
 	/**
-	 * Run a thread to send an endpointDescriptions after publisher update
+	 * Prepare a  thread to send an endpointDescriptions after publisher update
 	 * 
 	 * @param client
 	 * @param edp
@@ -69,11 +69,10 @@ public class SendSubscription extends Thread {
 		this.client = client;
 		this.server = server;
 		this.updateOption = updateOption;
-		this.start();
 	}
 
 	/**
-	 * Run a thread to send a remove endpointDescription to all subscribers when
+	 * Prepare a thread to send a remove endpointDescription to all subscribers when
 	 * topic is deleted
 	 * 
 	 * @param client
@@ -89,7 +88,6 @@ public class SendSubscription extends Thread {
 			this.client = client;
 			this.server = server;
 			this.updateOption = updateOption;
-			this.start();
 		}
 	}
 
@@ -126,10 +124,10 @@ public class SendSubscription extends Thread {
 		Map<String, Set<EndpointDescription>> subscriberEndpoins = server
 				.registrations().getEndpointsAndSubscriberByPublisher(rssURL);
 
-		for (String subscriber : subscriberEndpoins.keySet()) {
-			for (EndpointDescription endpoint : subscriberEndpoins
-					.get(subscriber)) {
-				sendUpdate(endpoint, subscriber);
+		
+		for (Map.Entry<String, Set<EndpointDescription>> entry : subscriberEndpoins.entrySet()) {
+			for (EndpointDescription endpoint : entry.getValue()) {
+				sendUpdate(endpoint, entry.getKey());
 			}
 
 		}

@@ -46,7 +46,6 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
-import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 
@@ -70,31 +69,36 @@ public class HubImpl extends HttpServlet implements Hub {
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
 
+	
 	@Requires
-	private HttpService httpService;
+	transient private HttpService httpService;
 
 	@Requires
-	private JSONService json;
+	transient private JSONService json;
 
 	@Requires(optional=true)
-	private LogService logger;
+	transient private LogService logger;
 
+	
 	@Property(name = INSTANCE_PROPERTY_HUB_URL, mandatory = true)
 	private String hubServlet;
 
+	
 	// HTTP response status code
 	private int responseCode;
 
 	// store instances of RSS reader for different topics
 	private Map<Object, FeedReader> readers;
-	private ServiceTracker feedReaderTracker;
-	private BundleContext context;
 	private Dictionary<String, Object> instanceDictionary;
-	private Registrations registrations;
-
+	transient private SendSubscription subscription;
+	transient private ServiceTracker feedReaderTracker;
+	transient private BundleContext context;
+	transient private Registrations registrations;
+	
 	// client to send notification to subscribers;
-	private HttpClient client;
+	transient private HttpClient client;
 
+	
 	public HubImpl(BundleContext context) {
 		this.context = context;
 	}
@@ -222,10 +226,10 @@ public class HubImpl extends HttpServlet implements Hub {
 
 			if (rssUrl != null) {
 				// remove a topic
-				new SendSubscription(client, rssUrl,
+				subscription = new SendSubscription(client, rssUrl,
 						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this,
 						HUB_UPDATE_TOPIC_DELETE);
-
+				subscription.start();
 				responseCode = HttpStatus.SC_ACCEPTED;
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
@@ -248,12 +252,14 @@ public class HubImpl extends HttpServlet implements Hub {
 						.fromJSON(feed.content()));
 				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpoint(rssUrl, edp);
-					new SendSubscription(client, edp,
+					subscription= new SendSubscription(client, edp,
 							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
+					subscription.start();
 				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
 					registrations.removeEndpoint(rssUrl, edp);
-					new SendSubscription(client, edp,
+					subscription = new SendSubscription(client, edp,
 							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this);
+					subscription.start();
 				}
 				responseCode = HttpStatus.SC_ACCEPTED;
 			} catch (ParseException e) {
@@ -271,8 +277,9 @@ public class HubImpl extends HttpServlet implements Hub {
 				// check if already register an endpoint which matches the
 				// filter
 
-				new SendSubscription(client, callBackUrl,
+				subscription = new SendSubscription(client, callBackUrl,
 						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
+				subscription.start();
 			}
 
 			break;

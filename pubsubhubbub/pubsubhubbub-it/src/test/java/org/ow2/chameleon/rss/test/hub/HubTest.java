@@ -182,7 +182,7 @@ public class HubTest {
 	/**
 	 * Check hub instance status
 	 */
-	// @Test
+//	@Test
 	public void testActivity() {
 		// wait for the service to be available.
 		waitForIt(100);
@@ -195,7 +195,7 @@ public class HubTest {
 	 * Publisher send publish and unpublish notification to Hub (without
 	 * creating a RSS topic)
 	 */
-	// @Test
+//	@Test
 	public void testPublisherConnectNoRSS() {
 		TestPublisher publisher;
 
@@ -216,7 +216,7 @@ public class HubTest {
 	 * Publisher send publish and unpublish notification to Hub (with creating a
 	 * RSS topic)
 	 */
-	// @Test
+//	@Test
 	public void testPublisherConnectWithRSS() {
 		TestPublisher publisher;
 
@@ -238,7 +238,7 @@ public class HubTest {
 	/**
 	 * Publisher send update for new endpoint added into RSS topic
 	 */
-	// @Test
+//	@Test
 	public void testPublisherUpdateNewEndpoint() {
 		TestPublisher publisher;
 
@@ -272,7 +272,7 @@ public class HubTest {
 	 * Publisher send update for new endpoint added into RSS topic, but no feed
 	 * in topic
 	 */
-	// @Test
+//	@Test
 	public void testPublisherUpdateNewEndpointWithoutRSSfeed() {
 		TestPublisher publisher;
 
@@ -304,7 +304,7 @@ public class HubTest {
 	/**
 	 * Publisher send update for remove endpoint,
 	 */
-	// @Test
+//	@Test
 	public void testPublisherUpdateRemoveEndpoint() {
 		TestPublisher publisher;
 
@@ -346,7 +346,7 @@ public class HubTest {
 	/**
 	 * Subscriber registrations and unregistration
 	 */
-	// @Test
+//	@Test
 	public void testSubscriber() {
 		TestSubscriber subscriber;
 
@@ -374,7 +374,7 @@ public class HubTest {
 	 * Hub sends update (Endpoint added )notification to subscriber. Publisher
 	 * shows first
 	 */
-	// @Test
+//	@Test
 	public void testSubscriberUpdateFromHubEndpointAdded() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -422,7 +422,7 @@ public class HubTest {
 	 * Hub sends update (Endpoint added )notification to subscriber. Subscriber
 	 * shows first
 	 */
-	// @Test
+//	@Test
 	public void testSubscriberUpdateFromHubEndpointAdded2() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -525,7 +525,7 @@ public class HubTest {
 	 * Check subscriber endpoint filter, 3 endpoints are register into hub only
 	 * 2 matches
 	 */
-	 @Test
+//	@Test
 	public void testSubscriberEndpointComplexFilter() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
@@ -548,7 +548,7 @@ public class HubTest {
 				RoseRSSConstants.FEED_TITLE_NEW);
 
 		waitForIt(100);
-		
+
 		// send update to hub
 		publisher.sendUpdateToHub();
 
@@ -557,7 +557,7 @@ public class HubTest {
 				RoseRSSConstants.FEED_TITLE_NEW);
 
 		waitForIt(100);
-		
+
 		// send update to hub
 		publisher.sendUpdateToHub();
 
@@ -566,7 +566,7 @@ public class HubTest {
 				RoseRSSConstants.FEED_TITLE_NEW);
 
 		waitForIt(100);
-		
+
 		// send update to hub
 		publisher.sendUpdateToHub();
 
@@ -584,13 +584,102 @@ public class HubTest {
 				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(2),
 				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
-		
+
 		// check expected update and got ones
 		Assert.assertTrue(subscriber.checkUpdates(expectUpdates));
-		
+
 		// stop subscriber and publisher
 		subscriber.stop();
 		publisher.stop();
+
+	}
+
+	/**
+	 * Check updates from hub when publisher removes
+	 */
+	@Test
+	public void testSubscriberTopicDeleted() {
+		TestSubscriber subscriber;
+		TestPublisher publisher;
+		TestPublisher publisher2;
+
+		// wait for the service to be available.
+		waitForIt(100);
+		
+		// prepare endpoints;
+		createEndpoints();
+
+		// create publisher1 and send publish notification to Hub
+		publisher = new TestPublisher("/rss");
+
+		// create RSS topic
+		publisher.createRSSTopic();
+
+		// send publish notification to Hub (register endpoint id=0)
+		publisher.registerPublisher();
+		publisher.addRSSFeed(testEndpoints.get(0),
+				RoseRSSConstants.FEED_TITLE_NEW);
+
+		waitForIt(100);
+
+		// send update to hub
+		publisher.sendUpdateToHub();
+
+		// send publish notification to Hub (register endpoint id=1)
+		publisher.addRSSFeed(testEndpoints.get(1),
+				RoseRSSConstants.FEED_TITLE_NEW);
+
+		waitForIt(100);
+
+		// send update to hub
+		publisher.sendUpdateToHub();
+
+		
+		// create publisher2 and send publish notification to Hub
+		publisher2 = new TestPublisher("/rss2");
+		
+		// create RSS topic
+		publisher2.createRSSTopic();
+		
+		// send publish notification to Hub (register endpoint id=2)
+		publisher2.registerPublisher();
+		publisher2.addRSSFeed(testEndpoints.get(2),
+				RoseRSSConstants.FEED_TITLE_NEW);
+
+		waitForIt(100);
+
+		// send update to hub
+		publisher2.sendUpdateToHub();
+
+		// create subscriber, try to get only endpoint 0 and 2
+		subscriber = new TestSubscriber("/sub1",
+				"(endpoint.id=*)");
+
+		// start subscriber
+		subscriber.start();
+		waitForIt(100);
+
+		//publisher2 stops
+		publisher.stop();
+		waitForIt(100);
+		// create expected updates
+		List<EndpointTitle> expectUpdates = new ArrayList<EndpointTitle>();
+		expectUpdates.add(new EndpointTitle(testEndpoints.get(0),
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
+		expectUpdates.add(new EndpointTitle(testEndpoints.get(1),
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
+		expectUpdates.add(new EndpointTitle(testEndpoints.get(2),
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
+		expectUpdates.add(new EndpointTitle(testEndpoints.get(0),
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED));
+		expectUpdates.add(new EndpointTitle(testEndpoints.get(1),
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED));
+		// check expected update and got ones
+		Assert.assertTrue(subscriber.checkUpdates(expectUpdates));
+
+		// stop subscriber and publisher
+		subscriber.stop();
+		publisher2.stop();
 
 	}
 
@@ -621,7 +710,6 @@ public class HubTest {
 		private String filter;
 		private String subscriberFullUrl;
 		private List<EndpointTitle> postParameters;
-		
 
 		private TestSubscriber(String subscriberRelativeUrl, String filter) {
 			this.subscriberRelativeUrl = subscriberRelativeUrl;
@@ -638,7 +726,7 @@ public class HubTest {
 			}
 		}
 
-		void start() {
+		private void start() {
 			try {
 				http.registerServlet(subscriberRelativeUrl, this, null, null);
 				// preparing POST parameters
@@ -658,7 +746,7 @@ public class HubTest {
 			}
 		}
 
-		void stop() {
+		private void stop() {
 			http.unregister(subscriberRelativeUrl);
 			// preparing POST parameters
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
@@ -695,10 +783,10 @@ public class HubTest {
 		 * @param title
 		 * @return
 		 */
-		boolean checkUpdate(EndpointTitle expected) {
+		private boolean checkUpdate(EndpointTitle expected) {
 
 			// check if got any update
-			Assert.assertEquals("Subscriber didnt got update from hub", 1,
+			Assert.assertEquals("Subscriber didnt get update from hub", 1,
 					postParameters.size());
 			// check title and content
 			if (postParameters.get(0).equals(expected)) {
@@ -715,9 +803,11 @@ public class HubTest {
 		 * 
 		 * @return
 		 */
-		boolean checkUpdates(List<EndpointTitle> expectUpdates) {
-			//check if expected and received are the same, order doesn`t count
-			if ((new HashSet<EndpointTitle>(postParameters)).equals(new HashSet<EndpointTitle>(expectUpdates))){
+		private boolean checkUpdates(List<EndpointTitle> expectUpdates) {
+			
+			// check if expected and received are the same, order doesn`t count
+			if ((new HashSet<EndpointTitle>(postParameters))
+					.equals(new HashSet<EndpointTitle>(expectUpdates))) {
 				return true;
 			}
 			return false;
@@ -759,7 +849,7 @@ public class HubTest {
 
 		}
 
-		void createRSSTopic() {
+		private void createRSSTopic() {
 			// create RSS topic
 			Dictionary<String, String> rssServletProps = new Hashtable<String, String>();
 			rssServletProps.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
@@ -777,7 +867,7 @@ public class HubTest {
 
 		}
 
-		void registerPublisher() {
+		private void registerPublisher() {
 			// preparing POST parameters
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
@@ -788,7 +878,7 @@ public class HubTest {
 			sendPOST(nvps);
 		}
 
-		void stop() {
+		private void stop() {
 			// preparing POST parameters
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
@@ -798,7 +888,7 @@ public class HubTest {
 			sendPOST(nvps);
 		}
 
-		void sendUpdateToHub() {
+		private void sendUpdateToHub() {
 			// preparing POST parameters
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
@@ -868,7 +958,7 @@ public class HubTest {
 			}
 			return false;
 		}
-		
+
 		@Override
 		public int hashCode() {
 			return this.getEndp().hashCode() + this.getTitle().hashCode();

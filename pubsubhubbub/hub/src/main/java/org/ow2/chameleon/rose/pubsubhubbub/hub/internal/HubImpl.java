@@ -7,8 +7,8 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAME
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
 
@@ -223,7 +223,7 @@ public class HubImpl extends HttpServlet implements Hub {
 			if (rssUrl != null) {
 				// remove a topic
 				new SendSubscription(client, rssUrl,
-						HUB_UPDATE_ENDPOINT_REMOVED, this,
+						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this,
 						HUB_UPDATE_TOPIC_DELETE);
 
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -249,11 +249,11 @@ public class HubImpl extends HttpServlet implements Hub {
 				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpoint(rssUrl, edp);
 					new SendSubscription(client, edp,
-							HUB_UPDATE_ENDPOINT_ADDED, this);
+							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
 				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
 					registrations.removeEndpoint(rssUrl, edp);
 					new SendSubscription(client, edp,
-							HUB_UPDATE_ENDPOINT_REMOVED, this);
+							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this);
 				}
 				responseCode = HttpStatus.SC_ACCEPTED;
 			} catch (ParseException e) {
@@ -272,7 +272,7 @@ public class HubImpl extends HttpServlet implements Hub {
 				// filter
 
 				new SendSubscription(client, callBackUrl,
-						HUB_UPDATE_ENDPOINT_ADDED, this);
+						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
 			}
 
 			break;

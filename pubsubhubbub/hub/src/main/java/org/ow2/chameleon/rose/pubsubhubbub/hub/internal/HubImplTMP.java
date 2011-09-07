@@ -8,8 +8,8 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAME
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
 

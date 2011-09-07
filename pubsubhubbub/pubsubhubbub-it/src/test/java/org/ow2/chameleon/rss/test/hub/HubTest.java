@@ -410,7 +410,7 @@ public class HubTest {
 
 		// check update notification
 		Assert.assertTrue(subscriber.checkUpdate(new EndpointTitle(
-				testEndpoints.get(0), HUB_UPDATE_ENDPOINT_ADDED)));
+				testEndpoints.get(0), HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED)));
 
 		// stop subscriber and publisher
 		subscriber.stop();
@@ -458,7 +458,7 @@ public class HubTest {
 
 		// check update notification
 		Assert.assertTrue(subscriber.checkUpdate(new EndpointTitle(
-				testEndpoints.get(0), HUB_UPDATE_ENDPOINT_ADDED)));
+				testEndpoints.get(0), HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED)));
 		// stop subscriber and publisher
 		subscriber.stop();
 		publisher.stop();
@@ -514,7 +514,7 @@ public class HubTest {
 
 		// check update notification
 		Assert.assertTrue(subscriber.checkUpdate(new EndpointTitle(
-				testEndpoints.get(0), HUB_UPDATE_ENDPOINT_ADDED)));
+				testEndpoints.get(0), HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED)));
 		// stop subscriber and publisher
 		subscriber.stop();
 		publisher.stop();
@@ -581,9 +581,9 @@ public class HubTest {
 		// create expected updates
 		List<EndpointTitle> expectUpdates = new ArrayList<EndpointTitle>();
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(0),
-				HUB_UPDATE_ENDPOINT_ADDED));
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(2),
-				HUB_UPDATE_ENDPOINT_ADDED));
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED));
 		
 		// check expected update and got ones
 		Assert.assertTrue(subscriber.checkUpdates(expectUpdates));

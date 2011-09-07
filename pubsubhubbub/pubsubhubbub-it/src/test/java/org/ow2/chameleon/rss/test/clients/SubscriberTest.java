@@ -153,7 +153,7 @@ public class SubscriberTest extends AbstractTestConfiguration{
 	@Test
 	public void testEndpointAddedNotification() {
 		waitForIt(100);
-		hub.sendUpdate(RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED,
+		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
 		
 
@@ -167,10 +167,10 @@ public class SubscriberTest extends AbstractTestConfiguration{
 	@Test
 	public void testEndpointRemoveNotification() {
 
-		hub.sendUpdate(RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED,
+		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
 		waitForIt(100);
-		hub.sendUpdate(RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED,
+		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED,
 				publisherCallBackUrl, endp, json);
 		// check if endpoint successfully unregistered
 		Assert.assertFalse(rose.containsRemote(endp));

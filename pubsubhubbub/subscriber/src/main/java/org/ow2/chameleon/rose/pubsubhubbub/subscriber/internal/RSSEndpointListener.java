@@ -126,14 +126,14 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 						.getEndpointDescription(json.fromJSON(req
 								.getParameter(HTTP_POST_UPDATE_CONTENT)));
 				if (req.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION)
-						.equals(RoseRSSConstants.HUB_UPDATE_ENDPOINT_ADDED)) {
+						.equals(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED)) {
 					machine.putRemote(endp.toString(), endp);
 					endpointRegistrations.add(endp.toString());
 					logger.log(LogService.LOG_INFO,
 							"Remote endpoint " + endp.getId() + " added");
 				} else if (req.getParameter(
 						HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION).equals(
-						RoseRSSConstants.HUB_UPDATE_ENDPOINT_REMOVED)) {
+						RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED)) {
 					machine.removeRemote(endp.toString());
 					endpointRegistrations.remove(endp.toString());
 					logger.log(LogService.LOG_INFO,

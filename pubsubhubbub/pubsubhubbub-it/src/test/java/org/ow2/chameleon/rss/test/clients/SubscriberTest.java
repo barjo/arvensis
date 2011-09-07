@@ -73,7 +73,6 @@ public class SubscriberTest extends AbstractTestConfiguration{
 	public void tearDown() {
 
 		// response to unregister subscriber
-		System.out.println("ending");
 		hub.changeResponseStatus(HttpStatus.SC_ACCEPTED);
 
 		// stop subscriber, wait for response from test hub
@@ -159,7 +158,6 @@ public class SubscriberTest extends AbstractTestConfiguration{
 		
 
 		// check if endpoint successfully registered
-		System.out.println("have: "+rose.containsRemote(endp));
 		Assert.assertTrue(rose.containsRemote(endp));
 	}
 

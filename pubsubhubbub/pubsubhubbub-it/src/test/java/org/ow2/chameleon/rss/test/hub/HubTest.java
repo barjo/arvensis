@@ -18,10 +18,12 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -546,6 +548,7 @@ public class HubTest {
 				RoseRSSConstants.FEED_TITLE_NEW);
 
 		waitForIt(100);
+		
 		// send update to hub
 		publisher.sendUpdateToHub();
 
@@ -554,6 +557,7 @@ public class HubTest {
 				RoseRSSConstants.FEED_TITLE_NEW);
 
 		waitForIt(100);
+		
 		// send update to hub
 		publisher.sendUpdateToHub();
 
@@ -562,6 +566,7 @@ public class HubTest {
 				RoseRSSConstants.FEED_TITLE_NEW);
 
 		waitForIt(100);
+		
 		// send update to hub
 		publisher.sendUpdateToHub();
 
@@ -579,8 +584,10 @@ public class HubTest {
 				HUB_UPDATE_ENDPOINT_ADDED));
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(2),
 				HUB_UPDATE_ENDPOINT_ADDED));
+		
 		// check expected update and got ones
 		Assert.assertTrue(subscriber.checkUpdates(expectUpdates));
+		
 		// stop subscriber and publisher
 		subscriber.stop();
 		publisher.stop();
@@ -688,7 +695,6 @@ public class HubTest {
 		 * @param title
 		 * @return
 		 */
-		@SuppressWarnings("unchecked")
 		boolean checkUpdate(EndpointTitle expected) {
 
 			// check if got any update
@@ -709,31 +715,11 @@ public class HubTest {
 		 * 
 		 * @return
 		 */
-		@SuppressWarnings("unchecked")
-		public boolean checkUpdates(List<EndpointTitle> expectUpdates) {
-			int updateMatched = 0;
-			
-			// check the length of expected and got parameters
-			Assert.assertEquals(expectUpdates.size(),
-					postParameters.size());
-			
-			// remove expected and got parameters if are the same
-			for (EndpointTitle endpointTitle : postParameters) {
-
-				for (EndpointTitle endpointTitleExpected : expectUpdates) {
-					if (endpointTitle.equals(endpointTitleExpected)) {
-						System.out.println("removed");
-						updateMatched++;
-
-					}
-
-				}
-			}
-			// check if any expect update or post parameter remains
-			if (updateMatched == expectUpdates.size()) {
+		boolean checkUpdates(List<EndpointTitle> expectUpdates) {
+			//check if expected and received are the same, order doesn`t count
+			if ((new HashSet<EndpointTitle>(postParameters)).equals(new HashSet<EndpointTitle>(expectUpdates))){
 				return true;
 			}
-
 			return false;
 		}
 	}
@@ -869,7 +855,6 @@ public class HubTest {
 
 		@Override
 		public boolean equals(Object obj) {
-
 			if (this == obj)
 				return true;
 			if (obj == null)
@@ -882,6 +867,11 @@ public class HubTest {
 				}
 			}
 			return false;
+		}
+		
+		@Override
+		public int hashCode() {
+			return this.getEndp().hashCode() + this.getTitle().hashCode();
 		}
 	}
 

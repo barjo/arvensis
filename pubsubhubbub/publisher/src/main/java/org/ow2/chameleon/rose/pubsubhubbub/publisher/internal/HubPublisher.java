@@ -62,6 +62,7 @@ public class HubPublisher {
 				+ ":" + port + pRssUrl + "/";
 		client = new DefaultHttpClient();
 
+		//prepare post method
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",
 				HTTP_POST_HEADER_TYPE);
@@ -88,6 +89,7 @@ public class HubPublisher {
 	 * @throws IOException
 	 */
 	public void update() throws IOException {
+		//prepare post method
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",
 				"application/x-www-form-urlencoded");
@@ -116,6 +118,7 @@ public class HubPublisher {
 	 * Send an unregister to hub
 	 */
 	public void unregister() {
+		//prepare post method
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",
 				"application/x-www-form-urlencoded");

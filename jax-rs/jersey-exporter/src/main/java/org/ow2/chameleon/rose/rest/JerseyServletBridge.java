@@ -14,10 +14,10 @@ public class JerseyServletBridge extends ServletContainer{
 
     private static final long serialVersionUID = -1399500555655064091L;
     
-    private final EndpointCreator providerFactory;
+    private final JerseyEndpointCreator providerFactory;
     
     
-    public JerseyServletBridge(EndpointCreator pProviderFactory) {
+    public JerseyServletBridge(JerseyEndpointCreator pProviderFactory) {
         super();
         providerFactory = pProviderFactory;
     }

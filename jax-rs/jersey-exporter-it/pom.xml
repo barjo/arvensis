@@ -9,25 +9,25 @@
 		<version>0.2.2</version> </parent> -->
 
 	<!-- Description of the project -->
-	<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
-	<artifactId>jabsorb-exporter-it</artifactId>
-	<name>OW2 Chameleon - RoSe JSON-RPC Exporter[IntegrationTest]</name>
+	<groupId>org.ow2.chameleon.rose.rest</groupId>
+	<artifactId>jersey-exporter-it</artifactId>
+	<name>OW2 Chameleon - RoSe JAX-RS Exporter[IntegrationTest]</name>
 	<version>0.1.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<description>OW2 Chameleon ROSE JSON-RPC Exporter Integration Test, contains the ROSE Json-rpc exporter integration test</description>
+	<description>OW2 Chameleon ROSE JAX-RS Exporter Integration Test, contains the ROSE jax-rs exporter integration test</description>
 
 	<properties>
 		<!-- Dependencies version -->
 		<ipojo.version>1.8.0</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
-		<jabsorb.version>1.3.1</jabsorb.version>
+		<jersey.version>1.8</jersey.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<mockito.version>1.7</mockito.version>
 		<grizzly.version>1.9.36</grizzly.version>
 		
 		<!-- Tested version-->
-		<jabsorb-exporter.version>0.1.4-SNAPSHOT</jabsorb-exporter.version>
+		<jersey-exporter.version>0.1.0-SNAPSHOT</jersey-exporter.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 
 		<!-- Plugins version-->
@@ -121,12 +121,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
-			<artifactId>jabsorb-exporter</artifactId>
-			<version>${jabsorb-exporter.version}</version>
+			<groupId>org.ow2.chameleon.rose.rest</groupId>
+			<artifactId>jersey-exporter</artifactId>
+			<version>${jersey-exporter.version}</version>
 			<scope>test</scope>
 		</dependency>	
-
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -134,46 +133,27 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.jabsorb</groupId>
-			<artifactId>jabsorb</artifactId>
-			<version>${jabsorb.version}</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.jabsorb</groupId>
-			<artifactId>org.ow2.chameleon.commons.jabsorb</artifactId>
-			<version>1.3.1-0002</version>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>${jersey.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>org.ow2.chameleon.commons.json</artifactId>
-			<version>20090911-0002</version>
+			<groupId>javax.mail</groupId>
+		    <artifactId>mail</artifactId>
+			<version>1.4.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.sun.grizzly.osgi</groupId>
-			<artifactId>grizzly-httpservice-bundle</artifactId>
-			<version>${grizzly.version}</version>
+			<groupId>javax.xml.bind</groupId>
+		    <artifactId>jaxb-api-osgi</artifactId>
+		    <version>2.2.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.servicemix.bundles</groupId>
-			<artifactId>org.apache.servicemix.bundles.commons-httpclient</artifactId>
-			<version>3.1_5</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.servicemix.bundles</groupId>
-			<artifactId>org.apache.servicemix.bundles.commons-codec</artifactId>
-			<version>1.3_3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>org.ow2.chameleon.commons.logging</artifactId>
-			<version>1.1.1-0002</version>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-core</artifactId>
+			<version>${jersey.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -186,6 +166,12 @@
 			<groupId>org.ow2.chameleon.rose.testing</groupId>
 			<artifactId>rose-helpers</artifactId>
 			<version>0.1.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.grizzly.osgi</groupId>
+			<artifactId>grizzly-httpservice-bundle</artifactId>
+			<version>${grizzly.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- Pax Exam API: -->

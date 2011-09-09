@@ -42,7 +42,7 @@ import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.rose.util.RoseTools;
 
 
-@Component(name="RoSe_machine",immediate=true)
+@Component(name="RoSe_machine", immediate=true)
 public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 
 	/**

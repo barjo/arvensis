@@ -40,10 +40,10 @@ import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
  */
 @Component(name="RoSe_exporter.jersey")
 @Provides(specifications={ExporterService.class,ExporterIntrospection.class})
-public class EndpointCreator extends AbstractExporterComponent implements IoCComponentProviderFactory {
+public class JerseyEndpointCreator extends AbstractExporterComponent implements IoCComponentProviderFactory,ExporterService,ExporterIntrospection {
     
     /**
-     * Default value for the {@link EndpointCreator#PROP_HTTP_PORT} property.
+     * Default value for the {@link JerseyEndpointCreator#PROP_HTTP_PORT} property.
      */
 	private static final int DEFAULT_HTTP_PORT = 80;
 	
@@ -58,13 +58,13 @@ public class EndpointCreator extends AbstractExporterComponent implements IoCCom
 	 * Configuration supported by this component
 	 */
 	@ServiceProperty(name=ENDPOINT_CONFIG_PREFIX,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
-    private String[] configs = {"jersey","jax-rs"};
+    private String[] configs = {"jersey","jax-rs","jaxrs","rest"};
 
 	@Requires(optional=true)
 	private LogService logger;
 	
 	/**
-	 * Set in {@link EndpointCreator#bindHttpService(HttpService, ServiceReference) bindHttpService}
+	 * Set in {@link JerseyEndpointCreator#bindHttpService(HttpService, ServiceReference) bindHttpService}
 	 */
 	private HttpService httpservice;
 	
@@ -76,8 +76,8 @@ public class EndpointCreator extends AbstractExporterComponent implements IoCCom
 	
 	/**
 	 * Property containing the value of the
-	 * {@link EndpointCreator#PROP_HTTP_PORT} HttpService property.
-	 * Set in {@link EndpointCreator#bindHttpService(HttpService, ServiceReference)}
+	 * {@link JerseyEndpointCreator#PROP_HTTP_PORT} HttpService property.
+	 * Set in {@link JerseyEndpointCreator#bindHttpService(HttpService, ServiceReference)}
 	 */
     private int httpport;
     
@@ -97,7 +97,7 @@ public class EndpointCreator extends AbstractExporterComponent implements IoCCom
      *  Component Life-cycle methods      *
      *------------------------------------*/
     
-    public EndpointCreator(BundleContext pcontext) {
+    public JerseyEndpointCreator(BundleContext pcontext) {
 		context=pcontext;
 	}
     
@@ -127,7 +127,7 @@ public class EndpointCreator extends AbstractExporterComponent implements IoCCom
     }
     
 	/**
-	 * Bind the {@link HttpService} and set the {@link EndpointCreator#httpport} value.
+	 * Bind the {@link HttpService} and set the {@link JerseyEndpointCreator#httpport} value.
 	 * @param service the {@link HttpService}
 	 * @param ref the {@link HttpService} {@link ServiceReference}.
 	 */

@@ -116,6 +116,9 @@ public class ProxyCreator extends AbstractImporterComponent{
      */
     public void destroyProxy(EndpointDescription description, ServiceRegistration registration){
     	if (proxies.containsKey(description.getId())) {
+			// Unregister the proxy
+			registration.unregister();
+
             Client client = proxies.remove(description.getId());
             // Close the proxy
             client.closeProxy(description.getId());

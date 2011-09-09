@@ -133,7 +133,7 @@
 						<Bundle-SymbolicName>
 							${project.artifactId}
 						</Bundle-SymbolicName>
-						<Import-Package>*</Import-Package>
+						<Import-Package>org.ow2.chameleon.rose.util,*</Import-Package>
 						<Export-Packages>
 						org.ow2.chameleon.rose.pubsubhubbub.subscriber
 						</Export-Packages>

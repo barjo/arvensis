@@ -1,7 +1,11 @@
 package org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal;
 
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,15 +21,11 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-
+import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 
 /**
- * Connect and register a subscription to Rose Hub
+ * Connect and register a subscription to Rose Hub.
  * 
  * @author Bartek
  * 
@@ -37,22 +37,27 @@ public class HubSubscriber {
 	private HttpClient client;
 	private String callBackUrl;
 	private String port;
+	private String host;
 
 	/**
-	 * Register a subscription
+	 * Register a subscription.
 	 * 
 	 * @param pUrlHub
 	 *            url address to Rose Hub, full path
-	 * @param callBackUrl
+	 * @param pCallBackUrl
 	 *            servlet relative path
 	 * @param endpointFilter
 	 *            endpoint filter
 	 * @param context
 	 *            BundleContext
+	 * @param rose
+	 *            RoseService
 	 * @throws IOException
+	 *             exception
 	 */
-	public HubSubscriber(String pUrlHub, String callBackUrl,
-			String endpointFilter, BundleContext context) throws IOException {
+	public HubSubscriber(final String pUrlHub, final String pCallBackUrl,
+			final String endpointFilter, final BundleContext context,
+			final RoseMachine rose) throws IOException {
 		this.urlHub = pUrlHub;
 		port = (String) context
 				.getServiceReference(HttpService.class.getName()).getProperty(
@@ -60,9 +65,10 @@ public class HubSubscriber {
 		if (port == null) {
 			port = context.getProperty("org.osgi.service.http.port");
 		}
-		this.callBackUrl = "http://"
-				+ InetAddress.getLocalHost().getHostAddress() + ":" + port
-				+ callBackUrl;
+
+		this.host = rose.getHost();
+
+		this.callBackUrl = "http://" + this.host + ":" + port + pCallBackUrl;
 		client = new DefaultHttpClient();
 
 		postMethod = new HttpPost(this.urlHub);
@@ -73,43 +79,45 @@ public class HubSubscriber {
 				HubMode.subscribe.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_ENDPOINT_FILTER,
 				endpointFilter));
-		nvps.add(new BasicNameValuePair(
-				HTTP_POST_PARAMETER_URL_CALLBACK,
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
 			response.getEntity().getContent().close();
-			throw new ClientProtocolException("Error in subscription");
+			throw new ClientProtocolException(
+					"Error in subscription, received status from hub: "
+							+ response.getStatusLine().getStatusCode());
 		}
 		// read an empty entity and close a connection
 		response.getEntity().getContent().close();
 	}
 
 	/**
-	 * Sends unsubscription to Rose Hub
+	 * Sends unsubscription to Rose Hub.
 	 * 
 	 * @throws IOException
+	 *             exception
 	 */
-	public void unsubscribe() throws IOException {
+	public final void unsubscribe() throws IOException {
 
 		postMethod = new HttpPost(this.urlHub);
-		postMethod.setHeader("Content-Type",
-				HTTP_POST_HEADER_TYPE);
+		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair(
-				HTTP_POST_PARAMETER_HUB_MODE, HubMode.unsubscribe.toString()));
-		nvps.add(new BasicNameValuePair(
-				HTTP_POST_PARAMETER_URL_CALLBACK,
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
+				HubMode.unsubscribe.toString()));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
 			response.getEntity().getContent().close();
-			throw new ClientProtocolException("Error in unsubscription");
+			throw new ClientProtocolException(
+					"Error in unsubscription, received status from hub: "
+							+ response.getStatusLine().getStatusCode());
 		}
 		// read an empty entity and close a connection
 		response.getEntity().getContent().close();

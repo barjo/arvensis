@@ -1,15 +1,19 @@
 package org.ow2.chameleon.rose.pubsubhubbub.subscriber;
 
 
-/**Subscriber interface with all constants
+
+/**Subscriber interface with all constants.
  * @author Bartek
  *
  */
-public interface Subscriber{
+public interface Subscriber {
 	
-	static final String COMPONENT_NAME="Rose_Pubsubhubbub.subscriber";
-	static final String INSTANCE_PROPERTY_CALLBACK_URL="callback.url";
-	static final String INSTANCE_PROPERTY_HUB_URL="hub.url";
-	static final String INSTANCE_PROPERTY_ENDPOINT_FILTER="endpoint.filter";
+	String COMPONENT_NAME = "Rose_Pubsubhubbub.subscriber";
+    String INSTANCE_PROPERTY_CALLBACK_URL = "callback.url";
+	String INSTANCE_PROPERTY_HUB_URL = "hub.url";
+	String INSTANCE_PROPERTY_ENDPOINT_FILTER = "endpoint.filter";
+	
+	void start() throws Exception;
+	void stop();
 	
 }

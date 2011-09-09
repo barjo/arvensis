@@ -4,7 +4,6 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.provision;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.Dictionary;
@@ -15,7 +14,6 @@ import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Option;
@@ -30,24 +28,48 @@ import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
+import org.ow2.chameleon.testing.helpers.IPOJOHelper;
+import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
+/**
+ * Publisher test.
+ * 
+ * @author Bartek
+ * 
+ */
 @RunWith(JUnit4TestRunner.class)
-public class PublisherTest extends AbstractTestConfiguration{
+public class PublisherTest extends AbstractTestConfiguration {
 
 	private static final String PUBLISHER_INSTANCE_NAME = "Rose_Pubsubhubbub.publisher-1";
 
-	private FeedReader reader;
-	
-	private  String publisherRssUrl;
+	private static final int WAIT_TIME = 100;
 
-	@Before
+	private FeedReader reader;
+
+	private String publisherRssUrl;
+
+	private OSGiHelper osgi;
+
+	private IPOJOHelper ipojo;
+
+	private TestHubImpl hub;
+
+	private EndpointDescription endp;
+
+	private JSONService json;
+
 	@Override
-	public void setUp() throws UnknownHostException {
-		super.setUp();
+	public final void setUpEx() throws UnknownHostException {
+		osgi = super.getOsgi();
+		ipojo = super.getIpojo();
+		hub = super.getHub();
+		endp = super.getEndp();
+		json = super.getJson();
 
 		// create publisher instance, register publisher in hub
 		Dictionary<String, String> props = new Hashtable<String, String>();
-		props.put(Publisher.INSTANCE_PROPERTY_HUB_URL, "http://localhost:8080/hub");
+		props.put(Publisher.INSTANCE_PROPERTY_HUB_URL,
+				"http://localhost:8080/hub");
 		props.put(Publisher.INSTANCE_PROPERTY_RSS_URL, "/roserss");
 		props.put("instance.name", PUBLISHER_INSTANCE_NAME);
 		ipojo.createComponentInstance("Rose_Pubsubhubbub.publisher", props);
@@ -58,22 +80,21 @@ public class PublisherTest extends AbstractTestConfiguration{
 		// prepare rss feed reader, created by publisher
 		reader = (FeedReader) osgi.getServiceObject(FeedReader.class.getName(),
 				null);
-		
-		//create publisher RSS URL
-		publisherRssUrl = "http://"+InetAddress.getLocalHost().getHostAddress()+":8080/roserss/";
 
+		// create publisher RSS URL
+		publisherRssUrl = "http://localhost:8080/roserss/";
 	}
 
 	@After
-	public void tearDown() {
+	public final void tearDown() {
 
 		// response to unregister publisher
 
 		hub.changeResponseStatus(HttpStatus.SC_ACCEPTED);
-		
+
 		// stop publisher, waits for response from test hub
 		ipojo.getInstanceByName(PUBLISHER_INSTANCE_NAME).stop();
-		
+
 		// stop test hub
 		hub.stop();
 		osgi.dispose();
@@ -113,7 +134,9 @@ public class PublisherTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Mockito bundles
+	 * Mockito bundles.
+	 * 
+	 * @return option for examexam contains mockito
 	 */
 	@Configuration
 	public static Option[] mockitoBundle() {
@@ -121,16 +144,16 @@ public class PublisherTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Check publisher instance status
+	 * Check publisher instance status.
 	 */
 	@Test
-	public void testActivity() {
+	public final void testActivity() {
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		Assert.assertEquals(ComponentInstance.VALID,
 				ipojo.getInstanceByName(PUBLISHER_INSTANCE_NAME).getState());
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check RSS topic
 		Assert.assertNull(reader.getLastEntry());
@@ -138,11 +161,10 @@ public class PublisherTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Checks publish request to hub
-	 * @throws UnknownHostException 
+	 * Checks publish request to hub.
 	 */
 	@Test
-	public void testRegistrationParameters() {
+	public final void testRegistrationParameters() {
 
 		Map<String, Object> parameters;
 
@@ -159,6 +181,7 @@ public class PublisherTest extends AbstractTestConfiguration{
 						.equals("publish"));
 			} else if (parameter
 					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
+				System.out.println("parameter");
 				Assert.assertTrue(((String[]) parameters
 						.get(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));
@@ -170,10 +193,10 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 	/**
 	 * Check POST parameters send to hub in update action when new endpoint
-	 * added
+	 * added.
 	 */
 	@Test
-	public void testUpdatePropertiesAddEndpoint() {
+	public final void testUpdatePropertiesAddEndpoint() {
 
 		EndpointListener endpLis;
 		Map<String, Object> parameters;
@@ -183,7 +206,7 @@ public class PublisherTest extends AbstractTestConfiguration{
 				EndpointListener.class.getName(), null);
 		endpLis.endpointAdded(endp, null);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check POST parameters
 
@@ -208,24 +231,21 @@ public class PublisherTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Check RSS Feed when new endpoint added
+	 * Check RSS Feed when new endpoint added.
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testRSSFeedAddEndpoint() {
+	public final void testRSSFeedAddEndpoint() {
 
 		EndpointListener endpLis;
 		EndpointDescription feedEndp;
-		JSONService json;
+
 		FeedEntry feed;
 
 		// perform endpointAdded in publisher
 		endpLis = (EndpointListener) osgi.getServiceObject(
 				EndpointListener.class.getName(), null);
 		endpLis.endpointAdded(endp, null);
-
-		json = (JSONService) osgi.getServiceObject(JSONService.class.getName(),
-				null);
 
 		feed = reader.getLastEntry();
 		Assert.assertTrue(feed.title().equals(RoseRSSConstants.FEED_TITLE_NEW));
@@ -244,10 +264,10 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 	/**
 	 * Check POST parameters send to hub in update action when new endpoint
-	 * removed
+	 * removed.
 	 */
 	@Test
-	public void testUpdatePropertiesRemoveEndpoint() {
+	public final void testUpdatePropertiesRemoveEndpoint() {
 
 		EndpointListener endpLis;
 		Map<String, Object> parameters;
@@ -260,7 +280,7 @@ public class PublisherTest extends AbstractTestConfiguration{
 		// remove endpoint
 		endpLis.endpointRemoved(endp, null);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check POST parameters
 		parameters = hub.getReqParams();
@@ -284,16 +304,15 @@ public class PublisherTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Check RSS Feed when new endpoint removed
+	 * Check RSS Feed when new endpoint removed.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testRSSFeedRemoveEndpoint() {
+	public final void testRSSFeedRemoveEndpoint() {
 
 		FeedEntry feed;
 		EndpointListener endpLis;
 		EndpointDescription feedEndp;
-		JSONService json;
 
 		feed = reader.getLastEntry();
 
@@ -304,9 +323,6 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 		// remove endpoint
 		endpLis.endpointRemoved(endp, null);
-
-		json = (JSONService) osgi.getServiceObject(JSONService.class.getName(),
-				null);
 
 		feed = reader.getLastEntry();
 		Assert.assertTrue(feed.title().equals(
@@ -325,10 +341,10 @@ public class PublisherTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Check POST request parameters after stop publishing
+	 * Check POST request parameters after stop publishing.
 	 */
 	@Test
-	public void testUnpublish() {
+	public final void testUnpublish() {
 		// stop publisher.
 		ipojo.getInstanceByName(PUBLISHER_INSTANCE_NAME).stop();
 
@@ -354,7 +370,7 @@ public class PublisherTest extends AbstractTestConfiguration{
 
 		}
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check RSS topic
 		Assert.assertNull(reader.getLastEntry());

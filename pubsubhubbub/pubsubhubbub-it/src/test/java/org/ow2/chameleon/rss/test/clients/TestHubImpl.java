@@ -29,7 +29,7 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;;
 
 /**
- * Testing Hub
+ * Testing Hub.
  * 
  * @author Bartek
  * 
@@ -43,17 +43,17 @@ class TestHubImpl extends HttpServlet {
 	private static final long serialVersionUID = 3950189218292421821L;
 	private int responseStatus;
 	private Map<String, Object> reqParams;
-	transient private HttpService http;
-	transient private HttpPost postMethod;
-	transient private HttpClient client;
+	private transient HttpService http;
+	private transient HttpPost postMethod;
+	private transient HttpClient client;
 
-	public TestHubImpl(HttpService http, int responseStatus) {
-		this.http = http;
-		this.responseStatus = responseStatus;
+	public TestHubImpl(final HttpService pHttp, final int pResponseStatus) {
+		this.http = pHttp;
+		this.responseStatus = pResponseStatus;
 	}
 
 	/**
-	 * Retrieve last POST request parameters
+	 * Retrieve last POST request parameters.
 	 * 
 	 * @return map of parameters
 	 */
@@ -61,13 +61,13 @@ class TestHubImpl extends HttpServlet {
 		return reqParams;
 	}
 
-	public void changeResponseStatus(int responseStatus) {
-		this.responseStatus = responseStatus;
+	public void changeResponseStatus(final int pResponseStatus) {
+		this.responseStatus = pResponseStatus;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+	protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
 			throws ServletException, IOException {
 		reqParams = req.getParameterMap();
 		resp.setStatus(responseStatus);
@@ -88,8 +88,8 @@ class TestHubImpl extends HttpServlet {
 		http.unregister("/hub");
 	}
 
-	public void sendUpdate(String updateOption,
-			String publisherCallBackUrl, EndpointDescription endp, JSONService json) {
+	public void sendUpdate(final String updateOption,
+			final String publisherCallBackUrl, final EndpointDescription endp, final JSONService json) {
 		HttpResponse response;
 		
 		postMethod = new HttpPost(publisherCallBackUrl);

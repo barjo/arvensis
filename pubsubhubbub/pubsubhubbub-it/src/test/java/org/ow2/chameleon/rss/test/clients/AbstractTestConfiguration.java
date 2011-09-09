@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
@@ -26,25 +27,32 @@ import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
+/**
+ * Abstract class for publisher and subscriber test, contains some common
+ * setups.
+ * 
+ * @author Bartek
+ * 
+ */
 public class AbstractTestConfiguration {
 
 	@Inject
-	protected BundleContext context;
+	private BundleContext context;
 
-	protected HttpService http;
+	private HttpService http;
 
-	protected OSGiHelper osgi;
+	private OSGiHelper osgi;
 
-	protected IPOJOHelper ipojo;
+	private IPOJOHelper ipojo;
 
-	protected TestHubImpl hub;
+	private TestHubImpl hub;
 
-	protected EndpointDescription endp;
+	private EndpointDescription endp;
 
-	protected JSONService json;
+	private JSONService json;
 
-	
-	public void setUp() throws UnknownHostException {
+	@Before
+	public final void setUp() throws UnknownHostException {
 
 		osgi = new OSGiHelper(context);
 		ipojo = new IPOJOHelper(context);
@@ -72,10 +80,27 @@ public class AbstractTestConfiguration {
 				new String[] { "import configs" });
 		endp = new EndpointDescription(endpProps);
 
+		// run rose
+		ipojo.createComponentInstance("RoSe_machine");
+
+		setUpEx();
+
 	}
 
 	/**
-	 * Global bundle configuration
+	 * Additional SetUp.
+	 * 
+	 * @throws UnknownHostException
+	 *             exception
+	 */
+	public void setUpEx() throws UnknownHostException {
+
+	}
+
+	/**
+	 * Global bundle configuration.
+	 * 
+	 * @return global options for paxexam
 	 */
 	@Configuration
 	public static Option[] globalConfigure() {
@@ -113,14 +138,16 @@ public class AbstractTestConfiguration {
 	}
 
 	/**
-	 * Mockito bundles
+	 * Mockito bundles.
+	 * 
+	 * @return options for paxexam contains mockito
 	 */
 	@Configuration
 	public static Option[] mockitoBundle() {
 		return options(JUnitOptions.mockitoBundles());
 	}
 
-	public static void waitForIt(int time) {
+	public static void waitForIt(final int time) {
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {
@@ -128,4 +155,31 @@ public class AbstractTestConfiguration {
 		}
 	}
 
+	public final BundleContext getContext() {
+		return context;
+	}
+
+	public final HttpService getHttp() {
+		return http;
+	}
+
+	public final OSGiHelper getOsgi() {
+		return osgi;
+	}
+
+	public final IPOJOHelper getIpojo() {
+		return ipojo;
+	}
+
+	public final TestHubImpl getHub() {
+		return hub;
+	}
+
+	public final EndpointDescription getEndp() {
+		return endp;
+	}
+
+	public final JSONService getJson() {
+		return json;
+	}
 }

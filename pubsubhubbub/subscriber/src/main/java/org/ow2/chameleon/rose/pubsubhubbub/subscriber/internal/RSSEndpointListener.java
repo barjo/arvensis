@@ -23,7 +23,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
@@ -31,6 +30,7 @@ import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.subscriber.Subscriber;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 
 /**
  * Listen to all matched endpoints from hub and register them in Rose.
@@ -46,20 +46,18 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 	 */
 	private static final long serialVersionUID = -6485125168680274690L;
 
-	
 	@Requires
-	transient private HttpService httpService;
-
-	@Requires
-	transient private RoseMachine machine;
+	private transient HttpService httpService;
 
 	@Requires
-	transient private JSONService json;
+	private transient RoseMachine rose;
 
-	@Requires(optional=true)
-	transient private LogService logger;
+	@Requires
+	private transient JSONService json;
 
-	
+	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
+	private transient LogService logger;
+
 	@Property(name = INSTANCE_PROPERTY_CALLBACK_URL)
 	private String callBackUrl;
 
@@ -69,34 +67,27 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 	@Property(name = INSTANCE_PROPERTY_ENDPOINT_FILTER)
 	private String endpointFilter;
 
-	
-	transient private HubSubscriber subscritpion;
-	transient private BundleContext context;
+	private transient HubSubscriber subscritpion;
+	private transient BundleContext context;
 	private int responseCode;
 	private List<String> endpointRegistrations;
 
-	public RSSEndpointListener(BundleContext context) {
-		this.context = context;
+	public RSSEndpointListener(final BundleContext pContext) {
+		this.context = pContext;
 	}
 
+	@Override
 	@Validate
-	void start() {
-		try {
-			endpointRegistrations = new ArrayList<String>();
-			httpService.registerServlet(callBackUrl, this, null, null);
-			subscritpion = new HubSubscriber(hubUrl, callBackUrl,
-					endpointFilter, context);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (NamespaceException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public final void start() throws Exception {
+		endpointRegistrations = new ArrayList<String>();
+		httpService.registerServlet(callBackUrl, this, null, null);
+		subscritpion = new HubSubscriber(hubUrl, callBackUrl, endpointFilter,
+				context, rose);
 	}
 
+	@Override
 	@Invalidate
-	void stop() {
+	public final void stop() {
 		httpService.unregister(callBackUrl);
 		try {
 			if (subscritpion != null) {
@@ -106,13 +97,14 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 			e.printStackTrace();
 		}
 		for (String endpoint : endpointRegistrations) {
-			machine.removeRemote(endpoint);
+			rose.removeRemote(endpoint);
 		}
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected final void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
 
 		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
 				|| (req.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION) == null)
@@ -128,14 +120,14 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 								.getParameter(HTTP_POST_UPDATE_CONTENT)));
 				if (req.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION)
 						.equals(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED)) {
-					machine.putRemote(endp.toString(), endp);
+					rose.putRemote(endp.toString(), endp);
 					endpointRegistrations.add(endp.toString());
 					logger.log(LogService.LOG_INFO,
 							"Remote endpoint " + endp.getId() + " added");
-				} else if (req.getParameter(
-						HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION).equals(
-						RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED)) {
-					machine.removeRemote(endp.toString());
+				} else if (req
+						.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION)
+						.equals(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED)) {
+					rose.removeRemote(endp.toString());
 					endpointRegistrations.remove(endp.toString());
 					logger.log(LogService.LOG_INFO,
 							"Remote endpoint " + endp.getId() + " removed");

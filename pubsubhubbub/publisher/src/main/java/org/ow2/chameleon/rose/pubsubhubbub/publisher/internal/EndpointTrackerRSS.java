@@ -6,6 +6,10 @@ import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.LOCAL;
 import static org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher.COMPONENT_NAME;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_NEW;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_REMOVE;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.RSS_EVENT_TOPIC;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_AUTHOR;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -36,21 +40,22 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 import org.ow2.chameleon.syndication.FeedWriter;
 
 /**
  * Tracking and publish RSS feed for local endpoints, send events to webcosole
- * plugin
+ * plugin.
  * 
  * @author Bartek
  * 
  */
 @Component(name = COMPONENT_NAME)
-public class EndpointTrackerRSS implements Publisher,EndpointListener {
+public class EndpointTrackerRSS implements Publisher, EndpointListener {
 
 	private static final String SERVLET_FACTORY_FILTER = "(&("
 			+ Constants.OBJECTCLASS
@@ -59,19 +64,22 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	private static final String WRITER_FILER_PROPERTY = "org.ow2.chameleon.syndication.feed.url";
 
 	@Property(mandatory = true, name = INSTANCE_PROPERTY_RSS_URL)
-	private String rss_url;
+	private String rssUrl;
 
 	@Property(name = INSTANCE_PROPERTY_HUB_URL)
 	private String hubUrl;
 
-	@Requires(optional=true)
-	LogService logger;
+	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
+	private LogService logger;
 
 	@Requires
 	private JSONService json;
 
 	@Requires(optional = true)
 	private EventAdmin eventAdmin;
+
+	@Requires
+	private RoseMachine rose;
 
 	private FeedWriter writer;
 	private BundleContext context;
@@ -83,28 +91,25 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	private Event event;
 	private HubPublisher hubPublisher;
 
-	public EndpointTrackerRSS(BundleContext context) {
+	public EndpointTrackerRSS(final BundleContext pContext) {
 		super();
-		this.context = context;
+		this.context = pContext;
 	}
 
+	@Override
 	@Validate
-	public void start() {
+	public final void start() throws IOException {
 
 		// tracking an FeedWriter and Feed servlet factory
 		startTracking();
 
 		// Configure an event properties
 		eventProperties = new HashMap<String, Object>();
-		eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, RoseRSSConstants.FEED_AUTHOR);
-		eventProperties.put(FeedReader.ENTRY_URL_KEY, rss_url);
+		eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
+		eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
 
-		try {
-			hubPublisher = new HubPublisher(hubUrl, rss_url, context);
-		} catch (IOException e) {
-			e.printStackTrace();
+		hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose);
 
-		}
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
 		// Register an EndpointListener
@@ -114,8 +119,9 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 
 	}
 
+	@Override
 	@Invalidate
-	public void stop() {
+	public final void stop() {
 		endpointListener.unregister();
 		if (factoryTracker != null) {
 			factoryTracker.close();
@@ -136,21 +142,22 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org
 	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
 	 */
-	public void endpointAdded(EndpointDescription endp, String filter) {
-		if (writer == null){
-			logger.log(LOG_WARNING, "Rss feed not published, Rss writer not found");
+	public final void endpointAdded(final EndpointDescription endp,
+			final String filter) {
+		if (writer == null) {
+			logger.log(LOG_WARNING,
+					"Rss feed not published, Rss writer not found");
 			return;
 		}
 		FeedEntry feed = writer.createFeedEntry();
-		feed.title(RoseRSSConstants.FEED_TITLE_NEW);
+		feed.title(FEED_TITLE_NEW);
 		feed.content(json.toJSON(endp.getProperties()));
-		feed.url(rss_url);
+		feed.url(rssUrl);
 		try {
 			// publish a feed
 			writer.addEntry(feed);
 			// sending an event
-			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_NEW,
-					json.toJSON(endp.getProperties()));
+			sendEndpointEvent(FEED_TITLE_NEW, json.toJSON(endp.getProperties()));
 
 			hubPublisher.update();
 		} catch (IOException e) {
@@ -168,17 +175,19 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	 * org.osgi.service.remoteserviceadmin.EndpointDescription,
 	 * java.lang.String)
 	 */
-	public void endpointRemoved(EndpointDescription endp, String arg1) {
-		if (writer == null)
+	public final void endpointRemoved(final EndpointDescription endp,
+			final String arg1) {
+		if (writer == null) {
 			return;
+		}
 		FeedEntry feed = writer.createFeedEntry();
-		feed.title(RoseRSSConstants.FEED_TITLE_REMOVE);
+		feed.title(FEED_TITLE_REMOVE);
 		feed.content(json.toJSON(endp.getProperties()));
 		try {
 			// publish a feed
 			writer.addEntry(feed);
 			// sending an event
-			sendEndpointEvent(RoseRSSConstants.FEED_TITLE_REMOVE,
+			sendEndpointEvent(FEED_TITLE_REMOVE,
 					json.toJSON(endp.getProperties()));
 
 			hubPublisher.update();
@@ -191,14 +200,14 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	}
 
 	/**
-	 * Sends an event to {@link RoseRSSConstants.RSS_EVENT_TOPIC}
+	 * Sends an event to {@link RoseRSSConstants.RSS_EVENT_TOPIC}.
 	 * 
 	 * @param title
 	 *            event title
 	 * @param content
 	 *            event content
 	 */
-	private void sendEndpointEvent(String title, String content) {
+	private void sendEndpointEvent(final String title, final String content) {
 		// check if eventAdmin service is available
 		if (eventAdmin != null) {
 			// prepare event properties
@@ -208,13 +217,13 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 					System.currentTimeMillis());
 
 			// create and send a event
-			event = new Event(RoseRSSConstants.RSS_EVENT_TOPIC, eventProperties);
+			event = new Event(RSS_EVENT_TOPIC, eventProperties);
 			eventAdmin.sendEvent(event);
 		}
 	}
 
 	/**
-	 * Run trackers for Feed writer and Feed writer factories
+	 * Run trackers for Feed writer and Feed writer factories.
 	 */
 	private void startTracking() {
 		try {
@@ -226,7 +235,7 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	}
 
 	/**
-	 * Tracker for writer factory
+	 * Tracker for writer factory.
 	 * 
 	 * @author Bartek
 	 * 
@@ -234,26 +243,24 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	private class FactoryTracker implements ServiceTrackerCustomizer {
 
 		/**
-		 * Set instance properties and run a tracker
+		 * Set instance properties and run a tracker.
 		 * 
 		 * @throws InvalidSyntaxException
+		 *             exception
 		 */
 		public FactoryTracker() throws InvalidSyntaxException {
 
-			
 			instanceDictionary = new Hashtable<String, Object>();
-			instanceDictionary.put(FeedReader.FEED_TITLE_PROPERTY,
-					"RoseRss");
-			instanceDictionary
-					.put("org.ow2.chameleon.syndication.feed.servlet.alias",
-							rss_url);
+			instanceDictionary.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
+			instanceDictionary.put(
+					"org.ow2.chameleon.syndication.feed.servlet.alias", rssUrl);
 
 			factoryTracker = new ServiceTracker(context,
 					createFilter(SERVLET_FACTORY_FILTER), this);
 			factoryTracker.open();
 		}
 
-		public Object addingService(ServiceReference reference) {
+		public Object addingService(final ServiceReference reference) {
 
 			Factory factory = (Factory) context.getService(reference);
 			try {
@@ -270,16 +277,18 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 			return writer;
 		}
 
-		public void modifiedService(ServiceReference reference, Object service) {
+		public void modifiedService(final ServiceReference reference,
+				final Object service) {
 		}
 
-		public void removedService(ServiceReference reference, Object service) {
+		public void removedService(final ServiceReference reference,
+				final Object service) {
 			writer = null;
 		}
 	}
 
 	/**
-	 * Tracker for Feed writer
+	 * Tracker for Feed writer.
 	 * 
 	 * @author Bartek
 	 * 
@@ -287,31 +296,34 @@ public class EndpointTrackerRSS implements Publisher,EndpointListener {
 	private class FeedWriterTracker implements ServiceTrackerCustomizer {
 
 		/**
-		 * Set a filter properties and run feed reader tracker
+		 * Set a filter properties and run feed reader tracker.
 		 * 
 		 * @throws InvalidSyntaxException
+		 *             exception
 		 */
 		public FeedWriterTracker() throws InvalidSyntaxException {
 
 			String writerFilter = ("(&(" + Constants.OBJECTCLASS + "="
 					+ WRITER_SERVICE_CLASS + ")(" + WRITER_FILER_PROPERTY
-					+ "=http:*" + rss_url + "))");
+					+ "=http:*" + rssUrl + "))");
 			feedWriterTracker = new ServiceTracker(context,
 					createFilter(writerFilter), this);
 			feedWriterTracker.open();
 
 		}
 
-		public Object addingService(ServiceReference reference) {
+		public Object addingService(final ServiceReference reference) {
 			writer = (FeedWriter) context.getService(reference);
 			return writer;
 		}
 
-		public void modifiedService(ServiceReference reference, Object service) {
+		public void modifiedService(final ServiceReference reference,
+				final Object service) {
 			writer = (FeedWriter) context.getService(reference);
 		}
 
-		public void removedService(ServiceReference reference, Object service) {
+		public void removedService(final ServiceReference reference,
+				final Object service) {
 			context.ungetService(reference);
 			writer = null;
 		}

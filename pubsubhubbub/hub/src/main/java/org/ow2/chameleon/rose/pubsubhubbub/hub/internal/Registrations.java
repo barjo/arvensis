@@ -22,7 +22,7 @@ public class Registrations {
 		lock = new ReentrantReadWriteLock();
 	}
 
-	public void addTopic(String rssURL) {
+	public final void addTopic(final String rssURL) {
 		lock.writeLock().lock();
 		try {
 			topics.put(rssURL, new HashSet<EndpointDescription>());
@@ -31,19 +31,19 @@ public class Registrations {
 		}
 	}
 
-	public void addEndpoint(String rssUrl, EndpointDescription endp) {
+	public final void addEndpoint(final String rssUrl, final EndpointDescription endp) {
 		lock.writeLock().lock();
 		topics.get(rssUrl).add(endp);
 		lock.writeLock().unlock();
 	}
 
-	public void removeEndpoint(String rssUrl, EndpointDescription endp) {
+	public final void removeEndpoint(final String rssUrl, final EndpointDescription endp) {
 		lock.writeLock().lock();
 		topics.get(rssUrl).remove(endp);
 		lock.writeLock().unlock();
 	}
 
-	public void addSubscrition(String callBackUrl, String endpointFilter) {
+	public final void addSubscrition(final String callBackUrl, final String endpointFilter) {
 		lock.writeLock().lock();
 		try {
 			subscribers.put(callBackUrl, new EndpointsByFilter(endpointFilter));
@@ -52,7 +52,7 @@ public class Registrations {
 		}
 	}
 
-	public void removeSubscribtion(String callBackUrl) {
+	public final void removeSubscribtion(final String callBackUrl) {
 		lock.writeLock().lock();
 		try {
 			subscribers.remove(callBackUrl);
@@ -62,13 +62,13 @@ public class Registrations {
 	}
 
 	/**
-	 * Get all endpoints which match a filter
+	 * Get all endpoints which match a filter.
 	 * 
-	 * @param callBackUrl
-	 * @return
+	 * @param callBackUrl subscriber full url address to send notifications 
+	 * @return set contains @EndpointDescription 
 	 */
-	public Set<EndpointDescription> getEndpointsForCallBackUrl(
-			String callBackUrl) {
+	public final Set<EndpointDescription> getEndpointsForCallBackUrl(
+			final String callBackUrl) {
 		lock.readLock().lock();
 		Set<EndpointDescription> matchedEndpointDescriptions = new HashSet<EndpointDescription>();
 		String filter = subscribers.get(callBackUrl).getFilter();
@@ -82,7 +82,7 @@ public class Registrations {
 		return matchedEndpointDescriptions;
 	}
 
-	public Set<String> getSubscribersByEndpoint(EndpointDescription endp) {
+	public final Set<String> getSubscribersByEndpoint(final EndpointDescription endp) {
 		Set<String> matchedSubscribers = new HashSet<String>();
 		lock.readLock().lock();
 		for (String subscriber : subscribers.keySet()) {
@@ -96,8 +96,8 @@ public class Registrations {
 		return matchedSubscribers;
 	}
 
-	public Map<String, Set<EndpointDescription>> getEndpointsAndSubscriberByPublisher(
-			String callBackUrl) {
+	public final Map<String, Set<EndpointDescription>> getEndpointsAndSubscriberByPublisher(
+			final String callBackUrl) {
 
 		Map<String, Set<EndpointDescription>> subscriberEndpoints = new ConcurrentHashMap<String, Set<EndpointDescription>>();
 		lock.readLock().lock();
@@ -115,7 +115,7 @@ public class Registrations {
 		return subscriberEndpoints;
 	}
 
-	public Set<EndpointDescription> getAllEndpoints() {
+	public final Set<EndpointDescription> getAllEndpoints() {
 
 		Set<EndpointDescription> allEndpoints = new HashSet<EndpointDescription>();
 		lock.readLock().lock();
@@ -126,7 +126,7 @@ public class Registrations {
 		return allEndpoints;
 	}
 
-	public void clearTopic(String rssURL) {
+	public final void clearTopic(final String rssURL) {
 		lock.readLock().lock();
 		for (EndpointDescription endpoint : topics.get(rssURL)) {
 
@@ -138,19 +138,19 @@ public class Registrations {
 		lock.readLock().unlock();
 	}
 
-	public void removeInterestedEndpoint(String callBackUrl,
-			EndpointDescription edp) {
+	public final void removeInterestedEndpoint(final String callBackUrl,
+			final EndpointDescription edp) {
 		lock.writeLock().lock();
 		subscribers.get(callBackUrl).removeEndpoint(edp);
 		lock.writeLock().unlock();
 	}
 
-	static private class EndpointsByFilter {
+	private static class EndpointsByFilter {
 		private String filter;
 		private Set<EndpointDescription> matchedEndpoints;
 
-		public EndpointsByFilter(String filter) {
-			this.filter = filter;
+		public EndpointsByFilter(final String pFilter) {
+			this.filter = pFilter;
 			matchedEndpoints = new HashSet<EndpointDescription>();
 		}
 
@@ -158,11 +158,11 @@ public class Registrations {
 			return filter;
 		}
 
-		public void addEndpoint(EndpointDescription endp) {
+		public void addEndpoint(final EndpointDescription endp) {
 			matchedEndpoints.add(endp);
 		}
 
-		public void removeEndpoint(EndpointDescription endp) {
+		public void removeEndpoint(final EndpointDescription endp) {
 			matchedEndpoints.remove(endp);
 		}
 

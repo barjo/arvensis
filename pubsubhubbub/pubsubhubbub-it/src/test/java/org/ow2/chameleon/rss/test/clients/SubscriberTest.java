@@ -5,7 +5,6 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.provision;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -15,34 +14,55 @@ import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
+import org.ow2.chameleon.testing.helpers.IPOJOHelper;
+import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
+/**
+ * Subscriber test.
+ * 
+ * @author Bartek
+ * 
+ */
 @RunWith(JUnit4TestRunner.class)
-public class SubscriberTest extends AbstractTestConfiguration{
+public class SubscriberTest extends AbstractTestConfiguration {
 
 	private static final String SUBSCRIBER_INSTANCE_NAME = "Rose_Pubsubhubbub.subscriber-1";
 	private static final String ENDPOINT_FILTER = "(endpoint.id=*)";
 	private static final String CALLBACK_URL = "/sub1";
 	private static final String HUB_URL = "http://localhost:8080/hub";
+	private static final int WAIT_TIME = 100;
 
 	private String publisherCallBackUrl;
 
 	private RoseMachine rose;
 
+	private OSGiHelper osgi;
 
-	@Before
+	private IPOJOHelper ipojo;
+
+	private TestHubImpl hub;
+
+	private EndpointDescription endp;
+
+	private JSONService json;
+
 	@Override
-	public void setUp() throws UnknownHostException {
-		super.setUp();
-		// run RoSe machine
-		ipojo.createComponentInstance("RoSe_machine");
+	public final void setUpEx() throws UnknownHostException {
+		osgi = super.getOsgi();
+		ipojo = super.getIpojo();
+		hub = super.getHub();
+		endp = super.getEndp();
+		json = super.getJson();
+
 		initMocks(this);
 
 		// create subscriber instance, register subscriber in hub
@@ -61,14 +81,12 @@ public class SubscriberTest extends AbstractTestConfiguration{
 				null);
 
 		// create subscriber call back url
-		publisherCallBackUrl = "http://"
-				+ InetAddress.getLocalHost().getHostAddress() + ":8080"
-				+ CALLBACK_URL;
+		publisherCallBackUrl = "http://localhost:8080" + CALLBACK_URL;
 
 	}
 
 	@After
-	public void tearDown() {
+	public final void tearDown() {
 
 		// response to unregister subscriber
 		hub.changeResponseStatus(HttpStatus.SC_ACCEPTED);
@@ -85,22 +103,20 @@ public class SubscriberTest extends AbstractTestConfiguration{
 
 	@Configuration
 	public static Option[] configure() {
-		Option[] bundles = options(provision(
-				mavenBundle().groupId("org.ow2.chameleon.rss")
-						.artifactId("pubsubhubbub-subscriber")
-						.versionAsInProject()
-		));
+		Option[] bundles = options(provision(mavenBundle()
+				.groupId("org.ow2.chameleon.rss")
+				.artifactId("pubsubhubbub-subscriber").versionAsInProject()));
 
 		return bundles;
 	}
 
 	/**
-	 * Check subscriber instance status
+	 * Check subscriber instance status.
 	 */
 	@Test
-	public void testActivity() {
+	public final void testActivity() {
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		Assert.assertEquals(ComponentInstance.VALID,
 				ipojo.getInstanceByName(SUBSCRIBER_INSTANCE_NAME).getState());
 		// check remote registration at beginning
@@ -109,12 +125,12 @@ public class SubscriberTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Checks publish request to hub
+	 * Checks publish request to hub.
 	 * 
 	 * @throws UnknownHostException
 	 */
 	@Test
-	public void testSubscriptionParameters() {
+	public final void testSubscriptionParameters() {
 
 		Map<String, Object> parameters;
 
@@ -146,39 +162,39 @@ public class SubscriberTest extends AbstractTestConfiguration{
 	}
 
 	/**
-	 * Hub update notification send to subscriber - Endpoint added
+	 * Hub update notification send to subscriber - Endpoint added.
 	 */
 	@Test
-	public void testEndpointAddedNotification() {
-		waitForIt(100);
+	public final void testEndpointAddedNotification() {
+		waitForIt(WAIT_TIME);
 		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
-		
 
 		// check if endpoint successfully registered
 		Assert.assertTrue(rose.containsRemote(endp));
 	}
 
 	/**
-	 * Hub update notification send to subscriber - Endpoint removed
+	 * Hub update notification send to subscriber - Endpoint removed.
 	 */
 	@Test
-	public void testEndpointRemoveNotification() {
+	public final void testEndpointRemoveNotification() {
 
 		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
-		waitForIt(100);
-		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED,
+		waitForIt(WAIT_TIME);
+		hub.sendUpdate(
+				RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED,
 				publisherCallBackUrl, endp, json);
 		// check if endpoint successfully unregistered
 		Assert.assertFalse(rose.containsRemote(endp));
 	}
 
 	/**
-	 * Check POST request parameters after stop subscribing
+	 * Check POST request parameters after stop subscribing.
 	 */
 	@Test
-	public void testUnpublish() {
+	public final void testUnpublish() {
 		// stop susbcriber
 		ipojo.getInstanceByName(SUBSCRIBER_INSTANCE_NAME).stop();
 

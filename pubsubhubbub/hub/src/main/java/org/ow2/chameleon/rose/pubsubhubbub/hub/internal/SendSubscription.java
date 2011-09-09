@@ -4,9 +4,7 @@ import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_UPDATE_TOPIC_DELETE;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +21,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 /**
- * Sending a notification to subscribers
+ * Sending a notification to subscribers.
  * 
  * @author Bartek
  * 
@@ -39,78 +37,91 @@ public class SendSubscription extends Thread {
 	private HttpClient client;
 
 	/**
-	 * Prepare a  thread to send an endpointDescriptions after subscriber appears
+	 * Prepare a thread to send an endpointDescriptions after subscriber
+	 * appears.
 	 * 
-	 * @param client
-	 * @param callBackUrl
-	 * @param updateOption
-	 * @param server
-	 * @param registrations
+	 * @param pClient
+	 *            client to send data
+	 * @param pCallBackUrl
+	 *            full url address of subscriber
+	 * @param pUpdateOption
+	 *            update option: endpoint.add or endpoint.remove
+	 * @param pServer
+	 *            bridge to Hub
 	 */
-	public SendSubscription(HttpClient client, String callBackUrl,
-			String updateOption, HubImpl server) {
-		this.callBackUrl = callBackUrl;
-		this.client = client;
-		this.server = server;
-		this.updateOption = updateOption;
+	public SendSubscription(final HttpClient pClient, final String pCallBackUrl,
+			final String pUpdateOption, final HubImpl pServer) {
+		this.callBackUrl = pCallBackUrl;
+		this.client = pClient;
+		this.server = pServer;
+		this.updateOption = pUpdateOption;
 	}
 
 	/**
-	 * Prepare a  thread to send an endpointDescriptions after publisher update
+	 * Prepare a thread to send an endpointDescriptions after publisher update.
 	 * 
-	 * @param client
-	 * @param edp
-	 * @param server
-	 * @param registrations
+	 * @param pClient
+	 *            to send data
+	 * @param pEdp
+	 *            notified @EndpointDescription
+	 * @param pUpdateOption
+	 *            update option: endpoint.add or endpoint.remove
+	 * @param pServer
+	 *            bridge to Hub
 	 */
-	public SendSubscription(HttpClient client, EndpointDescription edp,
-			String updateOption, HubImpl server) {
-		this.edp = edp;
-		this.client = client;
-		this.server = server;
-		this.updateOption = updateOption;
+	public SendSubscription(final HttpClient pClient, final EndpointDescription pEdp,
+			final String pUpdateOption, final HubImpl pServer) {
+		this.edp = pEdp;
+		this.client = pClient;
+		this.server = pServer;
+		this.updateOption = pUpdateOption;
 	}
 
 	/**
-	 * Prepare a thread to send a remove endpointDescription to all subscribers when
-	 * topic is deleted
+	 * Prepare a thread to send a remove endpointDescription to all subscribers
+	 * when topic is deleted.
 	 * 
-	 * @param client
-	 * @param rssUrl
-	 * @param topicDelete
-	 * @param endpointRemove
-	 * @param server2
+	 * @param pClient
+	 *            to send data
+	 * @param pRssUrl
+	 *            url address to RSS
+	 * @param pTopicDelete
+	 *            topic.remove
+	 * @param pServer
+	 *            bridge to Hub
+	 * @param pUpdateOption
+	 *            update option: endpoint.add or endpoint.remove
 	 */
-	public SendSubscription(HttpClient client, String rssUrl,
-			String updateOption, HubImpl server, String topicDelete) {
-		if (topicDelete.equals(HUB_UPDATE_TOPIC_DELETE)) {
-			this.rssURL = rssUrl;
-			this.client = client;
-			this.server = server;
-			this.updateOption = updateOption;
+	public SendSubscription(final HttpClient pClient, final String pRssUrl,
+			final String pUpdateOption, final HubImpl pServer, final String pTopicDelete) {
+		if (pTopicDelete.equals(HUB_UPDATE_TOPIC_DELETE)) {
+			this.rssURL = pRssUrl;
+			this.client = pClient;
+			this.server = pServer;
+			this.updateOption = pUpdateOption;
 		}
 	}
 
 	/**
-	 * Send an endpointDescriptions after subscriber appears
+	 * Send an endpointDescriptions after subscriber appears.
 	 */
 
 	private void sendAfterSubscribe() {
-		for (EndpointDescription edp : server.registrations()
+		for (EndpointDescription endp : server.registrations()
 				.getEndpointsForCallBackUrl(this.callBackUrl)) {
-			sendUpdate(edp, this.callBackUrl);
+			sendUpdate(endp, this.callBackUrl);
 		}
 	}
 
 	/**
-	 * Send an endpointDescriptions after publisher update
+	 * Send an endpointDescriptions after publisher update.
 	 */
 	private void sendAfterPublisherUpdate() {
-		for (String callBackUrl : server.registrations()
+		for (String callBackURL : server.registrations()
 				.getSubscribersByEndpoint(this.edp)) {
-			sendUpdate(edp, callBackUrl);
+			sendUpdate(edp, callBackURL);
 			if (updateOption.equals("endpoint.remove")) {
-				server.registrations().removeInterestedEndpoint(callBackUrl,
+				server.registrations().removeInterestedEndpoint(callBackURL,
 						edp);
 			}
 		}
@@ -118,14 +129,14 @@ public class SendSubscription extends Thread {
 	}
 
 	/**
-	 * Send a remove endpointDescription to subscribers when topic is deleted
+	 * Send a remove endpointDescription to subscribers when topic is deleted.
 	 */
 	private void sendAfterTopicDelete() {
 		Map<String, Set<EndpointDescription>> subscriberEndpoins = server
 				.registrations().getEndpointsAndSubscriberByPublisher(rssURL);
 
-		
-		for (Map.Entry<String, Set<EndpointDescription>> entry : subscriberEndpoins.entrySet()) {
+		for (Map.Entry<String, Set<EndpointDescription>> entry : subscriberEndpoins
+				.entrySet()) {
 			for (EndpointDescription endpoint : entry.getValue()) {
 				sendUpdate(endpoint, entry.getKey());
 			}
@@ -135,17 +146,17 @@ public class SendSubscription extends Thread {
 	}
 
 	/**
-	 * General method to send notification to subscribers
+	 * General method to send notification to subscribers.
 	 * 
-	 * @param edp
+	 * @param endpoint
 	 *            endpointDescription which is notified
-	 * @param callBackUrl
+	 * @param pCallBackUrl
 	 *            url address where to send a notification
 	 * @throws IOException
 	 */
-	private void sendUpdate(EndpointDescription edp, String callBackUrl) {
+	private void sendUpdate(final EndpointDescription endpoint, final String pCallBackUrl) {
 
-		postMethod = new HttpPost(callBackUrl);
+		postMethod = new HttpPost(pCallBackUrl);
 		postMethod.setHeader("Content-Type",
 				"application/x-www-form-urlencoded");
 
@@ -153,7 +164,7 @@ public class SendSubscription extends Thread {
 		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION,
 				updateOption));
 		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, server.json()
-				.toJSON(edp.getProperties())));
+				.toJSON(endpoint.getProperties())));
 		try {
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 
@@ -175,12 +186,12 @@ public class SendSubscription extends Thread {
 	}
 
 	@Override
-	public void run() {
-		if (callBackUrl != null)
+	public final void run() {
+		if (callBackUrl != null) {
 			sendAfterSubscribe();
-		else if (edp != null)
+		} else if (edp != null) {
 			sendAfterPublisherUpdate();
-		else if (rssURL != null) {
+		} else if (rssURL != null) {
 			sendAfterTopicDelete();
 		}
 	}

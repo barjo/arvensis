@@ -41,6 +41,10 @@ import org.osgi.service.event.EventHandler;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 
+/**
+ * @author Bartek
+ * 
+ */
 @Component(immediate = true)
 @Provides
 @Instantiate
@@ -58,35 +62,36 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 	@SuppressWarnings("unused")
 	@ServiceProperty(name = "felix.webconsole.title")
 	@Requires
-	private JSONService json;
-
+	private transient JSONService json;
 
 	private Set<String> localEndpoints;
-	private BundleContext context;
-	private ServiceRegistration eventService;
-	private HttpClient client;
-	private HttpPost postMethod;
+	private transient BundleContext context;
+	private transient ServiceRegistration eventService;
+	private transient HttpClient client;
+	private transient HttpPost postMethod;
 
-	public PubsubhubbubWebConsole(BundleContext context) {
+	public PubsubhubbubWebConsole(final BundleContext pContext) {
 		super();
-		this.context = context;
+		this.context = pContext;
 	}
 
 	@Validate
-	void start() {
+	final void start() {
 
 		localEndpoints = new HashSet<String>();
 		registerEventHandler();
 	}
 
 	@Invalidate
+	final
 	void stop() {
 		eventService.unregister();
 	}
 
 	private void registerEventHandler() {
-		String eventTitleFilter = "(|(entry.title=" + RoseRSSConstants.FEED_TITLE_NEW
-				+ ")(entry.title=" + RoseRSSConstants.FEED_TITLE_REMOVE + "))";
+		String eventTitleFilter = "(|(entry.title="
+				+ RoseRSSConstants.FEED_TITLE_NEW + ")(entry.title="
+				+ RoseRSSConstants.FEED_TITLE_REMOVE + "))";
 		Dictionary<String, String> props = new Hashtable<String, String>();
 		props.put(EventConstants.EVENT_TOPIC, RoseRSSConstants.RSS_EVENT_TOPIC);
 		props.put(EventConstants.EVENT_FILTER, eventTitleFilter);
@@ -96,19 +101,19 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 	}
 
 	@Override
-	public String getLabel() {
+	public final String getLabel() {
 
 		return label;
 	}
 
 	@Override
-	public String getTitle() {
+	public final String getTitle() {
 		return "Rose";
 	}
 
 	@Override
-	protected void renderContent(HttpServletRequest req, HttpServletResponse res)
-			throws ServletException, IOException {
+	protected final void renderContent(final HttpServletRequest req,
+			final HttpServletResponse res) throws ServletException, IOException {
 		Integer number = 1;
 		res.getWriter().append("Local endpoints:<br><br>");
 		for (String endpoint : localEndpoints) {
@@ -147,9 +152,10 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 
 	}
 
-	public void handleEvent(Event event) {
+	public final void handleEvent(final Event event) {
 
-		if (event.getProperty("entry.title").equals(RoseRSSConstants.FEED_TITLE_NEW)) {
+		if (event.getProperty("entry.title").equals(
+				RoseRSSConstants.FEED_TITLE_NEW)) {
 			localEndpoints.add((String) event.getProperty("entry.content"));
 
 		} else if (event.getProperty("entry.title").equals(
@@ -159,7 +165,7 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 
 	}
 
-	private String asString(InputStream ists) throws IOException {
+	private String asString(final InputStream ists) throws IOException {
 		if (ists != null) {
 			StringBuilder sb = new StringBuilder();
 			String line;

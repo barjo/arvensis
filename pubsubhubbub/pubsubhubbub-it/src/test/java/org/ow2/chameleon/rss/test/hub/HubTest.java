@@ -76,14 +76,16 @@ public class HubTest {
 
 	private static final String HUB_INSTANCE_NAME = "Rose_Pubsubhubbub.hub";
 
+	private static final int WAIT_TIME = 100;
+
 	@Inject
-	protected BundleContext context;
+	private BundleContext context;
 
-	protected HttpService http;
+	private HttpService http;
 
-	protected OSGiHelper osgi;
+	private OSGiHelper osgi;
 
-	protected IPOJOHelper ipojo;
+	private IPOJOHelper ipojo;
 
 	private String hubUrl;
 
@@ -96,7 +98,7 @@ public class HubTest {
 	private List<EndpointDescription> testEndpoints;
 
 	@Before
-	public void setUp() throws UnknownHostException {
+	public final void setUp() throws UnknownHostException {
 
 		osgi = new OSGiHelper(context);
 		ipojo = new IPOJOHelper(context);
@@ -125,6 +127,7 @@ public class HubTest {
 
 	/**
 	 * Global bundle configuration.
+	 * @return options for paxexam 
 	 */
 	@Configuration
 	public static Option[] globalConfigure() {
@@ -179,6 +182,7 @@ public class HubTest {
 
 	/**
 	 * Mockito bundles.
+	 * @return options for paxexam contains mockito
 	 */
 	@Configuration
 	public static Option[] mockitoBundle() {
@@ -188,10 +192,10 @@ public class HubTest {
 	/**
 	 * Check hub instance status.
 	 */
-	 @Test
-	public void testActivity() {
+	@Test
+	public final void testActivity() {
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		Assert.assertEquals(ComponentInstance.VALID,
 				ipojo.getInstanceByName(HUB_INSTANCE_NAME).getState());
 
@@ -201,12 +205,12 @@ public class HubTest {
 	 * Publisher send publish and unpublish notification to Hub (without
 	 * creating a RSS topic).
 	 */
-	 @Test
-	public void testPublisherConnectNoRSS() {
+	@Test
+	public final void testPublisherConnectNoRSS() {
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -222,12 +226,12 @@ public class HubTest {
 	 * Publisher send publish and unpublish notification to Hub (with creating a
 	 * RSS topic).
 	 */
-	 @Test
-	public void testPublisherConnectWithRSS() {
+	@Test
+	public final void testPublisherConnectWithRSS() {
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -244,12 +248,12 @@ public class HubTest {
 	/**
 	 * Publisher send update for new endpoint added into RSS topic.
 	 */
-	 @Test
-	public void testPublisherUpdateNewEndpoint() {
+	@Test
+	public final void testPublisherUpdateNewEndpoint() {
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher
 		publisher = new TestPublisher("/rss");
@@ -264,9 +268,9 @@ public class HubTest {
 		// send feed to topic
 		publisher.addRSSFeed(testEndpoints.get(0),
 				RoseRSSConstants.FEED_TITLE_NEW);
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		// hub successfully updated
 		Assert.assertEquals(HttpStatus.SC_ACCEPTED, hubResponseCode);
 		// stop publisher
@@ -278,12 +282,12 @@ public class HubTest {
 	 * Publisher send update for new endpoint added into RSS topic, but no feed
 	 * in topic.
 	 */
-	 @Test
-	public void testPublisherUpdateNewEndpointWithoutRSSfeed() {
+	@Test
+	public final void testPublisherUpdateNewEndpointWithoutRSSfeed() {
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -296,9 +300,9 @@ public class HubTest {
 		// prepare endpoints;
 		createEndpoints();
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// hub unsuccessfully updated
 		Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, hubResponseCode);
@@ -310,12 +314,12 @@ public class HubTest {
 	/**
 	 * Publisher send update for remove endpoint.
 	 */
-	 @Test
-	public void testPublisherUpdateRemoveEndpoint() {
+	@Test
+	public final void testPublisherUpdateRemoveEndpoint() {
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -334,9 +338,9 @@ public class HubTest {
 		// endpoint add
 		publisher.addRSSFeed(testEndpoints.get(0),
 				RoseRSSConstants.FEED_TITLE_NEW);
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// endpoint remove
 		publisher.addRSSFeed(testEndpoints.get(0),
@@ -352,12 +356,12 @@ public class HubTest {
 	/**
 	 * Subscriber registrations and unregistration.
 	 */
-	 @Test
-	public void testSubscriber() {
+	@Test
+	public final void testSubscriber() {
 		TestSubscriber subscriber;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create subscriber
 		subscriber = new TestSubscriber("/sub1", "()");
@@ -380,13 +384,13 @@ public class HubTest {
 	 * Hub sends update (Endpoint added )notification to subscriber. Publisher
 	 * shows first.
 	 */
-	 @Test
-	public void testSubscriberUpdateFromHubEndpointAdded() {
+	@Test
+	public final void testSubscriberUpdateFromHubEndpointAdded() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -405,14 +409,14 @@ public class HubTest {
 		// send update to hub
 		publisher.sendUpdateToHub();
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create subscriber
 		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)");
 
 		// start subscriber
 		subscriber.start();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check update notification
 		Assert.assertTrue(subscriber.checkUpdate(new EndpointTitle(
@@ -428,20 +432,20 @@ public class HubTest {
 	 * Hub sends update (Endpoint added )notification to subscriber. Subscriber
 	 * shows first.
 	 */
-	 @Test
-	public void testSubscriberUpdateFromHubEndpointAdded2() {
+	@Test
+	public final void testSubscriberUpdateFromHubEndpointAdded2() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create subscriber
 		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)");
 
 		// start subscriber
 		subscriber.start();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -460,7 +464,7 @@ public class HubTest {
 		// send update to hub
 		publisher.sendUpdateToHub();
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check update notification
 		Assert.assertTrue(subscriber.checkUpdate(new EndpointTitle(
@@ -475,13 +479,13 @@ public class HubTest {
 	 * Check subscriber endpoint filter, 2 endpoint are register into hub only
 	 * one matches.
 	 */
-	 @Test
-	public void testSubscriberEndpointFilter() {
+	@Test
+	public final void testSubscriberEndpointFilter() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -500,7 +504,7 @@ public class HubTest {
 		// send update to hub
 		publisher.sendUpdateToHub();
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send publish notification to Hub (register endpoint id=1)
 		publisher.addRSSFeed(testEndpoints.get(1),
@@ -509,14 +513,14 @@ public class HubTest {
 		// send update to hub
 		publisher.sendUpdateToHub();
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create subscriber, try to get only first endpoint
 		subscriber = new TestSubscriber("/sub1", "(endpoint.id=0)");
 
 		// start subscriber
 		subscriber.start();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// check update notification
 		Assert.assertTrue(subscriber.checkUpdate(new EndpointTitle(
@@ -531,13 +535,13 @@ public class HubTest {
 	 * Check subscriber endpoint filter, 3 endpoints are register into hub only
 	 * 2 matches.
 	 */
-	 @Test
-	public void testSubscriberEndpointComplexFilter() {
+	@Test
+	public final void testSubscriberEndpointComplexFilter() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
 		publisher = new TestPublisher("/rss");
@@ -553,7 +557,7 @@ public class HubTest {
 		publisher.addRSSFeed(testEndpoints.get(0),
 				RoseRSSConstants.FEED_TITLE_NEW);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -562,7 +566,7 @@ public class HubTest {
 		publisher.addRSSFeed(testEndpoints.get(1),
 				RoseRSSConstants.FEED_TITLE_NEW);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -571,7 +575,7 @@ public class HubTest {
 		publisher.addRSSFeed(testEndpoints.get(2),
 				RoseRSSConstants.FEED_TITLE_NEW);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -582,7 +586,7 @@ public class HubTest {
 
 		// start subscriber
 		subscriber.start();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// create expected updates
 		List<EndpointTitle> expectUpdates = new ArrayList<EndpointTitle>();
@@ -604,13 +608,13 @@ public class HubTest {
 	 * Check updates from hub when publisher removes.
 	 */
 	@Test
-	public void testSubscriberTopicDeleted() {
+	public final void testSubscriberTopicDeleted() {
 		TestSubscriber subscriber;
 		TestPublisher publisher;
 		TestPublisher publisher2;
 
 		// wait for the service to be available.
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// prepare endpoints;
 		createEndpoints();
@@ -626,7 +630,7 @@ public class HubTest {
 		publisher.addRSSFeed(testEndpoints.get(0),
 				RoseRSSConstants.FEED_TITLE_NEW);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -635,7 +639,7 @@ public class HubTest {
 		publisher.addRSSFeed(testEndpoints.get(1),
 				RoseRSSConstants.FEED_TITLE_NEW);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -651,7 +655,7 @@ public class HubTest {
 		publisher2.addRSSFeed(testEndpoints.get(2),
 				RoseRSSConstants.FEED_TITLE_NEW);
 
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// send update to hub
 		publisher2.sendUpdateToHub();
@@ -661,11 +665,11 @@ public class HubTest {
 
 		// start subscriber
 		subscriber.start();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 
 		// publisher2 stops
 		publisher.stop();
-		waitForIt(100);
+		waitForIt(WAIT_TIME);
 		// create expected updates
 		List<EndpointTitle> expectUpdates = new ArrayList<EndpointTitle>();
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(0),
@@ -694,9 +698,10 @@ public class HubTest {
 		Map<String, Object> endpProps = new HashMap<String, Object>();
 		EndpointDescription endp;
 		int index;
+		final int endpointsNb = 3;
 
 		testEndpoints = new ArrayList<EndpointDescription>();
-		for (index = 0; index < 3; index++) {
+		for (index = 0; index < endpointsNb; index++) {
 			endpProps.put(OBJECTCLASS, new String[] { "testObject" });
 			endpProps.put(ENDPOINT_ID, String.valueOf(index));
 			endpProps.put(SERVICE_IMPORTED_CONFIGS,
@@ -724,15 +729,15 @@ public class HubTest {
 		private String subscriberFullUrl;
 		private List<EndpointTitle> postParameters;
 
-		private TestSubscriber(String subscriberRelativeUrl, String filter) {
-			this.subscriberRelativeUrl = subscriberRelativeUrl;
-			this.filter = filter;
+		private TestSubscriber(final String pSubscriberRelativeUrl, final String pFilter) {
+			this.subscriberRelativeUrl = pSubscriberRelativeUrl;
+			this.filter = pFilter;
 			this.postParameters = new ArrayList<HubTest.EndpointTitle>();
 			try {
 				// creating full url address to rss topic
 				this.subscriberFullUrl = "http://"
 						+ InetAddress.getLocalHost().getHostAddress() + ":8080"
-						+ subscriberRelativeUrl;
+						+ pSubscriberRelativeUrl;
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 				Assert.fail("Subscriber creation error");
@@ -777,7 +782,6 @@ public class HubTest {
 		protected void doPost(final HttpServletRequest req,
 				final HttpServletResponse resp) throws ServletException,
 				IOException {
-			System.out.println("got something");
 			try {
 				postParameters.add(new EndpointTitle(RoseEndpointDescription
 						.getEndpointDescription(json.fromJSON(req
@@ -793,9 +797,8 @@ public class HubTest {
 		/**
 		 * Check last update.
 		 * 
-		 * @param endp
-		 * @param title
-		 * @return
+		 * @param expected @EndpointDescription with title to check
+		 * @return true if expected values are equal
 		 */
 		private boolean checkUpdate(final EndpointTitle expected) {
 
@@ -811,13 +814,13 @@ public class HubTest {
 		}
 
 		/**
-		 * Check list of updates
+		 * Check list of updates.
 		 * 
-		 * @param expectUpdates
+		 * @param expectUpdates list of expected @EndpointDescription with title
 		 * 
-		 * @return
+		 * @return true if and only if expected values are equal
 		 */
-		private boolean checkUpdates(List<EndpointTitle> expectUpdates) {
+		private boolean checkUpdates(final List<EndpointTitle> expectUpdates) {
 
 			// check if expected and received are the same, order doesn`t count
 			if ((new HashSet<EndpointTitle>(postParameters))
@@ -834,21 +837,21 @@ public class HubTest {
 		private String relativeRssUrl;
 		private FeedWriter writer;
 
-		public TestPublisher(String relativeRssUrl) {
-			this.relativeRssUrl = relativeRssUrl;
+		public TestPublisher(final String pRelativeRssUrl) {
+			this.relativeRssUrl = pRelativeRssUrl;
 			try {
 				// creating full url address to rss topic
 				this.fullRssUrl = "http://"
 						+ InetAddress.getLocalHost().getHostAddress() + ":8080"
-						+ relativeRssUrl;
+						+ pRelativeRssUrl;
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 				Assert.fail("Publisher creation error");
 			}
 		}
 
-		public void addRSSFeed(EndpointDescription endpointDescription,
-				String feedTitleNew) {
+		public void addRSSFeed(final EndpointDescription endpointDescription,
+				final String feedTitleNew) {
 			FeedEntry feed;
 
 			feed = writer.createFeedEntry();
@@ -874,7 +877,7 @@ public class HubTest {
 			ComponentInstance instance = ipojo.createComponentInstance(
 					"org.ow2.chameleon.syndication.rome.servlet",
 					rssServletProps);
-			waitForIt(100);
+			waitForIt(WAIT_TIME);
 			writer = (FeedWriter) osgi.getServiceObject(
 					FeedWriter.class.getName(),
 					"(instance.name=" + instance.getInstanceName() + ")");
@@ -915,7 +918,7 @@ public class HubTest {
 
 	}
 
-	public void sendPOST(List<NameValuePair> nvps) {
+	public final void sendPOST(final List<NameValuePair> nvps) {
 
 		HttpPost postMethod = new HttpPost(hubUrl);
 		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
@@ -934,7 +937,7 @@ public class HubTest {
 	}
 
 	/**
-	 * Stores Endpoint and Title of update, used in subscriber updates expection
+	 * Stores Endpoint and Title of update, used in subscriber updates expectations.
 	 * 
 	 * @author Bartek
 	 * 
@@ -943,10 +946,10 @@ public class HubTest {
 		private EndpointDescription endp;
 		private String title;
 
-		public EndpointTitle(EndpointDescription endp, String title) {
+		public EndpointTitle(final EndpointDescription pEndp, final String pTitle) {
 			super();
-			this.endp = endp;
-			this.title = title;
+			this.endp = pEndp;
+			this.title = pTitle;
 		}
 
 		public EndpointDescription getEndp() {
@@ -958,11 +961,13 @@ public class HubTest {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
+		public boolean equals(final Object obj) {
+			if (this == obj) {
 				return true;
-			if (obj == null)
+			}
+			if (obj == null) {
 				return false;
+			}
 			if (obj instanceof EndpointTitle) {
 				final EndpointTitle toCheck = (EndpointTitle) obj;
 				if (this.getEndp().equals(toCheck.getEndp())

@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
@@ -46,12 +47,13 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 
 /**
  * Component class to work as Hub in Pubsubhubbub technology, specially modified
- * to work with Rose
+ * to work with Rose.
  * 
  * @author Bartek
  * 
@@ -69,42 +71,41 @@ public class HubImpl extends HttpServlet implements Hub {
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
 
-	
-	@Requires
-	transient private HttpService httpService;
+	private static final int FEED_PERIOD = 10;
 
 	@Requires
-	transient private JSONService json;
+	private transient HttpService httpService;
 
-	@Requires(optional=true)
-	transient private LogService logger;
+	@Requires
+	private transient JSONService json;
 
-	
+	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
+	private transient LogService logger;
+
 	@Property(name = INSTANCE_PROPERTY_HUB_URL, mandatory = true)
 	private String hubServlet;
 
-	
 	// HTTP response status code
 	private int responseCode;
 
 	// store instances of RSS reader for different topics
 	private Map<Object, FeedReader> readers;
 	private Dictionary<String, Object> instanceDictionary;
-	transient private SendSubscription subscription;
-	transient private ServiceTracker feedReaderTracker;
-	transient private BundleContext context;
-	transient private Registrations registrations;
-	
-	// client to send notification to subscribers;
-	transient private HttpClient client;
+	private transient SendSubscription subscription;
+	private transient ServiceTracker feedReaderTracker;
+	private transient BundleContext context;
+	private transient Registrations registrations;
 
-	
-	public HubImpl(BundleContext context) {
-		this.context = context;
+	// client to send notification to subscribers;
+	private transient HttpClient client;
+
+	public HubImpl(final BundleContext pContext) {
+		this.context = pContext;
 	}
 
+	@Override
 	@Validate
-	void start() {
+	public final void start() {
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
 			registrations = new Registrations();
@@ -117,23 +118,25 @@ public class HubImpl extends HttpServlet implements Hub {
 			feedReaderTracker.open();
 
 		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Error in starting a hub");
+			logger.log(LogService.LOG_ERROR, "Error in starting a hub", e);
 		}
 	}
 
-	void stop() {
+	@Override
+	@Invalidate
+	public final void stop() {
 		feedReaderTracker.close();
 		httpService.unregister(hubServlet);
 	}
 
 	/**
-	 * Run trackers for Feed readers and Feed read factories
+	 * Run trackers for Feed readers and Feed read factories.
 	 * 
 	 * @param rssUrl
 	 *            url address to read feeds
-	 * @return
+	 * @return true if successfully found a feed reader
 	 */
-	private boolean createReader(String rssUrl) {
+	private boolean createReader(final String rssUrl) {
 
 		if (readers.containsKey(rssUrl)) {
 			return true;
@@ -165,7 +168,7 @@ public class HubImpl extends HttpServlet implements Hub {
 				// create instanace
 				instanceDictionary = new Hashtable<String, Object>();
 				instanceDictionary.put("feed.url", rssUrl);
-				instanceDictionary.put("feed.period", 10);
+				instanceDictionary.put("feed.period", FEED_PERIOD);
 				readerFactory.createComponentInstance(instanceDictionary);
 
 				sref = context.getServiceReferences(READER_SERVICE_CLASS,
@@ -184,6 +187,31 @@ public class HubImpl extends HttpServlet implements Hub {
 		return true;
 	}
 
+	/**
+	 * Creates an EndpointDescription from JSON map, checks for errors which
+	 * occurs after parsing from string to JSON.
+	 * 
+	 * @param map
+	 *            endpoint description map property
+	 * @return proper endpoint description
+	 */
+	@SuppressWarnings("unchecked")
+	private EndpointDescription getEndpointDescriptionFromJSON(
+			final Map<String, Object> map) {
+
+		if (map.get(Constants.OBJECTCLASS) instanceof ArrayList<?>) {
+			map.put(Constants.OBJECTCLASS, ((ArrayList<String>) map
+					.get(Constants.OBJECTCLASS)).toArray(new String[0]));
+		}
+
+		if (map.get(RemoteConstants.ENDPOINT_SERVICE_ID) instanceof Integer) {
+			Integer id = (Integer) map
+					.get((RemoteConstants.ENDPOINT_SERVICE_ID));
+			map.put(RemoteConstants.ENDPOINT_SERVICE_ID, id.longValue());
+		}
+		return new EndpointDescription(map);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -192,8 +220,9 @@ public class HubImpl extends HttpServlet implements Hub {
 	 * , javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected final void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
 
 		String rssUrl;
 		String endpointFilter;
@@ -241,7 +270,7 @@ public class HubImpl extends HttpServlet implements Hub {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
-			feed =readers.get(rssUrl).getLastEntry();
+			feed = readers.get(rssUrl).getLastEntry();
 			if (feed == null) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
@@ -252,7 +281,7 @@ public class HubImpl extends HttpServlet implements Hub {
 						.fromJSON(feed.content()));
 				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpoint(rssUrl, edp);
-					subscription= new SendSubscription(client, edp,
+					subscription = new SendSubscription(client, edp,
 							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
 					subscription.start();
 				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
@@ -264,7 +293,7 @@ public class HubImpl extends HttpServlet implements Hub {
 				responseCode = HttpStatus.SC_ACCEPTED;
 			} catch (ParseException e) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
-				logger.log(LogService.LOG_ERROR, "Update false",e);
+				logger.log(LogService.LOG_ERROR, "Update false", e);
 			}
 			break;
 
@@ -310,52 +339,27 @@ public class HubImpl extends HttpServlet implements Hub {
 		resp.setStatus(responseCode);
 	}
 
-	/**
-	 * Creates an EndpointDescription from JSON map, checks for errors which
-	 * occurs after parsing from string to JSON
-	 * 
-	 * @param map
-	 *            endpoint description map property
-	 * @return proper endpoint description
-	 */
-	@SuppressWarnings("unchecked")
-	private EndpointDescription getEndpointDescriptionFromJSON(
-			Map<String, Object> map) {
-
-		if (map.get(Constants.OBJECTCLASS) instanceof ArrayList<?>) {
-			map.put(Constants.OBJECTCLASS, ((ArrayList<String>) map
-					.get(Constants.OBJECTCLASS)).toArray(new String[0]));
-		}
-
-		if (map.get(RemoteConstants.ENDPOINT_SERVICE_ID) instanceof Integer) {
-			Integer id = (Integer) map
-					.get((RemoteConstants.ENDPOINT_SERVICE_ID));
-			map.put(RemoteConstants.ENDPOINT_SERVICE_ID, id.longValue());
-		}
-		return new EndpointDescription(map);
-	}
-
-	public JSONService json() {
+	public final JSONService json() {
 		return json;
 	}
 
-	public Registrations registrations() {
+	public final Registrations registrations() {
 		return registrations;
 	}
-	
-	public LogService logger() {
+
+	public final LogService logger() {
 		return logger;
 	}
 
 	/**
-	 * Tracker for Feed reader
+	 * Tracker for Feed reader.
 	 * 
 	 * @author Bartek
 	 * 
 	 */
 	private class FeedReaderTracker implements ServiceTrackerCustomizer {
 
-		public Object addingService(ServiceReference reference) {
+		public Object addingService(final ServiceReference reference) {
 			FeedReader reader = (FeedReader) context.getService(reference);
 			if (!(readers.containsKey(reference
 					.getProperty(FeedReader.FEED_URL_PROPERTY)))) {
@@ -366,11 +370,13 @@ public class HubImpl extends HttpServlet implements Hub {
 			return reader;
 		}
 
-		public void modifiedService(ServiceReference reference, Object service) {
+		public void modifiedService(final ServiceReference reference,
+				final Object service) {
 
 		}
 
-		public void removedService(ServiceReference reference, Object service) {
+		public void removedService(final ServiceReference reference,
+				final Object service) {
 			readers.remove(reference.getProperty(FeedReader.FEED_URL_PROPERTY));
 
 		}

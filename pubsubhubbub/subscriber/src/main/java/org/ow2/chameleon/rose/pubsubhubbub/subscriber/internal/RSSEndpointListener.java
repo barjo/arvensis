@@ -23,6 +23,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
@@ -78,7 +79,8 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 
 	@Override
 	@Validate
-	public final void start() throws Exception {
+	public final void start() throws ServletException, NamespaceException,
+			IOException {
 		endpointRegistrations = new ArrayList<String>();
 		httpService.registerServlet(callBackUrl, this, null, null);
 		subscritpion = new HubSubscriber(hubUrl, callBackUrl, endpointFilter,
@@ -94,7 +96,7 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 				subscritpion.unsubscribe();
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.log(LogService.LOG_ERROR, "Error in unsubscribe", e);
 		}
 		for (String endpoint : endpointRegistrations) {
 			rose.removeRemote(endpoint);
@@ -115,7 +117,7 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 
 			try {
 				@SuppressWarnings("unchecked")
-				EndpointDescription endp = RoseEndpointDescription
+				final EndpointDescription endp = RoseEndpointDescription
 						.getEndpointDescription(json.fromJSON(req
 								.getParameter(HTTP_POST_UPDATE_CONTENT)));
 				if (req.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION)
@@ -135,7 +137,8 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 				this.responseCode = HttpStatus.SC_OK;
 			} catch (ParseException e) {
 				this.responseCode = HttpStatus.SC_BAD_REQUEST;
-				e.printStackTrace();
+				logger.log(LogService.LOG_ERROR,
+						"Error in adding/removing endpoint description", e);
 			}
 		}
 

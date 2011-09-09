@@ -31,19 +31,22 @@ public class Registrations {
 		}
 	}
 
-	public final void addEndpoint(final String rssUrl, final EndpointDescription endp) {
+	public final void addEndpoint(final String rssUrl,
+			final EndpointDescription endp) {
 		lock.writeLock().lock();
 		topics.get(rssUrl).add(endp);
 		lock.writeLock().unlock();
 	}
 
-	public final void removeEndpoint(final String rssUrl, final EndpointDescription endp) {
+	public final void removeEndpoint(final String rssUrl,
+			final EndpointDescription endp) {
 		lock.writeLock().lock();
 		topics.get(rssUrl).remove(endp);
 		lock.writeLock().unlock();
 	}
 
-	public final void addSubscrition(final String callBackUrl, final String endpointFilter) {
+	public final void addSubscrition(final String callBackUrl,
+			final String endpointFilter) {
 		lock.writeLock().lock();
 		try {
 			subscribers.put(callBackUrl, new EndpointsByFilter(endpointFilter));
@@ -64,8 +67,9 @@ public class Registrations {
 	/**
 	 * Get all endpoints which match a filter.
 	 * 
-	 * @param callBackUrl subscriber full url address to send notifications 
-	 * @return set contains @EndpointDescription 
+	 * @param callBackUrl
+	 *            subscriber full url address to send notifications
+	 * @return set contains @EndpointDescription
 	 */
 	public final Set<EndpointDescription> getEndpointsForCallBackUrl(
 			final String callBackUrl) {
@@ -82,7 +86,8 @@ public class Registrations {
 		return matchedEndpointDescriptions;
 	}
 
-	public final Set<String> getSubscribersByEndpoint(final EndpointDescription endp) {
+	public final Set<String> getSubscribersByEndpoint(
+			final EndpointDescription endp) {
 		Set<String> matchedSubscribers = new HashSet<String>();
 		lock.readLock().lock();
 		for (String subscriber : subscribers.keySet()) {

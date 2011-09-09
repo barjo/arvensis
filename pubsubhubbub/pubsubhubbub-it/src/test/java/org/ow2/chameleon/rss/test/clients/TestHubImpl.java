@@ -26,7 +26,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
 
 /**
  * Testing Hub.
@@ -67,8 +67,9 @@ class TestHubImpl extends HttpServlet {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
 		reqParams = req.getParameterMap();
 		resp.setStatus(responseStatus);
 	}
@@ -89,19 +90,20 @@ class TestHubImpl extends HttpServlet {
 	}
 
 	public void sendUpdate(final String updateOption,
-			final String publisherCallBackUrl, final EndpointDescription endp, final JSONService json) {
+			final String publisherCallBackUrl, final EndpointDescription endp,
+			final JSONService json) {
 		HttpResponse response;
-		
+
 		postMethod = new HttpPost(publisherCallBackUrl);
-		postMethod.setHeader("Content-Type",
-				HTTP_POST_HEADER_TYPE);
+		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
 		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION, updateOption));
-		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, json.toJSON(
-				endp.getProperties())));
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION,
+				updateOption));
+		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, json
+				.toJSON(endp.getProperties())));
 		try {
-		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 			response = client.execute(postMethod);
 			response.getEntity().getContent().close();
 		} catch (ClientProtocolException e) {
@@ -109,7 +111,6 @@ class TestHubImpl extends HttpServlet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 
 	}
 

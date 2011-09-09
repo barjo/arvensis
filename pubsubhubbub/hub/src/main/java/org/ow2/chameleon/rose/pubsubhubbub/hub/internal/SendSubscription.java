@@ -49,8 +49,9 @@ public class SendSubscription extends Thread {
 	 * @param pServer
 	 *            bridge to Hub
 	 */
-	public SendSubscription(final HttpClient pClient, final String pCallBackUrl,
-			final String pUpdateOption, final HubImpl pServer) {
+	public SendSubscription(final HttpClient pClient,
+			final String pCallBackUrl, final String pUpdateOption,
+			final HubImpl pServer) {
 		this.callBackUrl = pCallBackUrl;
 		this.client = pClient;
 		this.server = pServer;
@@ -69,8 +70,9 @@ public class SendSubscription extends Thread {
 	 * @param pServer
 	 *            bridge to Hub
 	 */
-	public SendSubscription(final HttpClient pClient, final EndpointDescription pEdp,
-			final String pUpdateOption, final HubImpl pServer) {
+	public SendSubscription(final HttpClient pClient,
+			final EndpointDescription pEdp, final String pUpdateOption,
+			final HubImpl pServer) {
 		this.edp = pEdp;
 		this.client = pClient;
 		this.server = pServer;
@@ -93,7 +95,8 @@ public class SendSubscription extends Thread {
 	 *            update option: endpoint.add or endpoint.remove
 	 */
 	public SendSubscription(final HttpClient pClient, final String pRssUrl,
-			final String pUpdateOption, final HubImpl pServer, final String pTopicDelete) {
+			final String pUpdateOption, final HubImpl pServer,
+			final String pTopicDelete) {
 		if (pTopicDelete.equals(HUB_UPDATE_TOPIC_DELETE)) {
 			this.rssURL = pRssUrl;
 			this.client = pClient;
@@ -132,7 +135,7 @@ public class SendSubscription extends Thread {
 	 * Send a remove endpointDescription to subscribers when topic is deleted.
 	 */
 	private void sendAfterTopicDelete() {
-		Map<String, Set<EndpointDescription>> subscriberEndpoins = server
+		final Map<String, Set<EndpointDescription>> subscriberEndpoins = server
 				.registrations().getEndpointsAndSubscriberByPublisher(rssURL);
 
 		for (Map.Entry<String, Set<EndpointDescription>> entry : subscriberEndpoins
@@ -154,13 +157,14 @@ public class SendSubscription extends Thread {
 	 *            url address where to send a notification
 	 * @throws IOException
 	 */
-	private void sendUpdate(final EndpointDescription endpoint, final String pCallBackUrl) {
+	private void sendUpdate(final EndpointDescription endpoint,
+			final String pCallBackUrl) {
 
 		postMethod = new HttpPost(pCallBackUrl);
 		postMethod.setHeader("Content-Type",
 				"application/x-www-form-urlencoded");
 
-		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION,
 				updateOption));
 		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, server.json()
@@ -168,7 +172,7 @@ public class SendSubscription extends Thread {
 		try {
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 
-			HttpResponse response = client.execute(postMethod);
+			final HttpResponse response = client.execute(postMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				server.logger().log(
 						LogService.LOG_ERROR,

@@ -14,7 +14,6 @@ import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -83,8 +82,7 @@ public class PubsubhubbubWebConsole extends AbstractWebConsolePlugin implements
 	}
 
 	@Invalidate
-	final
-	void stop() {
+	final void stop() {
 		eventService.unregister();
 	}
 

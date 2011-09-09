@@ -5,11 +5,11 @@ import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.LOCAL;
-import static org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher.COMPONENT_NAME;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_AUTHOR;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.RSS_EVENT_TOPIC;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.FEED_AUTHOR;
+import static org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher.COMPONENT_NAME;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -17,10 +17,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.apache.felix.ipojo.ConfigurationException;
 import org.apache.felix.ipojo.Factory;
-import org.apache.felix.ipojo.MissingHandlerException;
-import org.apache.felix.ipojo.UnacceptableConfiguration;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
@@ -82,7 +79,7 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 	private RoseMachine rose;
 
 	private FeedWriter writer;
-	private BundleContext context;
+	private final BundleContext context;
 	private ServiceRegistration endpointListener;
 	private ServiceTracker factoryTracker;
 	private ServiceTracker feedWriterTracker;
@@ -108,9 +105,9 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 		eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
 		eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
 
-		hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose);
+		hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose, logger);
 
-		Dictionary<String, Object> props = new Hashtable<String, Object>();
+		final Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
 		// Register an EndpointListener
 		endpointListener = context.registerService(
@@ -149,7 +146,7 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 					"Rss feed not published, Rss writer not found");
 			return;
 		}
-		FeedEntry feed = writer.createFeedEntry();
+		final FeedEntry feed = writer.createFeedEntry();
 		feed.title(FEED_TITLE_NEW);
 		feed.content(json.toJSON(endp.getProperties()));
 		feed.url(rssUrl);
@@ -180,7 +177,7 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 		if (writer == null) {
 			return;
 		}
-		FeedEntry feed = writer.createFeedEntry();
+		final FeedEntry feed = writer.createFeedEntry();
 		feed.title(FEED_TITLE_REMOVE);
 		feed.content(json.toJSON(endp.getProperties()));
 		try {
@@ -262,23 +259,22 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 
 		public Object addingService(final ServiceReference reference) {
 
-			Factory factory = (Factory) context.getService(reference);
+			final Factory factory = (Factory) context.getService(reference);
 			try {
 				if (writer == null) {
-					return factory.createComponentInstance(instanceDictionary);
+					writer = (FeedWriter) factory
+							.createComponentInstance(instanceDictionary);
 				}
-			} catch (UnacceptableConfiguration e) {
-				e.printStackTrace();
-			} catch (MissingHandlerException e) {
-				e.printStackTrace();
-			} catch (ConfigurationException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				logger.log(LogService.LOG_ERROR,
+						"Error in adding a feed writer", e);
 			}
 			return writer;
 		}
 
 		public void modifiedService(final ServiceReference reference,
 				final Object service) {
+			return;
 		}
 
 		public void removedService(final ServiceReference reference,

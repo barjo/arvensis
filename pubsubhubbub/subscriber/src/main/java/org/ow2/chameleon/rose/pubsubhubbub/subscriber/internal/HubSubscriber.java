@@ -32,12 +32,12 @@ import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
  */
 public class HubSubscriber {
 
-	private String urlHub;
+	private final String urlHub;
 	private HttpPost postMethod;
-	private HttpClient client;
-	private String callBackUrl;
+	private final HttpClient client;
+	private final String callBackUrl;
 	private String port;
-	private String host;
+	private final String host;
 
 	/**
 	 * Register a subscription.
@@ -74,7 +74,7 @@ public class HubSubscriber {
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
-		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 				HubMode.subscribe.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_ENDPOINT_FILTER,
@@ -83,7 +83,7 @@ public class HubSubscriber {
 				this.callBackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-		HttpResponse response = client.execute(postMethod);
+		final HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
 			response.getEntity().getContent().close();
 			throw new ClientProtocolException(
@@ -105,14 +105,14 @@ public class HubSubscriber {
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
-		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 				HubMode.unsubscribe.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-		HttpResponse response = client.execute(postMethod);
+		final HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
 			response.getEntity().getContent().close();
 			throw new ClientProtocolException(

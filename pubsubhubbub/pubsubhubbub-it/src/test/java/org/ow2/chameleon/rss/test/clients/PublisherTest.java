@@ -181,7 +181,6 @@ public class PublisherTest extends AbstractTestConfiguration {
 						.equals("publish"));
 			} else if (parameter
 					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
-				System.out.println("parameter");
 				Assert.assertTrue(((String[]) parameters
 						.get(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));

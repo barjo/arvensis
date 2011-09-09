@@ -20,6 +20,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
+import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 
@@ -32,12 +33,12 @@ import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
  */
 public class HubPublisher {
 
-	private String urlHub;
-	private String rssUrl;
+	private final String urlHub;
+	private final String rssUrl;
 	private HttpPost postMethod;
-	private HttpClient client;
-	private String port;
-	private String host;
+	private final HttpClient client;
+	private final String host;
+	private final LogService logger;
 
 	/**
 	 * Register a topic in hub.
@@ -50,12 +51,18 @@ public class HubPublisher {
 	 *            BundleContext
 	 * @param rose
 	 *            Rose service
+	 * @param pLogger
+	 *            Log service
 	 * @throws IOException
 	 *             exception
 	 */
 	public HubPublisher(final String pUrlHub, final String pRssUrl,
-			final BundleContext context, final RoseMachine rose) throws IOException {
+			final BundleContext context, final RoseMachine rose,
+			final LogService pLogger) throws IOException {
+		String port;
+
 		this.urlHub = pUrlHub;
+		this.logger = pLogger;
 		port = (String) context
 				.getServiceReference(HttpService.class.getName()).getProperty(
 						"org.osgi.service.http.port");
@@ -72,14 +79,14 @@ public class HubPublisher {
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
-		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 				HubMode.publish.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 				this.rssUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-		HttpResponse response = client.execute(postMethod);
+		final HttpResponse response = client.execute(postMethod);
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
 			response.getEntity().getContent().close();
 			throw new ClientProtocolException(
@@ -102,13 +109,13 @@ public class HubPublisher {
 		postMethod.setHeader("Content-Type",
 				"application/x-www-form-urlencoded");
 		try {
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 					HubMode.update.toString()));
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 					this.rssUrl));
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-			HttpResponse response = client.execute(postMethod);
+			final HttpResponse response = client.execute(postMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
 				response.getEntity().getContent().close();
 				throw new ClientProtocolException(
@@ -118,7 +125,7 @@ public class HubPublisher {
 			// read an empty entity and close a connection
 			response.getEntity().getContent().close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(LogService.LOG_ERROR, "Error in update", e);
 		}
 
 	}
@@ -148,7 +155,7 @@ public class HubPublisher {
 			// read an empty entity and close a connection
 			response.getEntity().getContent().close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(LogService.LOG_ERROR, "Error in unregister", e);
 		}
 
 	}

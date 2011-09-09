@@ -41,6 +41,8 @@ public abstract class AbstractImporterComponent implements ImporterService {
 	protected abstract ServiceRegistration createProxy(final EndpointDescription description,final Map<String,Object> extraProperties);
 	
 	/**
+	 * Abstract method, is called when the sub class must destoy the proxy. Do not forget to unregister the proxy, call: 
+	 * <code>registration.unregister()</code>
 	 */
 	protected abstract void destroyProxy(final EndpointDescription description,final ServiceRegistration registration);
 	

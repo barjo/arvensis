@@ -16,6 +16,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
@@ -62,6 +63,10 @@ public class ZookeeperManager implements Watcher {
 	private RoseLocalEndpointListener listener;
 	private ZooRemoteEndpointWatcher provisioner;
 	
+	private String host="";
+	
+	private static String rootNode="";
+	
 	public ZookeeperManager(BundleContext pContext) {
 		context=pContext;
 	}
@@ -77,18 +82,17 @@ public class ZookeeperManager implements Watcher {
 		try {
 			//Set the framework id
 			frameworkid = machine.getId();
-			
+			getRootNode();
 			//connect the client.
-			keeper = new ZooKeeper(connectString, sessionTimeout, this);
+			keeper = new ZooKeeper(host, sessionTimeout, this);
 
-			//create a node for the framework id.
-			createFrameworkNode();
 		} catch (Exception e) {
 			getLogger().log(LogService.LOG_ERROR, "Cannot start zookeeper registry bridge.",e);
 		}
 
 	}
-	
+
+
 	/**
 	 * On instance invalidation call-back (iPOJO).
 	 */
@@ -118,7 +122,9 @@ public class ZookeeperManager implements Watcher {
 	 * @see org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent)
 	 */
 	public void process(WatchedEvent event) {
+		System.out.println("Event received: "+event);
 		getLogger().log(LOG_DEBUG, "An event has been received"+event);
+		if (event.getType()==EventType.NodeDeleted)return;
 		switch (event.getState()) {
 		case Expired: // TODO handle expired (i.e create a new connection)
 			break;
@@ -161,7 +167,7 @@ public class ZookeeperManager implements Watcher {
 	 * Create the {@link RoseLocalEndpointListener} and the {@link ZooRemoteEndpointWatcher}
 	 */
 	private void createListenerAndProvisioner(){
-		provisioner = new ZooRemoteEndpointWatcher(this, machine);
+		provisioner = new ZooRemoteEndpointWatcher(this, machine,rootNode);
 		listener = new RoseLocalEndpointListener(this,filter,context);
 	}
 	
@@ -172,16 +178,16 @@ public class ZookeeperManager implements Watcher {
 	private void createFrameworkNode(){
 		try{
 			byte data[] = {0}; 
-			Stat stat = keeper.exists(SEPARATOR+frameworkid, false);
+			Stat stat = keeper.exists(rootNode+SEPARATOR+frameworkid, false);
 			
 			if (stat==null){
-				keeper.create(SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, PERSISTENT);
+				keeper.create(rootNode+SEPARATOR+frameworkid, data, Ids.OPEN_ACL_UNSAFE, PERSISTENT);
 			}else {
 				//delete bad children !
-				List<String> childs = keeper.getChildren(SEPARATOR+frameworkid, false);
+				List<String> childs = keeper.getChildren(rootNode+SEPARATOR+frameworkid, false);
 				for (String child : childs) {
 					try{
-						keeper.delete(SEPARATOR+frameworkid+SEPARATOR+child, -1);
+						keeper.delete(rootNode+SEPARATOR+frameworkid+SEPARATOR+child, -1);
 					}
 					catch(KeeperException e){
 						//ignore
@@ -199,7 +205,7 @@ public class ZookeeperManager implements Watcher {
 	 */
 	private void destroyFrameworkNode(){
 		try {
-			keeper.delete(SEPARATOR+frameworkid, -1);
+			keeper.delete(rootNode+SEPARATOR+frameworkid, -1);
 		} catch (Exception e) {
 			getLogger().log(LOG_WARNING, "An exception occured while deleting the zookeeper node for this framework.",e);
 		}
@@ -219,7 +225,13 @@ public class ZookeeperManager implements Watcher {
 	}
 	
 	public static String computePath(EndpointDescription desc){
-		return SEPARATOR+desc.getFrameworkUUID()+SEPARATOR+desc.getId();
+		return rootNode+SEPARATOR+desc.getFrameworkUUID()+SEPARATOR+desc.getId();
+	}
+	
+	private void getRootNode() {
+		String[] tmp = connectString.split(SEPARATOR, 2);
+		host=tmp[0];
+		if (tmp.length>1) rootNode=SEPARATOR+tmp[1]; 
 	}
 }
 

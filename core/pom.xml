@@ -90,6 +90,7 @@
 							org.ow2.chameleon.rose.introspect;version=${project.version},
 							org.ow2.chameleon.rose.registry;version=${project.version},
 							org.ow2.chameleon.rose.util;version=${project.version},
+							org.ow2.chameleon.rose.constants;version=${project.version},
 							org.osgi.service.remoteserviceadmin
 						</Export-Package>
 						<Private-Package>

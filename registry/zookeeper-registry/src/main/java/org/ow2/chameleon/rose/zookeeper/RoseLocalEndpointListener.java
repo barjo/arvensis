@@ -29,13 +29,14 @@ public class RoseLocalEndpointListener implements EndpointListener {
 		bridge = zbridge;
 		
 		Dictionary<String, Object> props = null;
-		
+		props=new Hashtable<String, Object>();	
+		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL); //track only local EndpointDescription
+
 		if (filter!=null){
-			props=new Hashtable<String, Object>();
 			props.put(ENDPOINT_LISTENER_SCOPE, filter); //scope filter
-			props.put(ENDPOINT_LISTENER_INTEREST, LOCAL); //track only local EndpointDescription
+
 		}
-		
+
 		registration = context.registerService(EndpointListener.class.getName(), this, props);
 		logger().log(LOG_INFO, "The zookeeper ExportedEndpointListener service has been registered.");
 	}

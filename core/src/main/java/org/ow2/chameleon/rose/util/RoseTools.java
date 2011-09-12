@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -315,5 +316,32 @@ public final class RoseTools {
 
 		return klass;
 	}
+	
+	
+	/**
+     * Subtracts all elements in the second list from the first list,
+     * placing the results in a new list.
+     * <p>
+     * This differs from {@link List#removeAll(Collection)} in that
+     * cardinality is respected; if <Code>list1</Code> contains two
+     * occurrences of <Code>null</Code> and <Code>list2</Code> only
+     * contains one occurrence, then the returned list will still contain
+     * one occurrence.
+     *
+     * @param list1  the list to subtract from
+     * @param list2  the list to subtract
+     * @return  a new list containing the results
+     * @throws NullPointerException if either list is null
+     */
+    public static List listSubtract(final List list1, final List list2) {
+        final ArrayList result = new ArrayList(list1);
+        final Iterator iterator = list2.iterator();
+
+        while (iterator.hasNext()) {
+            result.remove(iterator.next());
+        }
+
+        return result;
+    }
 
 }

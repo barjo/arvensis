@@ -42,13 +42,14 @@ public class DynamicImporter {
 	private final Map<String, Object> extraProperties;
 	private final DynamicImporterCustomizer customizer;
 
+
 	private DynamicImporter(Builder builder) {
 		extraProperties = builder.extraProperties;
 		context = builder.context;
 		edfilter = builder.dfilter;
 		ifilter = builder.imfilter;
 		customizer = builder.customizer;
-
+		
 		imptracker = new ImporterTracker();
 	}
 

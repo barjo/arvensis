@@ -13,9 +13,11 @@ import javax.ws.rs.Path;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
@@ -106,6 +108,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements 
      * Execute while this instance is starting. Call by iPOJO.
      */
     @Override
+    @Validate
     protected void start() {
     	super.start();
     }
@@ -114,6 +117,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements 
      * Execute while this instance is stopping. Call by iPOJO.
      */
     @Override
+    @Invalidate
     protected void stop() {
     	super.stop();
     	

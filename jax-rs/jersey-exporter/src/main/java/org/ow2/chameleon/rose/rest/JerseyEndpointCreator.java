@@ -38,89 +38,93 @@ import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
 /**
  * This component provides a REST, Jersey based implementation of an
  * {@link ExporterService}.
+ * 
  * @author Jonathan Bardin <jonathan.bardin@imag.fr>
  */
-@Component(name="RoSe_exporter.jersey")
-@Provides(specifications={ExporterService.class,ExporterIntrospection.class})
-public class JerseyEndpointCreator extends AbstractExporterComponent implements IoCComponentProviderFactory,ExporterService,ExporterIntrospection {
-    
-    /**
-     * Default value for the {@link JerseyEndpointCreator#PROP_HTTP_PORT} property.
-     */
+@Component(name = "RoSe_exporter.jersey")
+@Provides(specifications = { ExporterService.class, ExporterIntrospection.class })
+public class JerseyEndpointCreator extends AbstractExporterComponent implements
+		IoCComponentProviderFactory, ExporterService, ExporterIntrospection {
+
+	/**
+	 * Default value for the {@link JerseyEndpointCreator#PROP_HTTP_PORT}
+	 * property.
+	 */
 	private static final int DEFAULT_HTTP_PORT = 80;
-	
+
 	/**
 	 * Property of the HttpService http port.
 	 */
 	private final static String PROP_HTTP_PORT = "org.osgi.service.http.port";
 
 	private static final String PROP_PATH = "jaxrs.pathname";
-	
+
 	/**
 	 * Configuration supported by this component
 	 */
-	@ServiceProperty(name=ENDPOINT_CONFIG_PREFIX,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
-    private String[] configs = {"jersey","jax-rs","jaxrs","rest"};
+	@ServiceProperty(name = ENDPOINT_CONFIG_PREFIX, mandatory = true, value = "{json-rpc,jsonrpc,org.jabsorb}")
+	private String[] configs = { "jersey", "jax-rs", "jaxrs", "rest" };
 
-	@Requires(optional=true)
+	@Requires(optional = true)
 	private LogService logger;
-	
+
 	/**
-	 * Set in {@link JerseyEndpointCreator#bindHttpService(HttpService, ServiceReference) bindHttpService}
+	 * Set in
+	 * {@link JerseyEndpointCreator#bindHttpService(HttpService, ServiceReference)
+	 * bindHttpService}
 	 */
 	private HttpService httpservice;
-	
+
 	/**
 	 * Require the {@link RoseMachine}.
 	 */
-	@Requires(optional=false,id="rose.machine")
+	@Requires(optional = false, id = "rose.machine")
 	private RoseMachine machine;
-	
+
 	/**
 	 * Property containing the value of the
-	 * {@link JerseyEndpointCreator#PROP_HTTP_PORT} HttpService property.
-	 * Set in {@link JerseyEndpointCreator#bindHttpService(HttpService, ServiceReference)}
+	 * {@link JerseyEndpointCreator#PROP_HTTP_PORT} HttpService property. Set in
+	 * {@link JerseyEndpointCreator#bindHttpService(HttpService, ServiceReference)}
 	 */
-    private int httpport;
-    
-    private JerseyServletBridge container = null;
+	private int httpport;
 
-    private final MyResourceConfig rsconfig = new MyResourceConfig();
+	private JerseyServletBridge container = null;
 
-    /**
-     * The Servlet name of the JERSEY bridge.
-     */
-    @ServiceProperty(name="jersey.servlet.name",mandatory=true,value="/rest")
-    private String rootName;
-    
-    private final BundleContext context;
+	private final MyResourceConfig rsconfig = new MyResourceConfig();
 
-    /*------------------------------------*
-     *  Component Life-cycle methods      *
-     *------------------------------------*/
-    
-    public JerseyEndpointCreator(BundleContext pcontext) {
-		context=pcontext;
+	/**
+	 * The Servlet name of the JERSEY bridge.
+	 */
+	@ServiceProperty(name = "jersey.servlet.name", mandatory = true, value = "/rest")
+	private String rootName;
+
+	private final BundleContext context;
+
+	/*------------------------------------*
+	 *  Component Life-cycle methods      *
+	 *------------------------------------*/
+
+	public JerseyEndpointCreator(BundleContext pcontext) {
+		context = pcontext;
 	}
-    
 
-    /**
-     * Execute while this instance is starting. Call by iPOJO.
-     */
-    @Override
-    @Validate
-    protected void start() {
-    	super.start();
-    }
+	/**
+	 * Execute while this instance is starting. Call by iPOJO.
+	 */
+	@Override
+	@Validate
+	protected void start() {
+		super.start();
+	}
 
-    /**
-     * Execute while this instance is stopping. Call by iPOJO.
-     */
-    @Override
-    @Invalidate
-    protected void stop() {
-    	super.stop();
-    	
+	/**
+	 * Execute while this instance is stopping. Call by iPOJO.
+	 */
+	@Override
+	@Invalidate
+	protected void stop() {
+		super.stop();
+
 		if (container != null && httpservice != null) {
 			try { // Unregister the jersey server.
 				httpservice.unregister(rootName);
@@ -128,180 +132,211 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements 
 				logger.log(LogService.LOG_ERROR, re.getMessage(), re);
 			}
 		}
-    }
-    
+	}
+
 	/**
-	 * Bind the {@link HttpService} and set the {@link JerseyEndpointCreator#httpport} value.
-	 * @param service the {@link HttpService}
-	 * @param ref the {@link HttpService} {@link ServiceReference}.
+	 * Bind the {@link HttpService} and set the
+	 * {@link JerseyEndpointCreator#httpport} value.
+	 * 
+	 * @param service
+	 *            the {@link HttpService}
+	 * @param ref
+	 *            the {@link HttpService} {@link ServiceReference}.
 	 */
 	@SuppressWarnings("unused")
-	@Bind(aggregate=false,optional=false)
-	private void bindHttpService(HttpService service,ServiceReference ref){
+	@Bind(aggregate = false, optional = false)
+	private void bindHttpService(HttpService service, ServiceReference ref) {
 		httpservice = service;
-		
-		if (ref.getProperty(PROP_HTTP_PORT) != null){
+
+		if (ref.getProperty(PROP_HTTP_PORT) != null) {
 			httpport = valueOf((String) ref.getProperty(PROP_HTTP_PORT));
-		}
-		else if (System.getProperty(PROP_HTTP_PORT) != null) {
+		} else if (System.getProperty(PROP_HTTP_PORT) != null) {
 			httpport = valueOf((String) System.getProperty(PROP_HTTP_PORT));
 		} else {
 			httpport = DEFAULT_HTTP_PORT;
-			logger.log( LOG_WARNING, "A default value ("+ httpport + 
-					    ") has been set to the http port, this could lead to a bad url property value.");
+			logger.log(
+					LOG_WARNING,
+					"A default value ("
+							+ httpport
+							+ ") has been set to the http port, this could lead to a bad url property value.");
 		}
 	}
-    
 
-    /**
-     * Register the servlet contrainer or reload it. Must be called after adding
-     * or removing a class into the ResourceConfig.
-     */
-    private void reloadServlet() {
-        if (container == null) {
-            container = new JerseyServletBridge(this);
-            try {
-                httpservice.registerServlet(rootName, container, new Hashtable<String, Object>(), null);
-            } catch (Exception e) {
-                throw new RuntimeException("Cannot register the JerseyServlet bridge", e);
-            }
-        } else {
-            container.reload();
-        }
-    }
+	/**
+	 * Register the servlet contrainer or reload it. Must be called after adding
+	 * or removing a class into the ResourceConfig.
+	 */
+	private void reloadServlet() {
+		if (container == null) {
+			container = new JerseyServletBridge(this);
+			try {
+				httpservice.registerServlet(rootName, container,
+						new Hashtable<String, Object>(), null);
+			} catch (Exception e) {
+				throw new RuntimeException(
+						"Cannot register the JerseyServlet bridge", e);
+			}
+		} else {
+			container.reload();
+		}
+	}
 
-    /*----------------------------*
-     *   ExporterService methods  *
-     *----------------------------*/
+	/*----------------------------*
+	 *   ExporterService methods  *
+	 *----------------------------*/
 
-    /*
-     * (non-Javadoc)
-     * @see org.ow2.chameleon.rose.AbstractExporterComponent#createEndpoint(org.osgi.framework.ServiceReference, java.util.Map)
-     */
-    protected EndpointDescription createEndpoint(ServiceReference sref,
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.ow2.chameleon.rose.AbstractExporterComponent#createEndpoint(org.osgi
+	 * .framework.ServiceReference, java.util.Map)
+	 */
+	protected EndpointDescription createEndpoint(ServiceReference sref,
 			Map<String, Object> extraProperties) {
 
-    	//Get the service object
-        Object service = context.getService(sref);
-        
-        Class<?> klass = service.getClass();
-        
-        //Release the reference
-        context.ungetService(sref);
-        
-        //Set the url property
-		extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class).value());
-		
-		//create the endpoint description
-		EndpointDescription desc = new EndpointDescription(sref, extraProperties);
-		
-        addRessource(service, klass);
-        
+		// Get the service object
+		Object service = context.getService(sref);
+
+		Class<?> klass = service.getClass();
+
+		// Release the reference
+		context.ungetService(sref);
+
+		//check if class is annotated by @Path
+		if (klass.isAnnotationPresent(Path.class)) {
+			// Set the url property
+			extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class)
+					.value());
+		} else {
+			logger.log(LOG_WARNING,
+					"Exported class is not annotated by @Path, can not be exported");
+			return null;
+		}
+
+		// create the endpoint description
+		EndpointDescription desc = new EndpointDescription(sref,
+				extraProperties);
+
+		addRessource(service, klass);
+
 		return desc;
 	}
 
-    /*
-     * (non-Javadoc)
-     * @see org.ow2.chameleon.rose.AbstractExporterComponent#destroyEndpoint(org.osgi.service.remoteserviceadmin.EndpointDescription)
-     */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.ow2.chameleon.rose.AbstractExporterComponent#destroyEndpoint(org.
+	 * osgi.service.remoteserviceadmin.EndpointDescription)
+	 */
 	protected void destroyEndpoint(EndpointDescription endesc) {
 		String pathName = (String) endesc.getProperties().get(PROP_PATH);
 		rsconfig.removeComponentProvider(pathName);
 		try {
 			container.reload();
 		} catch (Exception e) {
-			//XXX no big deal
+			// XXX no big deal
 		}
 		logger.log(LOG_DEBUG, "The endpoint of id: " + endesc.getId()
 				+ " and his associated ressource: " + pathName
 				+ " is no more available along.");
 	}
-    
-    /**
-     * Create a ManagedComponentProvider and register it.
-     * @param instance
-     * @param klass
-     * @throws IllegalArgumentException
-     */
-    private void addRessource(Object instance, Class<?> klass) throws IllegalArgumentException {
-        // Create the managed component provider and add the class to the
-        // ressource config
-        rsconfig.addComponentProvider(klass, new ManagedComponentProvider(instance));
 
-        // reload the servlet
-        try {
-            reloadServlet();
-        } catch (RuntimeException e) {
-            rsconfig.removeComponentProvider(klass.getAnnotation(Path.class).value());
-            throw e;
-        }
-    }
+	/**
+	 * Create a ManagedComponentProvider and register it.
+	 * 
+	 * @param instance
+	 * @param klass
+	 * @throws IllegalArgumentException
+	 */
+	private void addRessource(Object instance, Class<?> klass)
+			throws IllegalArgumentException {
+		// Create the managed component provider and add the class to the
+		// ressource config
+		rsconfig.addComponentProvider(klass, new ManagedComponentProvider(
+				instance));
 
-    /*------------------------------------------------*
-     *  IoCComponentProviderFactory methods           *
-     *------------------------------------------------*/
+		// reload the servlet
+		try {
+			reloadServlet();
+		} catch (RuntimeException e) {
+			rsconfig.removeComponentProvider(klass.getAnnotation(Path.class)
+					.value());
+			throw e;
+		}
+	}
 
-    /**
-     * @return The ResourceConfig of this IoCComponentProviderFactory
-     */
-    ResourceConfig getResourceConfig() {
-        return rsconfig;
-    }
+	/*------------------------------------------------*
+	 *  IoCComponentProviderFactory methods           *
+	 *------------------------------------------------*/
 
-    /*
-     * (non-Javadoc)
-     * @seecom.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory#
-     * getComponentProvider(java.lang.Class)
-     */
-    public IoCComponentProvider getComponentProvider(final Class<?> klass) {
-        return getComponentProvider(null, klass);
-    }
-
-    /*
-     * (non-Javadoc)
-     * @seecom.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory#
-     * getComponentProvider(com.sun.jersey.core.spi.component.ComponentContext,
-     * java.lang.Class)
-     */
-    public IoCComponentProvider getComponentProvider(ComponentContext ccontext, final Class<?> klass) {
-        System.out.println("Get component Provider " + klass.getCanonicalName());
-        // TODO What about the context
-
-        // Singleton case
-        // Check if an instance is available as an OSGi services
-        if (rsconfig.isManaged(klass)) {
-            // The ressource is an OSGi service, return an
-            // OSGiManagedComponentProvider
-            return rsconfig.getComponentProvider(klass);
-        }
-
-        // Otherwise ?
-        // For now, we let jersey handle the creation of the ressource
-        return new ProxiedComponentProvider(klass);
-    }
-
+	/**
+	 * @return The ResourceConfig of this IoCComponentProviderFactory
+	 */
+	ResourceConfig getResourceConfig() {
+		return rsconfig;
+	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
+	 * @seecom.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory#
+	 * getComponentProvider(java.lang.Class)
+	 */
+	public IoCComponentProvider getComponentProvider(final Class<?> klass) {
+		return getComponentProvider(null, klass);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @seecom.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory#
+	 * getComponentProvider(com.sun.jersey.core.spi.component.ComponentContext,
+	 * java.lang.Class)
+	 */
+	public IoCComponentProvider getComponentProvider(ComponentContext ccontext,
+			final Class<?> klass) {
+		System.out
+				.println("Get component Provider " + klass.getCanonicalName());
+		// TODO What about the context
+
+		// Singleton case
+		// Check if an instance is available as an OSGi services
+		if (rsconfig.isManaged(klass)) {
+			// The ressource is an OSGi service, return an
+			// OSGiManagedComponentProvider
+			return rsconfig.getComponentProvider(klass);
+		}
+
+		// Otherwise ?
+		// For now, we let jersey handle the creation of the ressource
+		return new ProxiedComponentProvider(klass);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getLogService()
 	 */
 	protected LogService getLogService() {
 		return logger;
 	}
-	
-    /*
-     * (non-Javadoc)
-     * @see org.ow2.chameleon.rose.ExporterService#getConfigPrefix()
-     */
-    public List<String> getConfigPrefix() {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.ow2.chameleon.rose.ExporterService#getConfigPrefix()
+	 */
+	public List<String> getConfigPrefix() {
 		return Arrays.asList(configs);
 	}
 
-
-    /*
-     * (non-Javadoc)
-     * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
-     */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
+	 */
 	protected RoseMachine getRoseMachine() {
 		return machine;
 	}

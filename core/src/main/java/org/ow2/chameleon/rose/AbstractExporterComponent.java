@@ -137,7 +137,9 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			} else { 
 				//First registration, create the endpoint
 				EndpointDescription enddesc = createEndpoint(sref, computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix(),frameworkId));
-				
+				if (enddesc==null){
+					return new BadExportRegistration(new Throwable("Endpoint Description can not be created !"));
+				}
 				xreg = new MyExportRegistration(sref,enddesc);
 			}
 		}

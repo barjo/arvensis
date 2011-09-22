@@ -13,16 +13,20 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.internal.BadExportRegistration;
 
 /**
- * A {@link DynamicExporter} allows to export all services matching a given filter with all available {@link ExporterService} dynamically.
- * Basically, an endpoint is created for each services matching the given filter which are available on the gateway for each {@link ExporterService} available.
- * If the service is no more available then all his endpoints are destroyed.
- *  
+ * A {@link DynamicExporter} allows to export all services matching a given
+ * filter with all available {@link ExporterService} dynamically. Basically, an
+ * endpoint is created for each services matching the given filter which are
+ * available on the gateway for each {@link ExporterService} available. If the
+ * service is no more available then all his endpoints are destroyed.
+ * 
  * @author barjo
  */
 public class DynamicExporter {
@@ -59,14 +63,14 @@ public class DynamicExporter {
 	public void stop() {
 		extracker.close();
 	}
-	
+
 	/**
-	 * @return The {@link ExportReference} created through this {@link DynamicExporter}.
+	 * @return The {@link ExportReference} created through this
+	 *         {@link DynamicExporter}.
 	 */
-	public ExportReference[] getExportedReference(){
+	public ExportReference[] getExportedReference() {
 		return customizer.getExportReferences();
 	}
-	
 
 	/**
 	 * Convenient Builder for the creation of a {@link DynamicExporter}.
@@ -89,7 +93,8 @@ public class DynamicExporter {
 			context = pContext;
 		}
 
-		public Builder protocol(List<String> protocols) throws InvalidSyntaxException{
+		public Builder protocol(List<String> protocols)
+				throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(xfilter.toString());
 			sb.append("(|");
@@ -104,7 +109,7 @@ public class DynamicExporter {
 			xfilter = createFilter(sb.toString());
 			return this;
 		}
-		
+
 		public Builder exporterFilter(String val) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(xfilter.toString());
@@ -149,7 +154,7 @@ public class DynamicExporter {
 		private void close() {
 			tracker.close();
 		}
-		
+
 		public Object addingService(ServiceReference reference) {
 			ExporterService exporter = (ExporterService) context
 					.getService(reference);
@@ -163,7 +168,7 @@ public class DynamicExporter {
 
 		public void removedService(ServiceReference reference, Object object) {
 			ServiceToBeExportedTracker stracker = (ServiceToBeExportedTracker) object;
-			stracker.close(); //close the tracker
+			stracker.close(); // close the tracker
 		}
 	}
 
@@ -189,7 +194,21 @@ public class DynamicExporter {
 		}
 
 		public Object addingService(ServiceReference reference) {
-			return customizer.export(exporter, reference, extraProperties);
+			Object returnObject = customizer.export(exporter, reference,
+					extraProperties);
+			//check if got @BadExportRegistration
+			if (returnObject instanceof BadExportRegistration) {
+				ServiceReference sref = context
+						.getServiceReference(LogService.class.getName());
+				if (sref != null) {
+					((LogService) context.getService(sref)).log(
+							LogService.LOG_WARNING,
+							((BadExportRegistration) returnObject)
+									.getException().getMessage());
+					context.ungetService(sref);
+				}
+			}
+			return returnObject;
 		}
 
 		public void modifiedService(ServiceReference reference, Object object) {
@@ -208,10 +227,15 @@ public class DynamicExporter {
 	 */
 	private static class DefautCustomizer implements DynamicExporterCustomizer {
 		private final ConcurrentLinkedQueue<ExportReference> xrefs = new ConcurrentLinkedQueue<ExportReference>();
-		
+
 		public ExportRegistration export(ExporterService exporter,
 				ServiceReference sref, Map<String, Object> properties) {
-			ExportRegistration registration = exporter.exportService(sref, properties);
+			ExportRegistration registration = exporter.exportService(sref,
+					properties);
+			// Check if returned registration is @BadExportRegistration
+			if (registration instanceof BadExportRegistration) {
+				return registration;
+			}
 			xrefs.add(registration.getExportReference());
 			return registration;
 		}
@@ -222,7 +246,7 @@ public class DynamicExporter {
 			xrefs.remove(reg.getExportReference());
 			reg.close();
 		}
-		
+
 		public ExportReference[] getExportReferences() {
 			return (ExportReference[]) xrefs.toArray();
 		}

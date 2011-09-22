@@ -3,6 +3,7 @@ package org.ow2.chameleon.rose.pubsubhubbub.publisher.internal;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+import static org.ow2.chameleon.rose.constants.RoseRSSConstants.DEFAULT_HTTP_PORT;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.RoseMachine;
@@ -59,15 +61,24 @@ public class HubPublisher {
 	public HubPublisher(final String pUrlHub, final String pRssUrl,
 			final BundleContext context, final RoseMachine rose,
 			final LogService pLogger) throws IOException {
-		String port;
+		String port = null;
 
 		this.urlHub = pUrlHub;
 		this.logger = pLogger;
-		port = (String) context
-				.getServiceReference(HttpService.class.getName()).getProperty(
-						"org.osgi.service.http.port");
+		final ServiceReference httpServiceRef = context
+				.getServiceReference(HttpService.class.getName());
+		if (httpServiceRef != null) {
+			port = (String) httpServiceRef
+					.getProperty("org.osgi.service.http.port");
+			context.ungetService(httpServiceRef);
+		}
 		if (port == null) {
 			port = context.getProperty("org.osgi.service.http.port");
+		}
+
+		// set default port number
+		if (port == null) {
+			port = DEFAULT_HTTP_PORT;
 		}
 
 		this.host = rose.getHost();

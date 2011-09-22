@@ -18,6 +18,8 @@ public class RoseRSSConstants {
 	public static final String HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED = "endpoint.add";
 	public static final String HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED = "endpoint.remove";
 	public static final String HUB_UPDATE_TOPIC_DELETE = "topic.remove";
+	public static final String DEFAULT_HTTP_PORT = "8080";
+
 
 	
 	public enum HubMode {

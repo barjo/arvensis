@@ -123,7 +123,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 * @return
 	 */
 	public final ExportRegistration exportService(ServiceReference sref,Map<String,Object> extraProperties) {
-		final ExportRegistration xreg;
+		ExportRegistration xreg;
 		
 		synchronized (registrations) {
 			
@@ -136,11 +136,12 @@ public abstract class AbstractExporterComponent implements ExporterService {
 				xreg = new MyExportRegistration(registrations.getElem(sref));
 			} else { 
 				//First registration, create the endpoint
-				EndpointDescription enddesc = createEndpoint(sref, computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix(),frameworkId));
-				if (enddesc==null){
-					return new BadExportRegistration(new Throwable("Endpoint Description can not be created !"));
+				try {
+					EndpointDescription enddesc = createEndpoint(sref, computeEndpointExtraProperties(sref, extraProperties, getConfigPrefix(),frameworkId));
+					xreg = new MyExportRegistration(sref,enddesc);
+				} catch (Exception e) {
+					xreg = new BadExportRegistration(e); //an exception occurred, bad export registration.
 				}
-				xreg = new MyExportRegistration(sref,enddesc);
 			}
 		}
 		

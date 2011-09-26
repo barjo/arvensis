@@ -38,6 +38,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
@@ -258,18 +259,16 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 		}
 
 		public Object addingService(final ServiceReference reference) {
-
 			final Factory factory = (Factory) context.getService(reference);
 			try {
 				if (writer == null) {
-					writer = (FeedWriter) factory
-							.createComponentInstance(instanceDictionary);
+					factory.createComponentInstance(instanceDictionary);
 				}
 			} catch (Exception e) {
 				logger.log(LogService.LOG_ERROR,
 						"Error in adding a feed writer", e);
 			}
-			return writer;
+			return factory;
 		}
 
 		public void modifiedService(final ServiceReference reference,

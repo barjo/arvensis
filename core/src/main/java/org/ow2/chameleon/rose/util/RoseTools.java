@@ -11,10 +11,10 @@ import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -333,15 +333,10 @@ public final class RoseTools {
      * @return  a new list containing the results
      * @throws NullPointerException if either list is null
      */
-    public static List listSubtract(final List list1, final List list2) {
-        final ArrayList result = new ArrayList(list1);
-        final Iterator iterator = list2.iterator();
-
-        while (iterator.hasNext()) {
-            result.remove(iterator.next());
-        }
+    public static <T> List<T> listSubtract(final List<T> list1, final List<T> list2) {
+        final List<T> result = new ArrayList<T>(list1);
+        result.removeAll(list2);
 
         return result;
     }
-
 }

@@ -62,7 +62,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	/**
 	 * Configuration supported by this component
 	 */
-	@ServiceProperty(name = ENDPOINT_CONFIG_PREFIX, mandatory = true, value = "{json-rpc,jsonrpc,org.jabsorb}")
+	@ServiceProperty(name = ENDPOINT_CONFIG_PREFIX, mandatory = true, value = "{jersey,jax-rs,jaxrs,rest}")
 	private String[] configs = { "jersey", "jax-rs", "jaxrs", "rest" };
 
 	@Requires(optional = true)
@@ -209,9 +209,8 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 			extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class)
 					.value());
 		} else {
-			logger.log(LOG_WARNING,
-					"Exported class is not annotated by @Path, can not be exported");
-			return null;
+			//Works only with jax-rs annotations.
+			throw new IllegalArgumentException("Exported class is not annotated by @Path, cannot be exported");
 		}
 
 		// create the endpoint description

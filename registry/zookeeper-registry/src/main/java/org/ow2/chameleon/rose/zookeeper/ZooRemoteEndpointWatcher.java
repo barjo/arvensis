@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.ow2.chameleon.rose.util.RoseTools;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -20,6 +19,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
 import org.ow2.chameleon.rose.RoseMachine;
+import org.ow2.chameleon.rose.util.RoseTools;
 
 public class ZooRemoteEndpointWatcher {
 
@@ -117,8 +117,6 @@ public class ZooRemoteEndpointWatcher {
 		 * org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent
 		 * )
 		 */
-
-		@SuppressWarnings("unchecked")
 		public void process(WatchedEvent event) {
 			if (running == false)
 				return;
@@ -186,8 +184,6 @@ public class ZooRemoteEndpointWatcher {
 		 * org.apache.zookeeper.Watcher#process(org.apache.zookeeper.WatchedEvent
 		 * )
 		 */
-
-		@SuppressWarnings("unchecked")
 		public void process(WatchedEvent event) {
 			if (running == false)
 				return;

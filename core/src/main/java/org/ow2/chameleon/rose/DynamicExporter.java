@@ -18,7 +18,6 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.ow2.chameleon.rose.internal.BadExportRegistration;
 
 /**
  * A {@link DynamicExporter} allows to export all services matching a given
@@ -85,12 +84,16 @@ public class DynamicExporter {
 		// optional
 		private Filter xfilter = createFilter(DEFAULT_EXPORTER_FILTER);
 		private Map<String, Object> extraProperties = new HashMap<String, Object>();
-		private DynamicExporterCustomizer customizer = new DefautCustomizer();
+		private DynamicExporterCustomizer customizer = null;
 
 		public Builder(BundleContext pContext, String serviceFilter)
 				throws InvalidSyntaxException {
 			sfilter = createFilter(serviceFilter);
 			context = pContext;
+			
+			if (customizer == null){ //Set default customizer
+				customizer = new DefautCustomizer(context);
+			}
 		}
 
 		public Builder protocol(List<String> protocols)
@@ -194,21 +197,7 @@ public class DynamicExporter {
 		}
 
 		public Object addingService(ServiceReference reference) {
-			Object returnObject = customizer.export(exporter, reference,
-					extraProperties);
-			//check if got @BadExportRegistration
-			if (returnObject instanceof BadExportRegistration) {
-				ServiceReference sref = context
-						.getServiceReference(LogService.class.getName());
-				if (sref != null) {
-					((LogService) context.getService(sref)).log(
-							LogService.LOG_WARNING,
-							((BadExportRegistration) returnObject)
-									.getException().getMessage());
-					context.ungetService(sref);
-				}
-			}
-			return returnObject;
+			return customizer.export(exporter, reference, extraProperties);
 		}
 
 		public void modifiedService(ServiceReference reference, Object object) {
@@ -226,16 +215,23 @@ public class DynamicExporter {
 	 * @author barjo
 	 */
 	private static class DefautCustomizer implements DynamicExporterCustomizer {
-		private final ConcurrentLinkedQueue<ExportReference> xrefs = new ConcurrentLinkedQueue<ExportReference>();
+		private final ConcurrentLinkedQueue<ExportReference> xrefs;
+		private final BundleContext context;
+		
+		public DefautCustomizer(BundleContext pcontext) {
+			context = pcontext;
+			xrefs = new ConcurrentLinkedQueue<ExportReference>();
+		}
 
 		public ExportRegistration export(ExporterService exporter,
 				ServiceReference sref, Map<String, Object> properties) {
 			ExportRegistration registration = exporter.exportService(sref,
 					properties);
-			// Check if returned registration is @BadExportRegistration
-			if (registration instanceof BadExportRegistration) {
-				return registration;
+			
+			if (registration.getException() != null){
+				log(LogService.LOG_WARNING, "Cannot export service of ref: " +sref, registration.getException());
 			}
+			
 			xrefs.add(registration.getExportReference());
 			return registration;
 		}
@@ -250,6 +246,26 @@ public class DynamicExporter {
 		public ExportReference[] getExportReferences() {
 			return (ExportReference[]) xrefs.toArray();
 		}
+		
+		/**
+		 * Wrapper around the {@link LogService#log(int, String, Throwable)} method.
+		 * 
+		 * @param level The {@link LogService} log level.
+		 * @param message An optional message to log
+		 * @param exception The exception which need to be log.
+		 */
+		private void log(int level, String message, Throwable exception){
+			ServiceReference sref = context.getServiceReference(LogService.class.getName());
+			if (sref !=null){
+				try{
+					LogService logger = (LogService) context.getService(sref);
+					logger.log(level,message,exception);
+				}finally{
+					context.ungetService(sref);
+				}
+			}
+			//XXX sysout something if there is no LogService ?
+		}
+		
 	}
-
 }

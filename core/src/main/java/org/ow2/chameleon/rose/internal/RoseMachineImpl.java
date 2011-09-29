@@ -10,12 +10,12 @@ import static org.ow2.chameleon.rose.util.RoseTools.getAllImporter;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -61,7 +61,11 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 */
 	private final EndpointListenerTracker tracklistener;
 	
-	private final Map<Object,ServiceRegistration> registrations;
+	/**
+	 * ServiceRegistration of the services registered by this component. 
+	 * {@link RoseMachine} and {@link RemoteServiceAdmin}
+	 */
+	private final Set<ServiceRegistration> registrations;
 	
 	/**
 	 * The machine properties.
@@ -74,8 +78,8 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	private LogService logger;
 	
 	public RoseMachineImpl(BundleContext pContext) {
-		properties = new Hashtable<String, Object>(4);
-		registrations = new HashMap<Object, ServiceRegistration>(4);
+		properties = new Hashtable<String, Object>(5);
+		registrations = new HashSet<ServiceRegistration>(2);
 		context = pContext;
 		
 		//Create the import registry
@@ -99,7 +103,11 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		//registrations.put(importReg, context.registerService(new String[]{ImportRegistryListening.class.getName(),ImportRegistryProvisioning.class.getName()},importReg,properties));
 		
 		//Register the RoseMachine Service
-		registrations.put(this, context.registerService(RoseMachine.class.getName(), this, properties));
+		registrations.add(context.registerService(RoseMachine.class.getName(), this, properties));
+		
+		//Register the RemoteServiceAdmin Service
+		registrations.add(context.registerService(RemoteServiceAdmin.class.getName(), this, properties));
+		
 	
 		//Open the EndpointListener tracker
 		tracklistener.open();
@@ -111,9 +119,12 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	@Invalidate
 	private void stop(){
 		//Unregister the services
-		for (ServiceRegistration reg : registrations.values()) {
+		for (ServiceRegistration reg : registrations) {
 			reg.unregister();
 		}
+		
+		//Clear the registrations set
+		registrations.clear(); 
 		
 		//Close the EndpointListener tracker
 		tracklistener.close();

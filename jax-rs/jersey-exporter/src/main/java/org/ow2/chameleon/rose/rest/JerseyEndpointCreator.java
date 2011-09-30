@@ -178,7 +178,6 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 						"Cannot register the JerseyServlet bridge", e);
 			}
 		} else {
-			System.out.println("Classes: "+rsconfig.getClasses());
 			//no more resources
 			if (rsconfig.isEmpty()){
 				//unload the container & unpublish the servlet

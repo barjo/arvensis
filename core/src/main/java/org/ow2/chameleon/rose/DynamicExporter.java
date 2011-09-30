@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.framework.FrameworkUtil.createFilter;
 import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
 
@@ -228,18 +229,25 @@ public class DynamicExporter {
 			ExportRegistration registration = exporter.exportService(sref,
 					properties);
 			
-			if (registration.getException() != null){
-				log(LogService.LOG_WARNING, "Cannot export service of ref: " +sref, registration.getException());
+			if (registration.getException() == null){ //Successful export
+				xrefs.add(registration.getExportReference());
+			}else { //export failed
+				log(LogService.LOG_WARNING, "Cannot export service of id: "
+						+ sref.getProperty(SERVICE_ID)
+						+ " provided by the bundle of id"
+						+ sref.getBundle().getBundleId(),
+						registration.getException());
 			}
 			
-			xrefs.add(registration.getExportReference());
 			return registration;
 		}
 
 		public void unExport(ExporterService exporter, ServiceReference sref,
 				Object registration) {
 			ExportRegistration reg = (ExportRegistration) registration;
-			xrefs.remove(reg.getExportReference());
+			if (reg.getException() == null){ //was indeed exported
+				xrefs.remove(reg.getExportReference());
+			}
 			reg.close();
 		}
 

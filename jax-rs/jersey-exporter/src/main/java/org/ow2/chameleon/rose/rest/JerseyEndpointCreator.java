@@ -2,6 +2,7 @@ package org.ow2.chameleon.rose.rest;
 
 import static java.lang.Integer.valueOf;
 import static org.osgi.service.log.LogService.LOG_DEBUG;
+import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 
 import java.util.Arrays;
@@ -177,7 +178,15 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 						"Cannot register the JerseyServlet bridge", e);
 			}
 		} else {
-			container.reload();
+			System.out.println("Classes: "+rsconfig.getClasses());
+			//no more resources
+			if (rsconfig.isEmpty()){
+				//unload the container & unpublish the servlet
+				httpservice.unregister(rootName);
+				container = null;
+			}else {
+				container.reload();
+			}
 		}
 	}
 
@@ -233,10 +242,11 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 		String pathName = (String) endesc.getProperties().get(PROP_PATH);
 		rsconfig.removeComponentProvider(pathName);
 		try {
-			container.reload();
-		} catch (Exception e) {
-			// XXX no big deal
+			reloadServlet();
+		}catch (RuntimeException e){
+			logger.log(LOG_ERROR, "An exception occured while destroying the endpoint of id " +endesc.getId(),e);
 		}
+		
 		logger.log(LOG_DEBUG, "The endpoint of id: " + endesc.getId()
 				+ " and his associated ressource: " + pathName
 				+ " is no more available along.");

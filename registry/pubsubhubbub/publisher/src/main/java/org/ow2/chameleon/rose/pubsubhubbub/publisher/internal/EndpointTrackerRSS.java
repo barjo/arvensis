@@ -94,7 +94,6 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 		this.context = pContext;
 	}
 
-	@Override
 	@Validate
 	public final void start() throws IOException {
 
@@ -117,7 +116,6 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 
 	}
 
-	@Override
 	@Invalidate
 	public final void stop() {
 		endpointListener.unregister();

@@ -77,7 +77,6 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 		this.context = pContext;
 	}
 
-	@Override
 	@Validate
 	public final void start() throws ServletException, NamespaceException,
 			IOException {
@@ -87,7 +86,6 @@ public class RSSEndpointListener extends HttpServlet implements Subscriber {
 				context, rose);
 	}
 
-	@Override
 	@Invalidate
 	public final void stop() {
 		httpService.unregister(callBackUrl);

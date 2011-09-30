@@ -103,7 +103,6 @@ public class HubImpl extends HttpServlet implements Hub {
 		this.context = pContext;
 	}
 
-	@Override
 	@Validate
 	public final void start() {
 		try {
@@ -122,7 +121,6 @@ public class HubImpl extends HttpServlet implements Hub {
 		}
 	}
 
-	@Override
 	@Invalidate
 	public final void stop() {
 		feedReaderTracker.close();

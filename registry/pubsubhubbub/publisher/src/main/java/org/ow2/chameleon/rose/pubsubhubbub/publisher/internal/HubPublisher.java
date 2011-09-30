@@ -114,7 +114,7 @@ public class HubPublisher {
 	 * @throws IOException
 	 *             exception
 	 */
-	public final void update() throws IOException {
+	public final void update() {
 		// prepare post method
 		postMethod = new HttpPost(this.urlHub);
 		postMethod.setHeader("Content-Type",

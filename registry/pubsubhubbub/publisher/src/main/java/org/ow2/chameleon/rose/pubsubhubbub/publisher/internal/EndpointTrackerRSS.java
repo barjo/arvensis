@@ -157,7 +157,7 @@ public class EndpointTrackerRSS implements Publisher, EndpointListener {
 
 			hubPublisher.update();
 		} catch (IOException e) {
-			logger.log(LOG_WARNING, "Error in updateing a feed", e);
+			logger.log(LOG_WARNING, "Error in updating a feed", e);
 		} catch (Exception e) {
 			logger.log(LOG_WARNING, "Error in sending a feed", e);
 		}

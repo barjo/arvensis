@@ -1,8 +1,8 @@
-package org.ow2.chameleon.rose.constants;
+package org.ow2.chameleon.rose.pubsubhubbub.constants;
 
 import java.util.Map;
 
-public class RoseRSSConstants {
+public class PubsubhubbubConstants {
 
 	public static final String RSS_EVENT_TOPIC = "org/ow2/chameleon/syndication";
 	public static final String FEED_TITLE_NEW = "Endpoint added";
@@ -20,8 +20,6 @@ public class RoseRSSConstants {
 	public static final String HUB_UPDATE_TOPIC_DELETE = "topic.remove";
 	public static final String DEFAULT_HTTP_PORT = "8080";
 
-
-	
 	public enum HubMode {
 		publish, unpublish, update, subscribe, unsubscribe, getAllEndpoints;
 

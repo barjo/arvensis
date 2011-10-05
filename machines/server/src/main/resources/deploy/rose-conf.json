@@ -6,19 +6,15 @@
 		"connection" : [
 				{
 				"out" : {
-					"service_filter" : "(objectClass=org.osgi.service.log.LogService)",
-				        "properties" : { "tag" : ["log","service","id"] }
+					"service_filter" : "(&(objectClass=rose.example.jaxrs.contract.HelloWorld)(instance.name=example_helloworld-1))"
 					}
 				}
 		],
 
 		"component" : [
 			{ 
-			  "factory" : "RoSe_exporter.jabsorb" 
-                        },
-			{ 
-			  "factory" : "RoSe_registry.zookeeper",
-			  "properties" : { "connection" : "127.0.0.1/rose" }
+			  "factory" : "RoSe_exporter.jersey",
+			  "properties" : { "jersey.servlet.name" : "/rest" }
 			}
 		],
 	}

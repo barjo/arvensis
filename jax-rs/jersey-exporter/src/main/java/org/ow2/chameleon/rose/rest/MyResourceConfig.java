@@ -49,4 +49,11 @@ public class MyResourceConfig extends DefaultResourceConfig {
     public IoCComponentProvider getComponentProvider(Class<?> pClass) {
         return providers.get(pClass);
     }
+
+    /**
+     * @return true if no resources are managed through this.
+     */
+	public boolean isEmpty() {
+		return providers.isEmpty();
+	}
 }

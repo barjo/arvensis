@@ -26,13 +26,13 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
  * @author barjo
  */
 public abstract class AbstractExporterComponent implements ExporterService {
-	private final ConcurrentMapOfSet<ServiceReference, MyExportRegistration> registrations;
+	private final ConcurrentMapOfSet<ServiceReference, ExportRegistration> registrations;
 	private volatile boolean isValid = false;
 	private static String frameworkId;
 	
 	
 	public  AbstractExporterComponent() {
-		registrations = new ConcurrentMapOfSet<ServiceReference, MyExportRegistration>();
+		registrations = new ConcurrentMapOfSet<ServiceReference, ExportRegistration>();
 	}
 	
 	/*--------------------------*
@@ -142,6 +142,8 @@ public abstract class AbstractExporterComponent implements ExporterService {
 				} catch (Exception e) {
 					xreg = new BadExportRegistration(e); //an exception occurred, bad export registration.
 				}
+				
+				registrations.add(sref, xreg);
 			}
 		}
 		
@@ -154,12 +156,10 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 * @see org.ow2.chameleon.rose.ExporterService#getExportReference(org.osgi.framework.ServiceReference)
 	 */
 	public ExportReference getExportReference(ServiceReference sref) {
-		
 		if(!registrations.containsKey(sref)){
 			return null;
 		}
 		return registrations.getElem(sref).getExportReference();
-		
 	}
 	
 	/*
@@ -168,9 +168,13 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 */
 	public Collection<ExportReference> getAllExportReference(){
 		Collection<ExportReference> xrefs = new HashSet<ExportReference>();
+		ExportReference xref;
 		
 		for (ServiceReference sref : registrations.keySet()) {
-			xrefs.add(registrations.getElem(sref).getExportReference());
+			xref = registrations.getElem(sref).getExportReference();
+			if (xref!=null){
+				xrefs.add(xref);
+			}
 		}
 		
 		return xrefs;
@@ -226,9 +230,11 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 */
 	private final class MyExportRegistration implements ExportRegistration {
 		private volatile ExportReference xref;
+		private Throwable exception;
 		
-		private MyExportRegistration(MyExportRegistration reg) {
+		private MyExportRegistration(ExportRegistration reg) {
 			xref=reg.getExportReference();
+			exception = reg.getException();
 			
 			//Add the registration to the registrations mapOfSet
 			registrations.add(reg.getExportReference().getExportedService(), this);
@@ -243,6 +249,9 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			
 			//register the ExportReference within the ExportRegistry
 			getRoseMachine().putLocal(xref,xref);
+			
+			//no exception
+			exception = null;
 		}
 		
 		
@@ -262,11 +271,17 @@ public abstract class AbstractExporterComponent implements ExporterService {
 			if (xref != null) {
 				// Last registration, remove the ExportReference from the ExportRegistry
 				if (registrations.remove(xref.getExportedService(), this)) {
-					getRoseMachine().removeLocal(xref);
+					try{
+						getRoseMachine().removeLocal(xref);
+					}catch(RuntimeException re){
+						getLogService().log(LOG_WARNING, "The RoseMachine has probably been stoped",re);
+					}
 					destroyEndpoint(xref.getExportedEndpoint());
 				}
 				xref = null; // is now closed
 			}
+			
+			exception = null; // closed :)
 		}
 
 		/*
@@ -274,7 +289,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 		 * @see org.osgi.service.remoteserviceadmin.ExportRegistration#getException()
 		 */
 		public Throwable getException() {
-			return null;
+			return exception;
 		}
 	}
 	

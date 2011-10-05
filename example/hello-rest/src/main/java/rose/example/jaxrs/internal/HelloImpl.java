@@ -22,5 +22,11 @@ public class HelloImpl implements HelloWorld {
 	public String hello(@PathParam("name") String name) {
 		return "Hello "+name+" !";
 	}
+	
+	@GET
+	@Produces("application/json")
+	public String helloJson(@PathParam("name") String name){
+		return "{hello : \""+hello(name)+"\"}";
+	}
 
 }

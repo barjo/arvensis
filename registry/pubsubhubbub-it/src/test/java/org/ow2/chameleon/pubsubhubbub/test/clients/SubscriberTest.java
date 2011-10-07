@@ -1,9 +1,11 @@
-package org.ow2.chameleon.rss.test.clients;
+package org.ow2.chameleon.pubsubhubbub.test.clients;
 
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.exam.CoreOptions.provision;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 
 import java.net.UnknownHostException;
 import java.util.Dictionary;
@@ -16,13 +18,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseMachine;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
@@ -56,7 +55,10 @@ public class SubscriberTest extends AbstractTestConfiguration {
 	private JSONService json;
 
 	@Override
-	public final void setUpEx() throws UnknownHostException {
+	public  void setUp() throws UnknownHostException {
+		
+		super.setUp();
+		
 		osgi = super.getOsgi();
 		ipojo = super.getIpojo();
 		hub = super.getHub();
@@ -101,15 +103,6 @@ public class SubscriberTest extends AbstractTestConfiguration {
 
 	}
 
-	@Configuration
-	public static Option[] configure() {
-		Option[] bundles = options(provision(mavenBundle()
-				.groupId("org.ow2.chameleon.rss")
-				.artifactId("pubsubhubbub-subscriber").versionAsInProject()));
-
-		return bundles;
-	}
-
 	/**
 	 * Check subscriber instance status.
 	 */
@@ -141,19 +134,19 @@ public class SubscriberTest extends AbstractTestConfiguration {
 				Assert.assertTrue(parameters.get("Content-Type").equals(
 						"application/x-www-form-urlencoded"));
 			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE)) {
+					.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE))[0]
+						.get(HTTP_POST_PARAMETER_HUB_MODE))[0]
 						.equals("subscribe"));
 			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER)) {
+					.equals(HTTP_POST_PARAMETER_ENDPOINT_FILTER)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER))[0]
+						.get(HTTP_POST_PARAMETER_ENDPOINT_FILTER))[0]
 						.equals(ENDPOINT_FILTER));
 			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK)) {
+					.equals(HTTP_POST_PARAMETER_URL_CALLBACK)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK))[0]
+						.get(HTTP_POST_PARAMETER_URL_CALLBACK))[0]
 						.equals(publisherCallBackUrl));
 			}
 
@@ -167,7 +160,7 @@ public class SubscriberTest extends AbstractTestConfiguration {
 	@Test
 	public final void testEndpointAddedNotification() {
 		waitForIt(WAIT_TIME);
-		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
+		hub.sendUpdate(HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
 
 		// check if endpoint successfully registered
@@ -180,11 +173,11 @@ public class SubscriberTest extends AbstractTestConfiguration {
 	@Test
 	public final void testEndpointRemoveNotification() {
 
-		hub.sendUpdate(RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
+		hub.sendUpdate(HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED,
 				publisherCallBackUrl, endp, json);
 		waitForIt(WAIT_TIME);
 		hub.sendUpdate(
-				RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED,
+				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED,
 				publisherCallBackUrl, endp, json);
 		// check if endpoint successfully unregistered
 		Assert.assertFalse(rose.containsRemote(endp));
@@ -207,14 +200,14 @@ public class SubscriberTest extends AbstractTestConfiguration {
 				Assert.assertTrue(parameters.get("Content-Type").equals(
 						"application/x-www-form-urlencoded"));
 			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE)) {
+					.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE))[0]
+						.get(HTTP_POST_PARAMETER_HUB_MODE))[0]
 						.equals("unsubscribe"));
 			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK)) {
+					.equals(HTTP_POST_PARAMETER_URL_CALLBACK)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK))[0]
+						.get(HTTP_POST_PARAMETER_URL_CALLBACK))[0]
 						.equals(publisherCallBackUrl));
 			}
 

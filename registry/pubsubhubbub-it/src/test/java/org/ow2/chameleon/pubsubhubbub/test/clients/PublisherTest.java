@@ -1,8 +1,10 @@
-package org.ow2.chameleon.rss.test.clients;
+package org.ow2.chameleon.pubsubhubbub.test.clients;
 
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.exam.CoreOptions.provision;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_NEW;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 
 import java.net.UnknownHostException;
 import java.text.ParseException;
@@ -24,7 +26,6 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
 import org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
@@ -59,7 +60,10 @@ public class PublisherTest extends AbstractTestConfiguration {
 	private JSONService json;
 
 	@Override
-	public final void setUpEx() throws UnknownHostException {
+	public void setUp() throws UnknownHostException {
+		
+		super.setUp();
+		
 		osgi = super.getOsgi();
 		ipojo = super.getIpojo();
 		hub = super.getHub();
@@ -83,6 +87,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 		// create publisher RSS URL
 		publisherRssUrl = "http://localhost:8080/roserss/";
+
 	}
 
 	@After
@@ -102,41 +107,10 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 	}
 
-	@Configuration
-	public static Option[] configure() {
-		Option[] bundles = options(provision(
-				mavenBundle().groupId("org.slf4j").artifactId("slf4j-api")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.jabsorb")
-						.artifactId("org.ow2.chameleon.commons.jabsorb")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.apache.felix")
-						.artifactId("org.apache.felix.eventadmin")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.syndication")
-						.artifactId("syndication-service").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.syndication")
-						.artifactId("rome").versionAsInProject(),
-				mavenBundle().groupId("org.jdom")
-						.artifactId("com.springsource.org.jdom")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc")
-						.artifactId("jabsorb-exporter").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rss")
-						.artifactId("pubsubhubbub-publisher")
-						.versionAsInProject()
-
-		));
-
-		return bundles;
-	}
-
 	/**
 	 * Mockito bundles.
 	 * 
-	 * @return option for examexam contains mockito
+	 * @return option contains mockito
 	 */
 	@Configuration
 	public static Option[] mockitoBundle() {
@@ -174,15 +148,13 @@ public class PublisherTest extends AbstractTestConfiguration {
 			if (parameter.equals("Content-Type")) {
 				Assert.assertTrue(parameters.get("Content-Type").equals(
 						"application/x-www-form-urlencoded"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE)) {
+			} else if (parameter.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE))[0]
+						.get(HTTP_POST_PARAMETER_HUB_MODE))[0]
 						.equals("publish"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
+			} else if (parameter.equals(HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
+						.get(HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));
 			}
 
@@ -214,15 +186,12 @@ public class PublisherTest extends AbstractTestConfiguration {
 			if (parameter.equals("Content-Type")) {
 				Assert.assertTrue(parameters.get("Content-Type").equals(
 						"application/x-www-form-urlencoded"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE)) {
+			} else if (parameter.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE))[0]
-						.equals("update"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
+						.get(HTTP_POST_PARAMETER_HUB_MODE))[0].equals("update"));
+			} else if (parameter.equals(HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
+						.get(HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));
 			}
 		}
@@ -247,7 +216,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 		endpLis.endpointAdded(endp, null);
 
 		feed = reader.getLastEntry();
-		Assert.assertTrue(feed.title().equals(RoseRSSConstants.FEED_TITLE_NEW));
+		Assert.assertTrue(feed.title().equals(FEED_TITLE_NEW));
 
 		try {
 			// get endpoint description feed RSS)
@@ -287,15 +256,12 @@ public class PublisherTest extends AbstractTestConfiguration {
 			if (parameter.equals("Content-Type")) {
 				Assert.assertTrue(parameters.get("Content-Type").equals(
 						"application/x-www-form-urlencoded"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE)) {
+			} else if (parameter.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE))[0]
-						.equals("update"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
+						.get(HTTP_POST_PARAMETER_HUB_MODE))[0].equals("update"));
+			} else if (parameter.equals(HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
+						.get(HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));
 			}
 		}
@@ -324,8 +290,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 		endpLis.endpointRemoved(endp, null);
 
 		feed = reader.getLastEntry();
-		Assert.assertTrue(feed.title().equals(
-				RoseRSSConstants.FEED_TITLE_REMOVE));
+		Assert.assertTrue(feed.title().equals(FEED_TITLE_REMOVE));
 
 		try {
 			// get endpoint description feed RSS
@@ -355,15 +320,13 @@ public class PublisherTest extends AbstractTestConfiguration {
 			if (parameter.equals("Content-Type")) {
 				Assert.assertTrue(parameters.get("Content-Type").equals(
 						"application/x-www-form-urlencoded"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE)) {
+			} else if (parameter.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE))[0]
+						.get(HTTP_POST_PARAMETER_HUB_MODE))[0]
 						.equals("unpublish"));
-			} else if (parameter
-					.equals(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
+			} else if (parameter.equals(HTTP_POST_PARAMETER_RSS_TOPIC_URL)) {
 				Assert.assertTrue(((String[]) parameters
-						.get(RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
+						.get(HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));
 			}
 

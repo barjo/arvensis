@@ -33,9 +33,8 @@
 		<junit.version>4.8.2</junit.version>
 
 		<!-- Tested version -->
-		<pubsubhubbub-publisher.version>0.1.0-SNAPSHOT</pubsubhubbub-publisher.version>
-		<pubsubhubbub-subscriber.version>0.1.0-SNAPSHOT</pubsubhubbub-subscriber.version>
-		<pubsubhubbub-hub.version>0.1.0-SNAPSHOT</pubsubhubbub-hub.version>
+		<pubsubhubbub.version>0.1.0-SNAPSHOT</pubsubhubbub.version>
+		
 
 
 	</properties>
@@ -125,21 +124,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.chameleon.rss</groupId>
-			<artifactId>pubsubhubbub-publisher</artifactId>
-			<version>${pubsubhubbub-publisher.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.ow2.chameleon.rss</groupId>
-			<artifactId>pubsubhubbub-subscriber</artifactId>
-			<version>${pubsubhubbub-subscriber.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.ow2.chameleon.rss</groupId>
-			<artifactId>pubsubhubbub-hub</artifactId>
-			<version>${pubsubhubbub-hub.version}</version>
+			<groupId>org.ow2.chameleon.rose</groupId>
+			<artifactId>pubsubhubbub</artifactId>
+			<version>${pubsubhubbub.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

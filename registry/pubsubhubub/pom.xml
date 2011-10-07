@@ -156,13 +156,13 @@
 						<Export-Package>
 							org.ow2.chameleon.rose.pubsubhubbub.hub,
 							org.ow2.chameleon.rose.pubsubhubbub.publisher,
-							org.ow2.chameleon.rose.pubsubhubbub.subscriber
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber,
+							org.ow2.chameleon.rose.pubsubhubbub.constants
 						</Export-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.pubsubhubbub.hub.internal,
 							org.ow2.chameleon.rose.pubsubhubbub.publisher.internal,
-							org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal,
-							org.ow2.chameleon.rose.pubsubhubbub.constants
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal							
 						</Private-Package>
 					</instructions>
 				</configuration>

@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rss.test.clients;
+package org.ow2.chameleon.pubsubhubbub.test.clients;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.ops4j.pax.exam.CoreOptions.felix;
@@ -52,7 +52,7 @@ public class AbstractTestConfiguration {
 	private JSONService json;
 
 	@Before
-	public final void setUp() throws UnknownHostException {
+	public void setUp() throws UnknownHostException {
 
 		osgi = new OSGiHelper(context);
 		ipojo = new IPOJOHelper(context);
@@ -83,17 +83,6 @@ public class AbstractTestConfiguration {
 		// run rose
 		ipojo.createComponentInstance("RoSe_machine");
 
-		setUpEx();
-
-	}
-
-	/**
-	 * Additional SetUp.
-	 * 
-	 * @throws UnknownHostException
-	 *             exception
-	 */
-	public void setUpEx() throws UnknownHostException {
 
 	}
 
@@ -128,7 +117,28 @@ public class AbstractTestConfiguration {
 						.artifactId("rose-core").versionAsInProject(),
 				mavenBundle().groupId("commons-logging")
 						.artifactId("org.ow2.chameleon.commons.logging")
-						.versionAsInProject()
+						.versionAsInProject(),
+				mavenBundle().groupId("org.slf4j").artifactId("slf4j-api")
+						.versionAsInProject(),
+				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
+						.versionAsInProject(),
+				mavenBundle().groupId("org.jabsorb")
+						.artifactId("org.ow2.chameleon.commons.jabsorb")
+						.versionAsInProject(),
+				mavenBundle().groupId("org.apache.felix")
+						.artifactId("org.apache.felix.eventadmin")
+						.versionAsInProject(),
+				mavenBundle().groupId("org.ow2.chameleon.syndication")
+						.artifactId("syndication-service").versionAsInProject(),
+				mavenBundle().groupId("org.ow2.chameleon.syndication")
+						.artifactId("rome").versionAsInProject(),
+				mavenBundle().groupId("org.jdom")
+						.artifactId("com.springsource.org.jdom")
+						.versionAsInProject(),
+				mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc")
+						.artifactId("jabsorb-exporter").versionAsInProject(),
+				mavenBundle().groupId("org.ow2.chameleon.rose")
+						.artifactId("pubsubhubbub").versionAsInProject()
 
 		));
 

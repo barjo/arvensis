@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rss.test.hub;
+package org.ow2.chameleon.pubsubhubbub.test.hub;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.ops4j.pax.exam.CoreOptions.felix;
@@ -8,17 +8,9 @@ import static org.ops4j.pax.exam.CoreOptions.provision;
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_HUB_MODE;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
-import static org.ow2.chameleon.rss.test.clients.AbstractTestConfiguration.waitForIt;
-
+import static org.ow2.chameleon.pubsubhubbub.test.clients.AbstractTestConfiguration.waitForIt;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.*;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -60,8 +52,6 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants;
-import org.ow2.chameleon.rose.constants.RoseRSSConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
@@ -167,8 +157,8 @@ public class HubTest {
 						.versionAsInProject(),
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
 						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rss")
-						.artifactId("pubsubhubbub-hub").versionAsInProject(),
+				mavenBundle().groupId("org.ow2.chameleon.rose")
+						.artifactId("pubsubhubbub").versionAsInProject(),
 				mavenBundle().groupId("org.apache.felix")
 						.artifactId("org.apache.felix.eventadmin")
 						.versionAsInProject()
@@ -192,7 +182,7 @@ public class HubTest {
 	/**
 	 * Check hub instance status.
 	 */
-	@Test
+//	@Test
 	public final void testActivity() {
 		// wait for the service to be available.
 		waitForIt(WAIT_TIME);
@@ -267,7 +257,7 @@ public class HubTest {
 		createEndpoints();
 		// send feed to topic
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
 		waitForIt(WAIT_TIME);
@@ -333,18 +323,18 @@ public class HubTest {
 		// send publish notification to Hub
 		publisher.registerPublisher();
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		// endpoint add
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
 		waitForIt(WAIT_TIME);
 
 		// endpoint remove
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_REMOVE);
+				FEED_TITLE_REMOVE);
 
 		// hub unsuccessfully updated removed endpoint
 		Assert.assertEquals(HttpStatus.SC_ACCEPTED, hubResponseCode);
@@ -404,7 +394,7 @@ public class HubTest {
 		// send publish notification to Hub
 		publisher.registerPublisher();
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -459,7 +449,7 @@ public class HubTest {
 		// send publish notification to Hub
 		publisher.registerPublisher();
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -499,7 +489,7 @@ public class HubTest {
 		// send publish notification to Hub (register endpoint id=0)
 		publisher.registerPublisher();
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -508,7 +498,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=1)
 		publisher.addRSSFeed(testEndpoints.get(1),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -555,7 +545,7 @@ public class HubTest {
 		// send publish notification to Hub (register endpoint id=0)
 		publisher.registerPublisher();
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -564,7 +554,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=1)
 		publisher.addRSSFeed(testEndpoints.get(1),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -573,7 +563,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=2)
 		publisher.addRSSFeed(testEndpoints.get(2),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -628,7 +618,7 @@ public class HubTest {
 		// send publish notification to Hub (register endpoint id=0)
 		publisher.registerPublisher();
 		publisher.addRSSFeed(testEndpoints.get(0),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -637,7 +627,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=1)
 		publisher.addRSSFeed(testEndpoints.get(1),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -653,7 +643,7 @@ public class HubTest {
 		// send publish notification to Hub (register endpoint id=2)
 		publisher2.registerPublisher();
 		publisher2.addRSSFeed(testEndpoints.get(2),
-				RoseRSSConstants.FEED_TITLE_NEW);
+				FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -887,6 +877,7 @@ public class HubTest {
 		private void registerPublisher() {
 			// preparing POST parameters
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			System.out.println("sdfsdf"+HubMode.publish.toString());
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 					HubMode.publish.toString()));
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,

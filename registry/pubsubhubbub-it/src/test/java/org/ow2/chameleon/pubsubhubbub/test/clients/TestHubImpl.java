@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rss.test.clients;
+package org.ow2.chameleon.pubsubhubbub.test.clients;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,9 +24,8 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_CONTENT;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
-import static org.ow2.chameleon.rose.constants.RoseRSSConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.*;
+
 
 /**
  * Testing Hub.

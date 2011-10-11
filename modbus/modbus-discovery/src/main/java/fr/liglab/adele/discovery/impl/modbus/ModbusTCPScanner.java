@@ -198,8 +198,6 @@ public class ModbusTCPScanner extends TimerTask  {
 	}
 
 	private boolean isEndPointRegistered(String id) {
-		System.out.println("ID="+id);
-
 		Collection registry = adminService.getImportedEndpoints();
 		if (registry != null) {
 			ImportReference reference;

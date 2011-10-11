@@ -132,10 +132,10 @@ public class Configurator implements ArtifactInstaller{
 				throw e;
 			}
 
-			try {
+			try { //stop and remove oldconf, then start newconf
 				RoseConfiguration newconf = parser.parse(json,null);
-				newconf.start();
 				confs.remove(name).stop();
+				newconf.start();
 				confs.put(name, newconf);
 			} catch (Exception e) {
 				logger.log(LOG_WARNING, "Cannot parse updated rose configuration file:" + name

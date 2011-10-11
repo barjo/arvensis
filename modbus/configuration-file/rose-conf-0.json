@@ -1,0 +1,29 @@
+{
+"machine" : {
+    "id" : "Modbus.Protocol",
+    "host" : "localhost",
+    "connection" : [
+            {
+            "in" : {
+               "endpoint_filter" : "(service.imported=fr.liglab.adele.modbus.tcp)"
+                }
+            }
+    ],
+    "component" : [ 
+        { 
+           "factory" : "factory.proxy.service.modbus" 
+        }, 
+		{ 
+           "factory" : "modbus.tcp.ip.scanner" ,
+		   "properties" : { "start.address" : "10.10.7.193",  
+		                    "end.address" : "10.10.7.195",    
+		                    "modbus.port.number" : "502",     
+							"domain.id" : "carros-06-building-#B2-room-#1",
+							"scan.period" : "1000" ,
+							"scan.delay" : "1000" ,
+							"ping.time.out" : "2000"
+						  } 
+		},
+    ]
+ }
+}

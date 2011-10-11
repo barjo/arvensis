@@ -216,6 +216,7 @@ public class ModbusTCPScanner extends TimerTask  {
 		return false;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map setDeviceEndPoint(String hostAddr, int port) {
 		Map m_props = new HashMap();
 		m_props.put(RemoteConstants.ENDPOINT_ID, generateID(hostAddr, port));
@@ -238,12 +239,12 @@ public class ModbusTCPScanner extends TimerTask  {
 
 	private void checksParam() {
 		
-		if (m_delay < 0) {
+		if (m_delay <= 0) {
 			String str = "Properties 'scan.delay' must not be a negative value" + m_delay;
 			logger.error(str);
 			throw new IllegalArgumentException(str);
 		}
-		if (m_period < 0) {
+		if (m_period <= 0) {
 			String str = "Properties 'scan.period' must not be a negative value"
 					+ m_period;
 			logger.error(str);
@@ -255,9 +256,10 @@ public class ModbusTCPScanner extends TimerTask  {
 			throw new IllegalArgumentException(str);
 		}
 		if (m_domainID ==null) {
+			/* generate a "unique"  domain name */
 			m_domainID = "domain.ip-"+
 			              startAddress.toString()+"-"+
-			              endAddress.toString();
+			              endAddress.toString()+"-"+System.currentTimeMillis();
 		}
 	}
 

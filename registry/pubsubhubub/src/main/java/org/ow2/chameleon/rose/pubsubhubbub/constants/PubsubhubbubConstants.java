@@ -1,6 +1,5 @@
 package org.ow2.chameleon.rose.pubsubhubbub.constants;
 
-import java.util.Map;
 
 public class PubsubhubbubConstants {
 
@@ -22,9 +21,5 @@ public class PubsubhubbubConstants {
 
 	public enum HubMode {
 		publish, unpublish, update, subscribe, unsubscribe, getAllEndpoints;
-
-		public Object getValue(Map<String, Object> values) {
-			return values.get(this.toString());
-		}
 	}
 }

@@ -111,8 +111,6 @@ public class HubPublisher {
 	/**
 	 * Send an update to hub.
 	 * 
-	 * @throws IOException
-	 *             exception
 	 */
 	public final void update() {
 		// prepare post method

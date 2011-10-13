@@ -1,7 +1,7 @@
 {
 "machine" : {
     "id" : "Modbus.Protocol",
-    "host" : "localhost",
+    "host" : "A7D468EA-1BE7-4E1A-B8AC-E246B14F3033",
     "connection" : [
             {
             "in" : {

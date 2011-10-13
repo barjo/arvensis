@@ -53,8 +53,8 @@ public class ModbusProxyImpl implements ModbusProtocol {
 	protected static final Logger logger = LoggerFactory.getLogger("protocol.modbus");
 
 	private InetAddress m_host;
-	private int m_port;
-	private int m_unitID;
+	protected String m_hostAddress ;
+	protected int m_port;
 
 	TCPMasterConnection connection = null; /* the connection */
 	ModbusTCPTransaction transaction = null; /* the transaction */
@@ -66,6 +66,7 @@ public class ModbusProxyImpl implements ModbusProtocol {
 	protected void setHost(String host) {
 		try {
 			m_host = InetAddress.getByName(host);
+			m_hostAddress = m_host.getHostAddress();
 		} catch (UnknownHostException e) {
 			logger.error("Unknown host address " + host);
 			m_host = null;
@@ -74,10 +75,6 @@ public class ModbusProxyImpl implements ModbusProtocol {
 
 	protected void setPort(int port) {
 		m_port = port;
-	}
-
-	protected void setModbusID(int id) {
-		m_unitID = id;
 	}
 
 	public void start() {
@@ -96,8 +93,7 @@ public class ModbusProxyImpl implements ModbusProtocol {
 
 				if (logger.isDebugEnabled()) {
 					StringBuffer sb = new StringBuffer("Connection [");
-					sb.append(m_host.getHostAddress()).append(":").append(m_port);
-					sb.append(" ,unitID=").append(m_unitID).append("]");
+					sb.append(m_host.getHostAddress()).append(":").append(m_port).append("]");
 					logger.debug(sb.toString());
 				}
 			} catch (Exception e) {
@@ -245,8 +241,9 @@ public class ModbusProxyImpl implements ModbusProtocol {
 		return bits;
 	}
 
+	// A supprimer
 	public int getUnitID() {
-		return m_unitID;
+		return 0;
 	}
-
+	
 }

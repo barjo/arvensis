@@ -34,22 +34,23 @@ public class ModbusProxySchneiderImpl extends ModbusProxyImpl implements
 		ModbusProcotolSchneider {
 
 	private Map m_identification;
-
+	private String hostAddress ;
+	private int port ;
+	
 	public ModbusProxySchneiderImpl(BundleContext bc) {
 		super(bc);
 		m_identification = Collections.EMPTY_MAP;
 	}
 
+
 	protected void setHost(String host) {
 		super.setHost(host);
+		this.hostAddress = super.m_hostAddress ;
 	}
 
 	protected void setPort(int port) {
 		super.setPort(port);
-	}
-
-	protected void setModbusID(int id) {
-		super.setModbusID(id);
+		this.port = super.m_port;
 	}
 
 	protected void setIdentification(Map ident) {

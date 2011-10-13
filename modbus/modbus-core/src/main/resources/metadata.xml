@@ -21,12 +21,17 @@
 		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocol">
 			<property name="rose.protos.configs" type="java.lang.String"
 				value="fr.liglab.adele.modbus.tcp" />
+			<property name="modbus.ip.address" type="java.lang.String"
+				field="m_hostAddress" />
+			<property name="modbus.port" type="int" field="m_port" />
+			<property name="modbus.device.type" type="java.lang.String"
+				value="device.modbus.standard" />
 		</provides>
 		<properties>
-			<property name="device.ip.address" method="setHost" type="java.lang.String" />
-			<property name="device.ip.port" method="setPort" value="502" />
-			<property name="device.modbus.unitID" method="setModbusID"
-				value="0" />
+			<property name="device.ip.address" type="java.lang.String"
+				method="setHost" mandatory="true" />
+			<property name="device.ip.port" type="int" method="setPort"
+				value="502" />
 		</properties>
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />
@@ -41,13 +46,16 @@
 		<provides>
 			<property name="rose.protos.configs" type="java.lang.String"
 				value="fr.liglab.adele.modbus.tcp" />
+			<property name="modbus.ip.address" type="java.lang.String"
+				field="hostAddress" />
+			<property name="modbus.port" type="int" field="port" />
+			<property name="modbus.device.type" type="java.lang.String"
+				value="device.modbus.schneider" />
 		</provides>
 		<properties>
 			<property name="device.ip.address" method="setHost" type="java.lang.String"
 				mandatory="true" />
 			<property name="device.ip.port" method="setPort" value="502" />
-			<property name="device.modbus.unitID" method="setModbusID"
-				value="0" />
 			<property name="device.identification" method="setIdentification"
 				type="java.util.Map" />
 		</properties>

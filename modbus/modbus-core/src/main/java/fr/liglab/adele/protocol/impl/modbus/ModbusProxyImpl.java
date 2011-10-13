@@ -121,15 +121,15 @@ public class ModbusProxyImpl implements ModbusProtocol {
 			/* Request processing */
 			transaction.setRequest(request);
 			try {
-				transaction.execute();
-				regs = ((ReadMultipleRegistersResponse) transaction.getResponse())
-						.getRegisters();
 				if (logger.isDebugEnabled()) {
 					StringBuffer sb = new StringBuffer();
-					sb.append("Read Multiple register unitID=").append(unitID);
+					sb.append("Read Multiple registers, unitID=").append(unitID);
 					sb.append(" ,ref=").append(ref).append(" ,count").append(count);
 					logger.debug(sb.toString());
 				}
+				transaction.execute();
+				regs = ((ReadMultipleRegistersResponse) transaction.getResponse())
+						.getRegisters();
 				if (regs != null) {
 					integer = new Integer[regs.length];
 					for (int i = 0; i < integer.length; i++) {
@@ -158,8 +158,13 @@ public class ModbusProxyImpl implements ModbusProtocol {
 			request = new ReadInputRegistersRequest(ref, count);
 			request.setUnitID(unitID);
 			try {
+				if (logger.isDebugEnabled()) {
+					StringBuffer sb = new StringBuffer();
+					sb.append("Read Input registers, unitID=").append(unitID);
+					sb.append(" ,ref=").append(ref).append(" ,count").append(count);
+					logger.debug(sb.toString());
+				}
 				transaction.execute();
-
 				regs = ((ReadInputRegistersResponse) transaction.getResponse())
 						.getRegisters();
 				if (regs != null) {
@@ -191,6 +196,12 @@ public class ModbusProxyImpl implements ModbusProtocol {
 			/* Request processing */
 			transaction.setRequest(request);
 			try {
+				if (logger.isDebugEnabled()) {
+					StringBuffer sb = new StringBuffer();
+					sb.append("Read Discrete Inputs, unitID=").append(unitID);
+					sb.append(" ,ref=").append(ref).append(" ,count").append(count);
+					logger.debug(sb.toString());
+				}
 				transaction.execute();
 				regs = ((ReadInputDiscretesResponse) transaction.getResponse())
 						.getDiscretes();
@@ -222,6 +233,12 @@ public class ModbusProxyImpl implements ModbusProtocol {
 			/* Request processing */
 			transaction.setRequest(request);
 			try {
+				if (logger.isDebugEnabled()) {
+					StringBuffer sb = new StringBuffer();
+					sb.append("Read Coils, unitID=").append(unitID);
+					sb.append(" ,ref=").append(ref).append(" ,count").append(count);
+					logger.debug(sb.toString());
+				}
 				transaction.execute();
 				regs = ((ReadCoilsResponse) transaction.getResponse()).getCoils();
 				if (regs != null) {
@@ -240,10 +257,4 @@ public class ModbusProxyImpl implements ModbusProtocol {
 		}
 		return bits;
 	}
-
-	// A supprimer
-	public int getUnitID() {
-		return 0;
-	}
-	
 }

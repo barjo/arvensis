@@ -66,11 +66,5 @@ public interface ModbusProtocol {
 	 */
 	public BitSet getCoils(int unitID, int ref, int count)  throws SlaveException ;
 	
-	/**
-	 * Give the Slave address 
-	 * In cas of Schneider device, unitID = 0 or 255 , otherwise unitID is always set 0
-	 * @return unit ID
-	 */
-	public int getUnitID() ;
 
 }

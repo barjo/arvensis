@@ -17,54 +17,75 @@ package fr.liglab.adele.protocol.modbus;
 
 import java.util.BitSet;
 
-
 /**
- * Modbus Service 
- * @TODO write access 
+ * Modbus Service
+ * 
+ * @TODO write access
  * 
  * @author Denis Morand
- *
+ * 
  */
 public interface ModbusProtocol {
 
 	/**
-	 * Read Holding registers Modbus 
-	 * @param unitID : slave ID address
-	 * @param ref  Starting address
-	 * @param count Quantity of registers
-	 * @return Null if Error , array of register value 
-	 * @throws SlaveException ( see Modbus Application protocol V1.1b )
+	 * Read Holding registers Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , array of register value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
 	 */
-	public Integer[] getRegisters(int unitID, int ref, int count) throws SlaveException ;
+	public Integer[] getRegisters(int unitID, int ref, int count) throws SlaveException;
 
 	/**
-	 * Read Inputs registers Modbus 
-	 * @param unitID : slave ID address
-	 * @param ref  Starting address
-	 * @param count Quantity of registers
-	 * @return Null if Error , array of register value 
-	 * @throws SlaveException ( see Modbus Application protocol V1.1b )
+	 * Read Inputs registers Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , array of register value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
 	 */
-	public Integer[] getInputRegisters(int unitID, int ref, int count) throws SlaveException ;
-	
+	public Integer[] getInputRegisters(int unitID, int ref, int count)
+			throws SlaveException;
+
 	/**
-	 * Read Discrete inputs Modbus 
-	 * @param unitID : slave ID address
-	 * @param ref  Starting address
-	 * @param count Quantity of registers
-	 * @return Null if Error , bit value  
-	 * @throws SlaveException ( see Modbus Application protocol V1.1b )
+	 * Read Discrete inputs Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , bit value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
 	 */
-	public BitSet getDiscreteInput(int unitID, int ref, int count)  throws SlaveException ;
+	public BitSet getDiscreteInput(int unitID, int ref, int count) throws SlaveException;
+
 	/**
-	 * Read Coils inputs Modbus 
-	 * @param unitID : slave ID address
-	 * @param ref  Starting address
-	 * @param count Quantity of registers
-	 * @return Null if Error , bit value  
-	 * @throws SlaveException ( see Modbus Application protocol V1.1b )
+	 * Read Coils inputs Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , bit value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
 	 */
-	public BitSet getCoils(int unitID, int ref, int count)  throws SlaveException ;
-	
+	public BitSet getCoils(int unitID, int ref, int count) throws SlaveException;
 
 }

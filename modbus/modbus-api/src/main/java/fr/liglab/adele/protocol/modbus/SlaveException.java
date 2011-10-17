@@ -22,7 +22,7 @@ package fr.liglab.adele.protocol.modbus;
  * @author Denis Morand
  */
 public class SlaveException extends ModbusException {
-	
+	private static final long serialVersionUID = -1302115889774869425L;
 	private int m_mbException;
 
 	public SlaveException(int modbusException) {

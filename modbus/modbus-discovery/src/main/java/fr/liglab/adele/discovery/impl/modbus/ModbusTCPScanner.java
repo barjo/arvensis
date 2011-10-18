@@ -169,6 +169,7 @@ public class ModbusTCPScanner extends TimerTask  {
 		address = startAddress;
 		do {
 			if (ping(address, m_timeout)) {
+				logger.trace("Device present at :"+address.getHostAddress());
 				socket = tcpConnect(address, m_port);
 				if (socket != null) {
 					setRemoteDevice(socket);
@@ -178,8 +179,10 @@ public class ModbusTCPScanner extends TimerTask  {
 					}
 				}
 
-			} else
+			} else {
+				logger.trace("Device absent at :"+address.getHostAddress());
 				resetRemoteDevice(address, m_port);
+			}
 
 			if (nexter.hasMoreElements()) {
 				address = (InetAddress) nexter.nextElement();
@@ -209,7 +212,7 @@ public class ModbusTCPScanner extends TimerTask  {
 				if (epd.getId().equals(id)) {
 					return true;
 				}
-			}
+			};
 		}
 		return false;
 	}

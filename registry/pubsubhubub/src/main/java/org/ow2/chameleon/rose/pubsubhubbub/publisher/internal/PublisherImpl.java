@@ -74,6 +74,9 @@ public class PublisherImpl implements Publisher, EndpointListener {
 
 	@Requires(optional = true)
 	private EventAdmin eventAdmin;
+	
+	@Requires(filter=SERVLET_FACTORY_FILTER)
+	private Factory factoryRssServlet;
 
 	@Requires
 	private RoseMachine rose;
@@ -83,7 +86,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	private ServiceRegistration endpointListener;
 	private ServiceTracker factoryTracker;
 	private ServiceTracker feedWriterTracker;
-	private Dictionary<String, Object> instanceDictionary;
+	private Dictionary<String, Object> instanceServletDictionary;
 	private Map<String, Object> eventProperties;
 	private Event event;
 	private HubPublisher hubPublisher;
@@ -94,10 +97,19 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	}
 
 	@Validate
-	public final void start() throws IOException {
+	public final void start() throws Exception {
 
-		// tracking an FeedWriter and Feed servlet factory
-		startTracking();
+		//prepare RSS servlet instance properties  
+		instanceServletDictionary = new Hashtable<String, Object>();
+		instanceServletDictionary.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
+		instanceServletDictionary.put(
+				"org.ow2.chameleon.syndication.feed.servlet.alias", rssUrl);
+		
+		//create an RSS servlet instance 
+		factoryRssServlet.createComponentInstance(instanceServletDictionary);
+		
+		// tracking an FeedWriter
+		new FeedWriterTracker();
 
 		// Configure an event properties
 		eventProperties = new HashMap<String, Object>();
@@ -111,7 +123,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 		// Register an EndpointListener
 		endpointListener = context.registerService(
 				EndpointListener.class.getName(), this, props);
-		logger.log(LOG_INFO, "EndpointTrackerRSS sucessfully started");
+		logger.log(LOG_INFO, "EndpointTrackerRSS successfully started");
 
 	}
 
@@ -214,68 +226,6 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			// create and send a event
 			event = new Event(RSS_EVENT_TOPIC, eventProperties);
 			eventAdmin.sendEvent(event);
-		}
-	}
-
-	/**
-	 * Run trackers for Feed writer and Feed writer factories.
-	 */
-	private void startTracking() {
-		try {
-			new FeedWriterTracker();
-			new FactoryTracker();
-		} catch (InvalidSyntaxException e) {
-			logger.log(LogService.LOG_ERROR, "Tracker not stared", e);
-		}
-	}
-
-	/**
-	 * Tracker for writer factory.
-	 * 
-	 * @author Bartek
-	 * 
-	 */
-	private class FactoryTracker implements ServiceTrackerCustomizer {
-
-		/**
-		 * Set instance properties and run a tracker.
-		 * 
-		 * @throws InvalidSyntaxException
-		 *             exception
-		 */
-		public FactoryTracker() throws InvalidSyntaxException {
-
-			instanceDictionary = new Hashtable<String, Object>();
-			instanceDictionary.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
-			instanceDictionary.put(
-					"org.ow2.chameleon.syndication.feed.servlet.alias", rssUrl);
-
-			factoryTracker = new ServiceTracker(context,
-					createFilter(SERVLET_FACTORY_FILTER), this);
-			factoryTracker.open();
-		}
-
-		public Object addingService(final ServiceReference reference) {
-			final Factory factory = (Factory) context.getService(reference);
-			try {
-				if (writer == null) {
-					factory.createComponentInstance(instanceDictionary);
-				}
-			} catch (Exception e) {
-				logger.log(LogService.LOG_ERROR,
-						"Error in adding a feed writer", e);
-			}
-			return factory;
-		}
-
-		public void modifiedService(final ServiceReference reference,
-				final Object service) {
-			return;
-		}
-
-		public void removedService(final ServiceReference reference,
-				final Object service) {
-			writer = null;
 		}
 	}
 

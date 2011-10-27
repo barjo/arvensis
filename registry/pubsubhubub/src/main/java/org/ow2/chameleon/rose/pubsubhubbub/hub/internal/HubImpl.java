@@ -81,6 +81,9 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
 	private transient LogService logger;
+	
+	@Requires(filter=FEED_READER_FACTORY_FILTER)
+	private Factory feedReaderFactory;
 
 	@Property(name = INSTANCE_PROPERTY_HUB_URL, mandatory = true)
 	private String hubServlet;
@@ -95,6 +98,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	private transient ServiceTracker feedReaderTracker;
 	private transient BundleContext context;
 	private transient Registrations registrations;
+	
 
 	// client to send notification to subscribers;
 	private transient HttpClient client;
@@ -151,23 +155,11 @@ public class HubImpl extends HttpServlet implements Hub {
 			// check if reader is already available
 			if (sref == null) {
 
-				// find feed reader factory
-				ServiceReference factorySref = context.getServiceReferences(
-						Factory.class.getName(), FEED_READER_FACTORY_FILTER)[0];
-				if (factorySref == null) {
-					logger.log(LogService.LOG_ERROR,
-							"Feed reader factory not found");
-					return false;
-				}
-
-				Factory readerFactory = (Factory) context
-						.getService(factorySref);
-
-				// create instanace
+				// create instance
 				instanceDictionary = new Hashtable<String, Object>();
 				instanceDictionary.put("feed.url", rssUrl);
 				instanceDictionary.put("feed.period", FEED_PERIOD);
-				readerFactory.createComponentInstance(instanceDictionary);
+				feedReaderFactory.createComponentInstance(instanceDictionary);
 
 				sref = context.getServiceReferences(READER_SERVICE_CLASS,
 						readerFilter);

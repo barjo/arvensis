@@ -74,8 +74,8 @@ public class PublisherImpl implements Publisher, EndpointListener {
 
 	@Requires(optional = true)
 	private EventAdmin eventAdmin;
-	
-	@Requires(filter=SERVLET_FACTORY_FILTER)
+
+	@Requires(filter = SERVLET_FACTORY_FILTER)
 	private Factory factoryRssServlet;
 
 	@Requires
@@ -99,15 +99,16 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	@Validate
 	public final void start() throws Exception {
 
-		//prepare RSS servlet instance properties  
+		// prepare RSS servlet instance properties
 		instanceServletDictionary = new Hashtable<String, Object>();
-		instanceServletDictionary.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
+		instanceServletDictionary
+				.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
 		instanceServletDictionary.put(
 				"org.ow2.chameleon.syndication.feed.servlet.alias", rssUrl);
-		
-		//create an RSS servlet instance 
+
+		// create an RSS servlet instance
 		factoryRssServlet.createComponentInstance(instanceServletDictionary);
-		
+
 		// tracking an FeedWriter
 		new FeedWriterTracker();
 

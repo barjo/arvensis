@@ -166,6 +166,9 @@ public class HubImpl extends HttpServlet implements Hub {
 			}
 			// store reader
 			readers.put(rssUrl, (FeedReader) context.getService(sref[0]));
+			
+			//release reference
+			context.ungetService(sref[0]);
 
 		} catch (Exception e) {
 			logger.log(LogService.LOG_ERROR, "Can not create reader for "

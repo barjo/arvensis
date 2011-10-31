@@ -76,11 +76,6 @@
 			<version>0.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.chameleon.json</groupId>
-			<artifactId>json-service</artifactId>
-			<version>${json-service.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 			<version>${javax.servlet.version}</version>

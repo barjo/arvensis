@@ -37,8 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Periodic scan devices between 2 IP:port <br>
- * IP V6 not taken in account
+ * Periodic scan devices between 2 IP V4:port <br>
  * 
  * @author Denis Morand
  * 

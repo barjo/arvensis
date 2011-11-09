@@ -26,6 +26,7 @@
 			<property name="modbus.port" type="int" field="m_port" />
 			<property name="modbus.device.type" type="java.lang.String"
 				value="device.modbus.standard" />
+			<property name="domain.id" type="java.lang.String" />
 		</provides>
 		<properties>
 			<property name="device.ip.address" type="java.lang.String"
@@ -51,6 +52,7 @@
 			<property name="modbus.port" type="int" field="port" />
 			<property name="modbus.device.type" type="java.lang.String"
 				value="device.modbus.schneider" />
+			<property name="domain.id" type="java.lang.String" />
 		</provides>
 		<properties>
 			<property name="device.ip.address" method="setHost" type="java.lang.String"

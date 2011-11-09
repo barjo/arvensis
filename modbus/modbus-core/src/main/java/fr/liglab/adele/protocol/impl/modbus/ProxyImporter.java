@@ -29,9 +29,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.ow2.chameleon.rose.AbstractImporterComponent;
-import org.ow2.chameleon.rose.DynamicImporter;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +37,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Service importer for Service Modbus <br>
  * Standard Modbus or <br>
- * if the device respond to Modbus request 43/14, the Service Modbus is added by
- * identification properties<br>
+ * if the device responds to Modbus request 43/14, the Service Modbus is added
+ * by identification properties<br>
  * 
  * @author Denis Morand
  * 
@@ -75,6 +73,8 @@ public class ProxyImporter extends AbstractImporterComponent {
 			} else
 				instance = modbusFactory.createComponentInstance(props);
 			if (instance != null) {
+				logger.info("Create Proxy Modbus :" + props.get("device.ip.address")
+						+ ":" + props.get("device.ip.port"));
 				ServiceRegistration sr = new ModbusDeviceService(instance);
 				return sr;
 			}
@@ -87,6 +87,11 @@ public class ProxyImporter extends AbstractImporterComponent {
 
 	protected void destroyProxy(EndpointDescription description,
 			ServiceRegistration registration) {
+		if (logger.isDebugEnabled()) {
+			Dictionary props = new Hashtable(description.getProperties());
+			logger.info("Destroy Proxy Modbus :" + props.get("device.ip.address") + ":"
+					+ props.get("device.ip.port"));
+		}
 		registration.unregister();
 	}
 
@@ -121,10 +126,7 @@ public class ProxyImporter extends AbstractImporterComponent {
 		public ModbusDeviceService(ComponentInstance instance) {
 			super();
 			this.instance = instance;
-			if (logger.isDebugEnabled()) {
-				logger.debug("Modbus Proxy instance=" + instance.getInstanceName());
-			}
-
+			logger.debug("Modbus Proxy Service create=" + instance.getInstanceName());
 		}
 
 		public ServiceReference getReference() {
@@ -151,6 +153,7 @@ public class ProxyImporter extends AbstractImporterComponent {
 		}
 
 		public void unregister() {
+			logger.debug("Modbus Proxy Service unregister :" + instance.getInstanceName());
 			instance.dispose();
 		}
 	}

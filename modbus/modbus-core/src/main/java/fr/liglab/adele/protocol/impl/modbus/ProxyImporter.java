@@ -87,7 +87,7 @@ public class ProxyImporter extends AbstractImporterComponent {
 
 	protected void destroyProxy(EndpointDescription description,
 			ServiceRegistration registration) {
-		if (logger.isDebugEnabled()) {
+		if (logger.isInfoEnabled()) {
 			Dictionary props = new Hashtable(description.getProperties());
 			logger.info("Destroy Proxy Modbus :" + props.get("device.ip.address") + ":"
 					+ props.get("device.ip.port"));

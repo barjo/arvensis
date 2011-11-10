@@ -30,7 +30,7 @@ public interface Modbus {
    * JVM flag for debug mode. Can be set passing the system property
    * net.wimpi.modbus.debug=false|true (-D flag to the jvm).
    */
-  public static final String LOGGER_NAME ="protocol.modbus" ;
+  public static final String LOGGER_NAME ="modbus.protocol" ;
   /**
    * Defines the class 0 function code
    * for <tt>read multiple registers</tt>.

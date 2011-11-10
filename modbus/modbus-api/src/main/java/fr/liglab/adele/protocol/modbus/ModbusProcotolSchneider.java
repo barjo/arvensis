@@ -15,6 +15,7 @@
 
 package fr.liglab.adele.protocol.modbus;
 
+import java.util.BitSet;
 import java.util.Map;
 
 /**
@@ -22,10 +23,71 @@ import java.util.Map;
  * @author Denis Morand
  *
  */
-public interface ModbusProcotolSchneider extends ModbusProtocol {
+public interface ModbusProcotolSchneider {
+
+	/**
+	 * Read Holding registers Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , array of register value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
+	 */
+	public Integer[] getRegisters(int unitID, int ref, int count) throws SlaveException;
+
+	/**
+	 * Read Inputs registers Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , array of register value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
+	 */
+	public Integer[] getInputRegisters(int unitID, int ref, int count)
+			throws SlaveException;
+
+	/**
+	 * Read Discrete inputs Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , bit value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
+	 */
+	public BitSet getDiscreteInput(int unitID, int ref, int count) throws SlaveException;
+
+	/**
+	 * Read Coils inputs Modbus
+	 * 
+	 * @param unitID
+	 *            : slave ID address
+	 * @param ref
+	 *            Starting address
+	 * @param count
+	 *            Quantity of registers
+	 * @return Null if Error , bit value
+	 * @throws SlaveException
+	 *             ( see Modbus Application protocol V1.1b )
+	 */
+	public BitSet getCoils(int unitID, int ref, int count) throws SlaveException;
 		
 	/**
-	 * 
+	 * return Empty map if no remote identification
 	 * @return list of identification parameters decoded from request 43/14 
 	 */
 	public Map getIdentification() ;

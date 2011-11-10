@@ -9,49 +9,22 @@
 				value="fr.liglab.adele.modbus.tcp" />
 		</provides>
 		<requires field="roseMachine" />
-		<requires field="modbusFactory" filter="(factory.name=service.modbus.tcp)" />
-		<requires field="modbusFactoryExtended" filter="(factory.name=service.modbus.tcp.schneider)" />
+		<requires field="modbusFactory" filter="(factory.name=service.modbus.tcp.schneider)" />
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />
 	</component>
 
-	<!-- Modbus/TCP Protocol Standard -->
-	<component classname="fr.liglab.adele.protocol.impl.modbus.ModbusProxyImpl"
-		name="service.modbus.tcp">
-		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocol">
+	<!-- Modbus/TCP Protocol Schneider = (Modbus + identification) -->
+	<component
+		classname="fr.liglab.adele.protocol.impl.modbus.ModbusProxySchneiderImpl"
+		name="service.modbus.tcp.schneider">
+		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocolSchneider" />
+		<provides>
 			<property name="rose.protos.configs" type="java.lang.String"
 				value="fr.liglab.adele.modbus.tcp" />
 			<property name="modbus.ip.address" type="java.lang.String"
 				field="m_hostAddress" />
 			<property name="modbus.port" type="int" field="m_port" />
-			<property name="modbus.device.type" type="java.lang.String"
-				value="device.modbus.standard" />
-			<property name="domain.id" type="java.lang.String" />
-		</provides>
-		<properties>
-			<property name="device.ip.address" type="java.lang.String"
-				method="setHost" mandatory="true" />
-			<property name="device.ip.port" type="int" method="setPort"
-				value="502" />
-		</properties>
-		<callback transition="validate" method="start" />
-		<callback transition="invalidate" method="stop" />
-	</component>
-
-	<!-- Modbus/TCP Protocol Schneider -->
-	<component
-		classname="fr.liglab.adele.protocol.impl.modbus.ModbusProxySchneiderImpl"
-		name="service.modbus.tcp.schneider">
-		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocolSchneider" />
-		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocol" />
-		<provides>
-			<property name="rose.protos.configs" type="java.lang.String"
-				value="fr.liglab.adele.modbus.tcp" />
-			<property name="modbus.ip.address" type="java.lang.String"
-				field="hostAddress" />
-			<property name="modbus.port" type="int" field="port" />
-			<property name="modbus.device.type" type="java.lang.String"
-				value="device.modbus.schneider" />
 			<property name="domain.id" type="java.lang.String" />
 		</provides>
 		<properties>

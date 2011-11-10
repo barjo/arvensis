@@ -44,17 +44,16 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ProxyImporter extends AbstractImporterComponent {
-	private static final Logger logger = LoggerFactory.getLogger("protocol.modbus");
+	private static final Logger logger = LoggerFactory.getLogger("modbus.proxy");
 
 	private Factory modbusFactory;
-	private Factory modbusFactoryExtended;
-
 	private BundleContext bcontext;
 
 	private RoseMachine roseMachine;
 
 	public ProxyImporter(BundleContext context) {
 		this.bcontext = context;
+		logger.trace("Proxy importer instancied");
 	}
 
 	public List getConfigPrefix() {
@@ -68,15 +67,15 @@ public class ProxyImporter extends AbstractImporterComponent {
 		Dictionary props = new Hashtable(description.getProperties());
 		ComponentInstance instance;
 		try {
-			if (props.get("device.identification") != null) {
-				instance = modbusFactoryExtended.createComponentInstance(props);
-			} else
-				instance = modbusFactory.createComponentInstance(props);
+			instance = modbusFactory.createComponentInstance(props);
 			if (instance != null) {
 				logger.info("Create Proxy Modbus :" + props.get("device.ip.address")
 						+ ":" + props.get("device.ip.port"));
 				ServiceRegistration sr = new ModbusDeviceService(instance);
 				return sr;
+			}
+			else {
+				logger.error("Proxy creation error, modbus factory return null");
 			}
 		} catch (Exception ex) {
 			logger.error("Proxy creation error" + ex.getStackTrace().toString());
@@ -105,6 +104,7 @@ public class ProxyImporter extends AbstractImporterComponent {
 
 	protected void start() {
 		super.start();
+		logger.debug("Proxy importer started") ;
 	}
 
 	/*
@@ -114,6 +114,7 @@ public class ProxyImporter extends AbstractImporterComponent {
 	 */
 	protected void stop() {
 		super.stop();
+		logger.debug("Proxy importer stopped") ;
 	}
 
 	/**
@@ -134,8 +135,11 @@ public class ProxyImporter extends AbstractImporterComponent {
 				ServiceReference[] references = instance.getContext()
 						.getServiceReferences(instance.getClass().getCanonicalName(),
 								"(instance.name=" + instance.getInstanceName() + ")");
-				if (references != null)
+				if (references != null) {
+					logger.debug("Modbus Proxy Service , getServiceReferences[0]="+references[0].getClass().getName());
 					return references[0];
+				}
+				else logger.error("Modbus proxy service, get Service reference=null");
 			} catch (InvalidSyntaxException e) {
 				logger.error("Proxy instance error" + e.getStackTrace().toString());
 			}

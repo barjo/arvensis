@@ -60,7 +60,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 	private JSONService json;
 
 	@Override
-	public void setUp() throws UnknownHostException {
+	public final void setUp() throws UnknownHostException {
 		
 		super.setUp();
 		

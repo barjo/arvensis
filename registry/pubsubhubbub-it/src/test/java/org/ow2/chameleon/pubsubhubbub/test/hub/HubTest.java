@@ -117,7 +117,8 @@ public class HubTest {
 
 	/**
 	 * Global bundle configuration.
-	 * @return options for paxexam 
+	 * 
+	 * @return options for paxexam
 	 */
 	@Configuration
 	public static Option[] globalConfigure() {
@@ -172,6 +173,7 @@ public class HubTest {
 
 	/**
 	 * Mockito bundles.
+	 * 
 	 * @return options for paxexam contains mockito
 	 */
 	@Configuration
@@ -182,7 +184,7 @@ public class HubTest {
 	/**
 	 * Check hub instance status.
 	 */
-//	@Test
+	// @Test
 	public final void testActivity() {
 		// wait for the service to be available.
 		waitForIt(WAIT_TIME);
@@ -256,8 +258,7 @@ public class HubTest {
 		// prepare endpoints;
 		createEndpoints();
 		// send feed to topic
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
 		waitForIt(WAIT_TIME);
@@ -322,19 +323,16 @@ public class HubTest {
 
 		// send publish notification to Hub
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		// endpoint add
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 		waitForIt(WAIT_TIME);
 		publisher.sendUpdateToHub();
 		waitForIt(WAIT_TIME);
 
 		// endpoint remove
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_REMOVE);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_REMOVE);
 
 		// hub unsuccessfully updated removed endpoint
 		Assert.assertEquals(HttpStatus.SC_ACCEPTED, hubResponseCode);
@@ -393,8 +391,7 @@ public class HubTest {
 
 		// send publish notification to Hub
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -448,8 +445,7 @@ public class HubTest {
 
 		// send publish notification to Hub
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -488,8 +484,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=0)
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -497,8 +492,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// send publish notification to Hub (register endpoint id=1)
-		publisher.addRSSFeed(testEndpoints.get(1),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(1), FEED_TITLE_NEW);
 
 		// send update to hub
 		publisher.sendUpdateToHub();
@@ -544,8 +538,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=0)
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -553,8 +546,7 @@ public class HubTest {
 		publisher.sendUpdateToHub();
 
 		// send publish notification to Hub (register endpoint id=1)
-		publisher.addRSSFeed(testEndpoints.get(1),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(1), FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -562,8 +554,7 @@ public class HubTest {
 		publisher.sendUpdateToHub();
 
 		// send publish notification to Hub (register endpoint id=2)
-		publisher.addRSSFeed(testEndpoints.get(2),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(2), FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -617,8 +608,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=0)
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -626,8 +616,7 @@ public class HubTest {
 		publisher.sendUpdateToHub();
 
 		// send publish notification to Hub (register endpoint id=1)
-		publisher.addRSSFeed(testEndpoints.get(1),
-				FEED_TITLE_NEW);
+		publisher.addRSSFeed(testEndpoints.get(1), FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -642,8 +631,7 @@ public class HubTest {
 
 		// send publish notification to Hub (register endpoint id=2)
 		publisher2.registerPublisher();
-		publisher2.addRSSFeed(testEndpoints.get(2),
-				FEED_TITLE_NEW);
+		publisher2.addRSSFeed(testEndpoints.get(2), FEED_TITLE_NEW);
 
 		waitForIt(WAIT_TIME);
 
@@ -719,7 +707,8 @@ public class HubTest {
 		private String subscriberFullUrl;
 		private List<EndpointTitle> postParameters;
 
-		private TestSubscriber(final String pSubscriberRelativeUrl, final String pFilter) {
+		private TestSubscriber(final String pSubscriberRelativeUrl,
+				final String pFilter) {
 			this.subscriberRelativeUrl = pSubscriberRelativeUrl;
 			this.filter = pFilter;
 			this.postParameters = new ArrayList<HubTest.EndpointTitle>();
@@ -787,7 +776,8 @@ public class HubTest {
 		/**
 		 * Check last update.
 		 * 
-		 * @param expected @EndpointDescription with title to check
+		 * @param expected
+		 *            expected @EndpointDescription with title to check
 		 * @return true if expected values are equal
 		 */
 		private boolean checkUpdate(final EndpointTitle expected) {
@@ -806,7 +796,8 @@ public class HubTest {
 		/**
 		 * Check list of updates.
 		 * 
-		 * @param expectUpdates list of expected @EndpointDescription with title
+		 * @param expectUpdates
+		 *            list of expected @EndpointDescription with title
 		 * 
 		 * @return true if and only if expected values are equal
 		 */
@@ -877,7 +868,6 @@ public class HubTest {
 		private void registerPublisher() {
 			// preparing POST parameters
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			System.out.println("sdfsdf"+HubMode.publish.toString());
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 					HubMode.publish.toString()));
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
@@ -928,7 +918,8 @@ public class HubTest {
 	}
 
 	/**
-	 * Stores Endpoint and Title of update, used in subscriber updates expectations.
+	 * Stores Endpoint and Title of update, used in subscriber updates
+	 * expectations.
 	 * 
 	 * @author Bartek
 	 * 
@@ -937,7 +928,8 @@ public class HubTest {
 		private EndpointDescription endp;
 		private String title;
 
-		public EndpointTitle(final EndpointDescription pEndp, final String pTitle) {
+		public EndpointTitle(final EndpointDescription pEndp,
+				final String pTitle) {
 			super();
 			this.endp = pEndp;
 			this.title = pTitle;

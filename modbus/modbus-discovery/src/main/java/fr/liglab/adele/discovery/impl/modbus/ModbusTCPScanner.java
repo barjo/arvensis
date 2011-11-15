@@ -43,14 +43,13 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ModbusTCPScanner extends TimerTask  {
-	private static final Logger logger = LoggerFactory.getLogger("discovery.modbus");
+	private static final Logger logger = LoggerFactory.getLogger("modbus.discovery");
 
 	private RoseMachine roseMachine;
 	private RemoteServiceAdmin adminService ;
 	private InetAddress startAddress, endAddress;
 	private int m_delay, m_period, m_timeout, m_port;
 	private String m_domainID ;
-
 	private Timer timer;
 	public ModbusTCPScanner(BundleContext bc) {
 		timer = new Timer() ;

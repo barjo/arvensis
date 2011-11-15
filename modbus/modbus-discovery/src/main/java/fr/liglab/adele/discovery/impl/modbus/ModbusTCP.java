@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class ModbusTCP {
-	private static final Logger logger = LoggerFactory.getLogger("discovery.modbus");
+	private static final Logger logger = LoggerFactory.getLogger("modbus.discovery");
 
 	public static final int MBAP_LENGTH = 6;
 	public static final int LENGTH_MODBUS_FRAME = 255;

@@ -57,7 +57,7 @@ public class ModbusProxySchneiderImpl implements ModbusProcotolSchneider {
 
 	private Map m_identification;
 
-	private static final Logger logger = LoggerFactory.getLogger("protocol.modbus");
+	private static final Logger logger = LoggerFactory.getLogger("modbus.protocol");
 
 	private InetAddress m_host;
 	protected String m_hostAddress;
@@ -107,11 +107,11 @@ public class ModbusProxySchneiderImpl implements ModbusProcotolSchneider {
 				transaction = new ModbusTCPTransaction(connection);
 				transaction.setReconnecting(true);
 
-				if (logger.isDebugEnabled()) {
+				if (logger.isInfoEnabled()) {
 					StringBuffer sb = new StringBuffer("Connection [");
 					sb.append(m_host.getHostAddress()).append(":").append(m_port)
 							.append("]");
-					logger.debug(sb.toString());
+					logger.info(sb.toString());
 				}
 			} catch (Exception e) {
 				/* Should never append */

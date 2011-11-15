@@ -15,11 +15,15 @@
 
 package fr.liglab.adele.protocol.impl.modbus;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
@@ -29,7 +33,12 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ImportReference;
+import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.ow2.chameleon.rose.AbstractImporterComponent;
+import org.ow2.chameleon.rose.DynamicImporter;
+import org.ow2.chameleon.rose.DynamicImporterCustomizer;
+import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +56,16 @@ public class ProxyImporter extends AbstractImporterComponent {
 	private static final Logger logger = LoggerFactory.getLogger("modbus.proxy");
 
 	private Factory modbusFactory;
-	private BundleContext bcontext;
-
 	private RoseMachine roseMachine;
+	private final DynamicImporter dynaimp;
+	private final ProxyRanker ranker;
+	private String m_urlProperties;
 
-	public ProxyImporter(BundleContext context) {
-		this.bcontext = context;
+	public ProxyImporter(BundleContext context) throws InvalidSyntaxException {
+		ranker = new ProxyRanker();
+		dynaimp = new DynamicImporter.Builder(context,
+				"(service.imported=fr.liglab.adele.modbus.tcp)")
+				.protocol(getConfigPrefix()).customizer(ranker).build();
 		logger.trace("Proxy importer instancied");
 	}
 
@@ -64,7 +77,9 @@ public class ProxyImporter extends AbstractImporterComponent {
 
 	protected ServiceRegistration createProxy(EndpointDescription description,
 			Map<String, Object> extraProperties) {
-		Dictionary props = new Hashtable(description.getProperties());
+
+		Hashtable props = new Hashtable(description.getProperties());
+		props.putAll(extraProperties);
 		ComponentInstance instance;
 		try {
 			instance = modbusFactory.createComponentInstance(props);
@@ -73,8 +88,7 @@ public class ProxyImporter extends AbstractImporterComponent {
 						+ ":" + props.get("device.ip.port"));
 				ServiceRegistration sr = new ModbusDeviceService(instance);
 				return sr;
-			}
-			else {
+			} else {
 				logger.error("Proxy creation error, modbus factory return null");
 			}
 		} catch (Exception ex) {
@@ -104,17 +118,16 @@ public class ProxyImporter extends AbstractImporterComponent {
 
 	protected void start() {
 		super.start();
-		logger.debug("Proxy importer started") ;
+		ranker.start();
+		dynaimp.start();
+		logger.debug("Proxy importer started");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.ow2.chameleon.rose.AbstractImporterComponent#stop()
-	 */
 	protected void stop() {
 		super.stop();
-		logger.debug("Proxy importer stopped") ;
+		dynaimp.stop();
+		ranker.stop();
+		logger.debug("Proxy importer stopped");
 	}
 
 	/**
@@ -136,10 +149,11 @@ public class ProxyImporter extends AbstractImporterComponent {
 						.getServiceReferences(instance.getClass().getCanonicalName(),
 								"(instance.name=" + instance.getInstanceName() + ")");
 				if (references != null) {
-					logger.debug("Modbus Proxy Service , getServiceReferences[0]="+references[0].getClass().getName());
+					logger.debug("Modbus Proxy Service , getServiceReferences[0]="
+							+ references[0].getClass().getName());
 					return references[0];
-				}
-				else logger.error("Modbus proxy service, get Service reference=null");
+				} else
+					logger.error("Modbus proxy service, get Service reference=null");
 			} catch (InvalidSyntaxException e) {
 				logger.error("Proxy instance error" + e.getStackTrace().toString());
 			}
@@ -160,5 +174,67 @@ public class ProxyImporter extends AbstractImporterComponent {
 			logger.debug("Modbus Proxy Service unregister :" + instance.getInstanceName());
 			instance.dispose();
 		}
+	}
+
+	/* OSGI Ranker */
+	private class ProxyRanker implements DynamicImporterCustomizer {
+		private Properties devicesProps;
+
+		public ProxyRanker() {
+		}
+
+		public void start() {
+			logger.info("Proxy ranker started");
+			devicesProps = new Properties();
+			try {
+				devicesProps.load(new URL(m_urlProperties).openStream());
+				logger.debug("Properties read " + devicesProps.toString());
+			} catch (MalformedURLException e) {
+				logger.error("Invalid URL");
+			} catch (IOException e) {
+				logger.debug("file " + m_urlProperties + " not existing");
+			}
+
+		}
+
+		public void stop() {
+		}
+
+		public ImportReference[] getImportReferences()
+				throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
+
+		public Object doImport(ImporterService importer, EndpointDescription description,
+				Map<String, Object> properties) {
+			setRank(properties, description);
+			ImportRegistration registration = importer.importService(description,
+					properties);
+			ImportReference iref = registration.getImportReference();
+			return registration;
+		}
+
+		public void unImport(ImporterService importer, EndpointDescription description,
+				Object registration) {
+			ImportRegistration regis = (ImportRegistration) registration;
+			regis.close();
+		}
+
+		public void setRank(Map properties, EndpointDescription description) {
+			Map props = description.getProperties();
+			String key = (String) props.get("device.ip.address");
+			if (key != null) {
+				String value = devicesProps.getProperty(key);
+				try {
+					Integer.parseInt(value);
+					properties.put(org.osgi.framework.Constants.SERVICE_RANKING, value);
+					logger.debug("device=" + key + " 'service.ranking=" + value);
+				} catch (NumberFormatException e) {
+					logger.error("Malformed number in device properties file " + key
+							+ " value =" + value);
+				}
+			}
+		}
+
 	}
 }

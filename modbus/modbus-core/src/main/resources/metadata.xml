@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Copyright Adele Team LIG Licensed under the Apache License, Version 
+	2.0 (the "License"); you may not use this file except in compliance with 
+	the License. You may obtain a copy of the License at    
+	http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. 
+-->
 <ipojo>
-
 	<!-- Factory Modbus Service or Modbus Schneider Service Proxy -->
 	<component classname="fr.liglab.adele.protocol.impl.modbus.ProxyImporter"
 		name="factory.proxy.service.modbus">
@@ -8,6 +17,10 @@
 			<property type="java.lang.String" name="rose.protos.configs"
 				value="fr.liglab.adele.modbus.tcp" />
 		</provides>
+		<properties>
+			<property name="devices.properties" type="java.lang.String"
+				field="m_urlProperties" value="file:load/devices.properties" />
+		</properties>
 		<requires field="roseMachine" />
 		<requires field="modbusFactory" filter="(factory.name=service.modbus.tcp.schneider)" />
 		<callback transition="validate" method="start" />
@@ -20,6 +33,7 @@
 		name="service.modbus.tcp.schneider">
 		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocolSchneider" />
 		<provides>
+			<property name="service.ranking" value="0" type="java.lang.Integer" />
 			<property name="rose.protos.configs" type="java.lang.String"
 				value="fr.liglab.adele.modbus.tcp" />
 			<property name="modbus.ip.address" type="java.lang.String"

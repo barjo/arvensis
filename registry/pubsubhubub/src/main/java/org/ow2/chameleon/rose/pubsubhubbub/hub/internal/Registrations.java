@@ -8,20 +8,36 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
+/**
+ * Keep all informations about registered rss topics with related endpoints and
+ * subscribers with related endpoints filters.
+ * 
+ * @author Bartek
+ * 
+ */
 public class Registrations {
 
 	// topic name, endpoint descriptions
 	private Map<String, Set<EndpointDescription>> topics;
-	// subscriber name(callBackUrl), filter
+
 	private Map<String, EndpointsByFilter> subscribers;
 	private ReentrantReadWriteLock lock;
 
+	/**
+	 * Main constructor.
+	 */
 	public Registrations() {
 		topics = new ConcurrentHashMap<String, Set<EndpointDescription>>();
 		subscribers = new ConcurrentHashMap<String, EndpointsByFilter>();
 		lock = new ReentrantReadWriteLock();
 	}
 
+	/**
+	 * Add new topic.
+	 * 
+	 * @param rssURL
+	 *            publisher rss topic url
+	 */
 	public final void addTopic(final String rssURL) {
 		lock.writeLock().lock();
 		try {
@@ -31,6 +47,14 @@ public class Registrations {
 		}
 	}
 
+	/**
+	 * Add endpoint to topic.
+	 * 
+	 * @param rssUrl
+	 *            publisher rss topic url
+	 * @param endp
+	 * @EndpointDescription description to add
+	 */
 	public final void addEndpoint(final String rssUrl,
 			final EndpointDescription endp) {
 		lock.writeLock().lock();
@@ -38,6 +62,14 @@ public class Registrations {
 		lock.writeLock().unlock();
 	}
 
+	/**
+	 * Remove endpoint to topic.
+	 * 
+	 * @param rssUrl
+	 *            publisher rss topic url
+	 * @param endp
+	 * @EndpointDescription description to remove
+	 */
 	public final void removeEndpoint(final String rssUrl,
 			final EndpointDescription endp) {
 		lock.writeLock().lock();
@@ -45,6 +77,14 @@ public class Registrations {
 		lock.writeLock().unlock();
 	}
 
+	/**
+	 * Create new subscription with endpoint filter.
+	 * 
+	 * @param callBackUrl
+	 *            subscriber full url address to send notifications
+	 * @param endpointFilter
+	 *            filter to specify endpoints
+	 */
 	public final void addSubscrition(final String callBackUrl,
 			final String endpointFilter) {
 		lock.writeLock().lock();
@@ -55,6 +95,12 @@ public class Registrations {
 		}
 	}
 
+	/**
+	 * Remove subscription.
+	 * 
+	 * @param callBackUrl
+	 *            subscriber full url address to send notifications
+	 */
 	public final void removeSubscribtion(final String callBackUrl) {
 		lock.writeLock().lock();
 		try {
@@ -86,6 +132,14 @@ public class Registrations {
 		return matchedEndpointDescriptions;
 	}
 
+	/**
+	 * Provides information about registered subscribers whose endpoints filters
+	 * matches given @EndpointDescription.
+	 * 
+	 * @param endp
+	 * @EndpointDescription to search
+	 * @return subscribers with matching endpoint filter
+	 */
 	public final Set<String> getSubscribersByEndpoint(
 			final EndpointDescription endp) {
 		Set<String> matchedSubscribers = new HashSet<String>();
@@ -101,15 +155,24 @@ public class Registrations {
 		return matchedSubscribers;
 	}
 
+	/**
+	 * Provides information about registered subscribers and their subscribed
+	 * endpoints by checking if given publisher provides interested @EndpointDescription.
+	 * 
+	 * @param rssUrl
+	 *            subscriber full RSS url address to send notifications
+	 * @return @Map containing subscriber full url address to send notifications
+	 *         and their @EndpointDescription
+	 */
 	public final Map<String, Set<EndpointDescription>> getEndpointsAndSubscriberByPublisher(
-			final String callBackUrl) {
+			final String rssUrl) {
 
 		Map<String, Set<EndpointDescription>> subscriberEndpoints = new ConcurrentHashMap<String, Set<EndpointDescription>>();
 		lock.readLock().lock();
 		for (String subscriber : subscribers.keySet()) {
 			subscriberEndpoints.put(subscriber,
 					new HashSet<EndpointDescription>());
-			for (EndpointDescription endpoint : topics.get(callBackUrl)) {
+			for (EndpointDescription endpoint : topics.get(rssUrl)) {
 				if (subscribers.get(subscriber).getEndpoints()
 						.contains(endpoint)) {
 					subscriberEndpoints.get(subscriber).add(endpoint);
@@ -120,6 +183,11 @@ public class Registrations {
 		return subscriberEndpoints;
 	}
 
+	/**
+	 * Provides all registered @EndpointSescription.
+	 * 
+	 * @return all @EndpointSescription
+	 */
 	public final Set<EndpointDescription> getAllEndpoints() {
 
 		Set<EndpointDescription> allEndpoints = new HashSet<EndpointDescription>();
@@ -131,6 +199,12 @@ public class Registrations {
 		return allEndpoints;
 	}
 
+	/**
+	 * Removes particular topic.
+	 * 
+	 * @param rssURL
+	 *            publisher rss topic url to delete
+	 */
 	public final void clearTopic(final String rssURL) {
 		lock.readLock().lock();
 		for (EndpointDescription endpoint : topics.get(rssURL)) {
@@ -143,6 +217,14 @@ public class Registrations {
 		lock.readLock().unlock();
 	}
 
+	/**
+	 * Removes particular @EndpointSescription from subscriber registration.
+	 * 
+	 * @param callBackUrl
+	 *            subscriber full url address to send notifications
+	 * @param edp
+	 * @EndpointSescription to remove
+	 */
 	public final void removeInterestedEndpoint(final String callBackUrl,
 			final EndpointDescription edp) {
 		lock.writeLock().lock();
@@ -150,6 +232,13 @@ public class Registrations {
 		lock.writeLock().unlock();
 	}
 
+	/**
+	 * Keeps connection between particular filter and @EndpointSescription which
+	 * satisfies it.
+	 * 
+	 * @author Bartek
+	 * 
+	 */
 	private static class EndpointsByFilter {
 		private String filter;
 		private Set<EndpointDescription> matchedEndpoints;

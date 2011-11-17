@@ -110,23 +110,32 @@ public class SendSubscription extends Thread {
 	 */
 
 	private void sendAfterSubscribe() {
-		for (EndpointDescription endp : server.registrations()
-				.getEndpointsForCallBackUrl(this.callBackUrl)) {
-			sendUpdate(endp, this.callBackUrl);
+		try {
+			for (EndpointDescription endp : server.registrations()
+					.getEndpointsForCallBackUrl(this.callBackUrl)) {
+				sendUpdate(endp, this.callBackUrl);
+			}
+		} finally {
+			server.registrations().releaseReadLock();
 		}
+
 	}
 
 	/**
 	 * Send an endpointDescriptions after publisher update.
 	 */
 	private void sendAfterPublisherUpdate() {
-		for (String callBackURL : server.registrations()
-				.getSubscribersByEndpoint(this.edp)) {
-			sendUpdate(edp, callBackURL);
-			if (updateOption.equals("endpoint.remove")) {
-				server.registrations().removeInterestedEndpoint(callBackURL,
-						edp);
+		try {
+			for (String callBackURL : server.registrations()
+					.getSubscribersByEndpoint(this.edp)) {
+				sendUpdate(edp, callBackURL);
+				if (updateOption.equals("endpoint.remove")) {
+					server.registrations().removeInterestedEndpoint(
+							callBackURL, edp);
+				}
 			}
+		} finally {
+			server.registrations().releaseReadLock();
 		}
 
 	}
@@ -135,15 +144,17 @@ public class SendSubscription extends Thread {
 	 * Send a remove endpointDescription to subscribers when topic is deleted.
 	 */
 	private void sendAfterTopicDelete() {
-		final Map<String, Set<EndpointDescription>> subscriberEndpoins = server
-				.registrations().getEndpointsAndSubscriberByPublisher(rssURL);
+		try {
+			for (Map.Entry<String, Set<EndpointDescription>> entry : server
+					.registrations()
+					.getEndpointsAndSubscriberByPublisher(rssURL).entrySet()) {
+				for (EndpointDescription endpoint : entry.getValue()) {
+					sendUpdate(endpoint, entry.getKey());
+				}
 
-		for (Map.Entry<String, Set<EndpointDescription>> entry : subscriberEndpoins
-				.entrySet()) {
-			for (EndpointDescription endpoint : entry.getValue()) {
-				sendUpdate(endpoint, entry.getKey());
 			}
-
+		} finally {
+			server.registrations().releaseReadLock();
 		}
 		server.registrations().clearTopic(this.rssURL);
 	}

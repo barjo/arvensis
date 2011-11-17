@@ -111,7 +111,8 @@ public class Registrations {
 	}
 
 	/**
-	 * Get all endpoints which match a filter.
+	 * Get all endpoints which match a filter. Does not unlock read lock. Call
+	 * {@link Registrations#releaseReadLock()} after "consume" returned values}.
 	 * 
 	 * @param callBackUrl
 	 *            subscriber full url address to send notifications
@@ -128,13 +129,13 @@ public class Registrations {
 				subscribers.get(callBackUrl).addEndpoint(endpoint);
 			}
 		}
-		lock.readLock().unlock();
 		return matchedEndpointDescriptions;
 	}
 
 	/**
 	 * Provides information about registered subscribers whose endpoints filters
-	 * matches given @EndpointDescription.
+	 * matches given @EndpointDescription. Does not unlock read lock. Call
+	 * {@link Registrations#releaseReadLock()} after "consume" returned values}.
 	 * 
 	 * @param endp
 	 * @EndpointDescription to search
@@ -151,13 +152,16 @@ public class Registrations {
 				subscribers.get(subscriber).addEndpoint(endp);
 			}
 		}
-		lock.readLock().unlock();
 		return matchedSubscribers;
 	}
 
 	/**
 	 * Provides information about registered subscribers and their subscribed
-	 * endpoints by checking if given publisher provides interested @EndpointDescription.
+	 * endpoints by checking if given publisher provides interested
+	 * 
+	 * @EndpointDescription.Does not unlock read lock. Call
+	 *                           {@link Registrations#releaseReadLock()} after
+	 *                           "consume" returned values}.
 	 * 
 	 * @param rssUrl
 	 *            subscriber full RSS url address to send notifications
@@ -179,7 +183,6 @@ public class Registrations {
 				}
 			}
 		}
-		lock.readLock().unlock();
 		return subscriberEndpoints;
 	}
 
@@ -230,6 +233,13 @@ public class Registrations {
 		lock.writeLock().lock();
 		subscribers.get(callBackUrl).removeEndpoint(edp);
 		lock.writeLock().unlock();
+	}
+
+	/**
+	 * Releases read lock for current thread
+	 */
+	public final void releaseReadLock() {
+		lock.readLock().unlock();
 	}
 
 	/**

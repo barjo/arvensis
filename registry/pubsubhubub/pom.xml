@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.ow2.chameleon.rose</groupId>
+	<artifactId>pubsubhubbub</artifactId>
+	<name>OW2 Chameleon - Pubsubhubub</name>
+	<version>0.1.0-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+
+
+	<properties>
+		<!-- Dependencies version -->
+		<ipojo.version>1.8.0</ipojo.version>
+		<osgi.version>4.2.0</osgi.version>
+		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
+		<json-service.version>0.4.0</json-service.version>
+		<javax.servlet.version>2.5</javax.servlet.version>
+
+		<!-- Plugins version -->
+		<bundle.plugin.version>2.3.4</bundle.plugin.version>
+		<compiler.plugin.version>2.1</compiler.plugin.version>
+		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+
+		<!-- Encoding -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<!-- Project dependencies -->
+	<dependencies>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<version>${osgi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo</artifactId>
+			<version>${ipojo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<version>${ipojo.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${javax.servlet.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.enterprise</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.rose</groupId>
+			<artifactId>rose-core</artifactId>
+			<version>${rose.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.syndication</groupId>
+			<artifactId>rome</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.syndication</groupId>
+			<artifactId>syndication-service</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${javax.servlet.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-osgi</artifactId>
+			<version>4.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.syndication</groupId>
+			<artifactId>rome</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.syndication</groupId>
+			<artifactId>syndication-service</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.chameleon.json</groupId>
+			<artifactId>json-service</artifactId>
+			<version>${json-service.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>cobertura</groupId>
+			<artifactId>cobertura</artifactId>
+			<version>1.9rc1</version>
+		</dependency>
+	</dependencies>
+
+	<!-- Project repositories -->
+	<repositories>
+		<repository>
+			<id>objectweb-release</id>
+
+			<name>ow2 Maven Repository</name>
+			<url>http://maven.ow2.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>objectweb-snapshot</id>
+			<name>ow2 Maven Repository</name>
+			<url>http://maven.ow2.org/maven2-snapshot</url>
+
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<!-- Build configuration -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>${bundle.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>
+							${project.artifactId}
+						</Bundle-SymbolicName>
+						<Import-Package>org.ow2.chameleon.rose.util,
+							net.sourceforge.cobertura.coveragedata.*,
+							net.sourceforge.cobertura.util.*,*</Import-Package>
+						<Export-Package>
+							org.ow2.chameleon.rose.pubsubhubbub.hub,
+							org.ow2.chameleon.rose.pubsubhubbub.publisher,
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber,
+							org.ow2.chameleon.rose.pubsubhubbub.constants,net.sourceforge.cobertura.coveragedata.*,
+							net.sourceforge.cobertura.util.*
+						</Export-Package>
+						<Private-Package>
+							org.ow2.chameleon.rose.pubsubhubbub.hub.internal,
+							org.ow2.chameleon.rose.pubsubhubbub.publisher.internal,
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal							
+						</Private-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-ipojo-plugin</artifactId>
+				<version>${ipojo.plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>ipojo-bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${compiler.plugin.version}</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+

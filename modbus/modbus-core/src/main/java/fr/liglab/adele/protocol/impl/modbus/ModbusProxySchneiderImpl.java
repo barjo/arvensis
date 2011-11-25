@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import net.wimpi.modbus.ModbusException;
@@ -62,12 +63,14 @@ public class ModbusProxySchneiderImpl implements ModbusProcotolSchneider {
 	private InetAddress m_host;
 	protected String m_hostAddress;
 	protected int m_port;
+	private Map m_infoDebug;
 
 	private TCPMasterConnection connection = null; /* the connection */
 	private ModbusTCPTransaction transaction = null; /* the transaction */
 
 	public ModbusProxySchneiderImpl(BundleContext bc) {
 		m_identification = Collections.EMPTY_MAP;
+		m_infoDebug = new HashMap();
 	}
 
 	private void setIdentification(Map ident) {
@@ -106,16 +109,17 @@ public class ModbusProxySchneiderImpl implements ModbusProcotolSchneider {
 				connection.connect();
 				transaction = new ModbusTCPTransaction(connection);
 				transaction.setReconnecting(true);
-
-				if (logger.isInfoEnabled()) {
-					StringBuffer sb = new StringBuffer("Connection [");
-					sb.append(m_host.getHostAddress()).append(":").append(m_port)
-							.append("]");
-					logger.info(sb.toString());
-				}
+				
+				StringBuffer sb = new StringBuffer();
+				sb.append( connection.getAddress().getHostAddress()).append(":").append(connection.getPort());
+				m_infoDebug.put("inet.address",sb.toString());
+				logger.info("Device connection address :"+sb.toString());
+				
 			} catch (Exception e) {
 				/* Should never append */
-				logger.error("TCP/IP connection failure =" + m_host.getHostAddress());
+				String msg = "TCP/IP connection failure =" + m_host.getHostAddress() ;
+				logger.error(msg);
+				m_infoDebug.put("inet.address",msg);
 			}
 		}
 	}
@@ -126,6 +130,7 @@ public class ModbusProxySchneiderImpl implements ModbusProcotolSchneider {
 				connection.close();
 			}
 		}
+		m_infoDebug.clear();
 	}
 
 	public Integer[] getRegisters(int unitID, int ref, int count) throws SlaveException {
@@ -275,4 +280,8 @@ public class ModbusProxySchneiderImpl implements ModbusProcotolSchneider {
 		return bits;
 	}
 
+	public Map getDebugInfo() {
+		return Collections.unmodifiableMap(m_infoDebug);
+	}
+	
 }

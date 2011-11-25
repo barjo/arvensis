@@ -91,4 +91,9 @@ public interface ModbusProcotolSchneider {
 	 * @return list of identification parameters decoded from request 43/14 
 	 */
 	public Map getIdentification() ;
+	
+	/** 
+	 * Return for Debug purpose only !
+	 */
+	public Map getDebugInfo() ;
 }

@@ -184,7 +184,6 @@ public class ProxyImporter extends AbstractImporterComponent {
 		}
 
 		public void start() {
-			logger.info("Proxy ranker started");
 			devicesProps = new Properties();
 			try {
 				devicesProps.load(new URL(m_urlProperties).openStream());
@@ -194,7 +193,6 @@ public class ProxyImporter extends AbstractImporterComponent {
 			} catch (IOException e) {
 				logger.debug("file " + m_urlProperties + " not existing");
 			}
-
 		}
 
 		public void stop() {
@@ -235,6 +233,5 @@ public class ProxyImporter extends AbstractImporterComponent {
 				}
 			}
 		}
-
 	}
 }

@@ -34,7 +34,7 @@ import org.ow2.chameleon.testing.helpers.OSGiHelper;
  * @author Bartek
  * 
  */
-public class AbstractTestConfiguration {
+public abstract class AbstractTestConfiguration {
 
 	@Inject
 	private BundleContext context;

@@ -4,6 +4,8 @@ import static java.lang.Integer.valueOf;
 import static java.util.Arrays.asList;
 import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
 
 import java.net.URI;
 import java.util.Dictionary;
@@ -37,11 +39,6 @@ import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 @Provides(specifications={ExporterService.class,ExporterIntrospection.class})
 public class EndpointCreator extends AbstractExporterComponent implements ExporterService,ExporterIntrospection {
 	
-	/**
-	 * Property containing the URL of the JSONRPC orb.
-	 */
-	private final static String PROP_JABSORB_URL = "org.jabsorb.url";
-	
     /**
      * Default value for the {@link EndpointCreator#PROP_HTTP_PORT} property.
      */
@@ -55,7 +52,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	/**
 	 * Configuration supported by this component
 	 */
-	@ServiceProperty(name=ENDPOINT_CONFIG_PREFIX,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
+	@ServiceProperty(name=ENDPOINT_CONFIG,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
 	private String[] configs;
 	
     /**
@@ -178,7 +175,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 			logger.log( LOG_WARNING, "A default value ("+
 					    DEFAULT_HTTP_PORT + 
 					    ") has been set to the http port, this could lead to a bad " +
-						PROP_JABSORB_URL + " property value.");
+					    ENDPOINT_URL + " property value.");
 		}
 	}
 	
@@ -212,7 +209,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 			Map<String, Object> extraProperties) {
 
 		//Set the url property
-		extraProperties.put(PROP_JABSORB_URL, myurl);
+		extraProperties.put(ENDPOINT_URL, myurl);
 		
 		//create the endpoint description
 		EndpointDescription desc = new EndpointDescription(sref, extraProperties);

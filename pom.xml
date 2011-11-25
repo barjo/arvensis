@@ -10,6 +10,8 @@
 		<module>testing</module>
 		<module>configurator/configurator-json</module>
 		<module>jax-rs/jersey-exporter</module>
+		<module>jax-ws/cxf-exporter</module>
+		<module>jax-ws/cxf-exporter-it</module>
 		<module>json-rpc/jabsorb-exporter</module>
 		<module>json-rpc/jabsorb-importer</module>
 		<module>json-rpc/jabsorb-exporter-it</module>

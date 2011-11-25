@@ -2,7 +2,8 @@ package org.ow2.chameleon.rose.jsonrpc;
 
 import static org.junit.Assert.fail;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,8 +28,7 @@ import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
  */
 @RunWith(JUnit4TestRunner.class)
 public class ExporterTest extends ExporterComponentAbstractTest {
-    private static final String FILTER="("+ENDPOINT_CONFIG_PREFIX+"=jsonrpc)";
-    private static final String PROP_JABSORB_URL="org.jabsorb.url";
+    private static final String FILTER="("+ENDPOINT_CONFIG+"=jsonrpc)";
 
     @Before
     public void setUp() {
@@ -59,7 +59,7 @@ public class ExporterTest extends ExporterComponentAbstractTest {
     	EndpointDescription description = xreg.getExportReference().getExportedEndpoint();
 
     	try {
-			session = new HTTPSession(new URI((String) description.getProperties().get(PROP_JABSORB_URL)));
+			session = new HTTPSession(new URI((String) description.getProperties().get(ENDPOINT_URL)));
 		} catch (URISyntaxException e) {
 			fail("Bad Url computation"+e.getMessage());
 		}

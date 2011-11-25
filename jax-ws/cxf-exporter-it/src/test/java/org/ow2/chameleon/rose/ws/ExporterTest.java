@@ -5,7 +5,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.CoreOptions.systemPackages;
 import static org.ops4j.pax.exam.OptionUtils.combine;
-import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
@@ -19,6 +19,7 @@ import org.ops4j.pax.exam.junit.JUnit4TestRunner;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.RoSeConstants;
 import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
 
 /**
@@ -27,8 +28,7 @@ import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
  */
 @RunWith(JUnit4TestRunner.class)
 public class ExporterTest extends ExporterComponentAbstractTest {
-    private static final String FILTER="("+ENDPOINT_CONFIG_PREFIX+"=jax-ws)";
-    //private static final String PROP_CXF_URL="org.cxf.url";
+    private static final String FILTER="("+ENDPOINT_CONFIG+"=jax-ws)";
     
     @Before
     public void setUp() {
@@ -109,7 +109,7 @@ public class ExporterTest extends ExporterComponentAbstractTest {
 			factory.getInInterceptors().add(new LoggingInInterceptor());
 			factory.getOutInterceptors().add(new LoggingOutInterceptor());
 			factory.setServiceClass(itface);
-			factory.setAddress("http://localhost:" + HTTP_PORT + "/jaxws/"+description.getId());
+			factory.setAddress((String) description.getProperties().get(RoSeConstants.ENDPOINT_URL));
 			proxy = (T) factory.create();
 			
 		} catch (Exception e) {

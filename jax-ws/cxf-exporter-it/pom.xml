@@ -11,7 +11,7 @@
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose.ws</groupId>
 	<artifactId>cxf-exporter-it</artifactId>
-	<name>OW2 Chameleon - RoSe CXF Exporter[IntegrationTest]</name>
+	<name>OW2 Chameleon - RoSe JAX-WS Exporter[IntegrationTest]</name>
 	<version>0.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<description>OW2 Chameleon RoSe CXF Exporter Integration Test, contains the RoSe Apache Cxf exporter integration test</description>

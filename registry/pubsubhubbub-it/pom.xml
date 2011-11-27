@@ -4,12 +4,18 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.ow2.chameleon.rss</groupId>
+	<!-- Project's parent -->
+	<parent>
+		<groupId>org.ow2.chameleon</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>0.3.2</version>
+	</parent>
+	
+	<groupId>org.ow2.chameleon.rose.registry</groupId>
 	<artifactId>pubsubhubbub-it</artifactId>
-
 	<version>0.1.0-SNAPSHOT</version>
+	<name>OW2 Chameleon - RoSe Pubsubhubub Registry[IntegrationTest]</name>
 	<packaging>jar</packaging>
-
 
 	<properties>
 		<!-- Dependencies version -->
@@ -34,9 +40,6 @@
 
 		<!-- Tested version -->
 		<pubsubhubbub.version>0.1.0-SNAPSHOT</pubsubhubbub.version>
-		
-
-
 	</properties>
 
 	<!-- Project dependencies -->
@@ -72,16 +75,6 @@
 			<version>4.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.chameleon.syndication</groupId>
-			<artifactId>rome</artifactId>
-			<version>0.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.ow2.chameleon.syndication</groupId>
-			<artifactId>syndication-service</artifactId>
-			<version>0.2.0</version>
-		</dependency>
-		<dependency>
 			<groupId>org.ow2.chameleon.json</groupId>
 			<artifactId>json-service-json.org</artifactId>
 			<version>${json-service.version}</version>
@@ -115,7 +108,7 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.syndication</groupId>
 			<artifactId>rome</artifactId>
-			<version>0.2.1</version><!-- patched -->
+			<version>0.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
@@ -124,7 +117,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.ow2.chameleon.rose</groupId>
+			<groupId>org.ow2.chameleon.rose.registry</groupId>
 			<artifactId>pubsubhubbub</artifactId>
 			<version>${pubsubhubbub.version}</version>
 			<scope>test</scope>
@@ -215,31 +208,14 @@
 	<!-- Project repositories -->
 	<repositories>
 		<repository>
-			<id>objectweb-release</id>
-
+			<id>objectweb-public</id>
 			<name>ow2 Maven Repository</name>
-			<url>http://maven.ow2.org/maven2</url>
+			<url>http://repository.ow2.org/nexus/content/repositories/public</url>
 			<releases>
 				<enabled>true</enabled>
-
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
-		<repository>
-			<id>objectweb-snapshot</id>
-			<name>ow2 Maven Repository</name>
-			<url>http://maven.ow2.org/maven2-snapshot</url>
-
-			<releases>
-				<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-
-				<updatePolicy>daily</updatePolicy>
 			</snapshots>
 		</repository>
 		<repository>
@@ -247,7 +223,6 @@
 			<name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</repository>
-
 		<repository>
 			<id>com.springsource.repository.bundles.external</id>
 			<name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>

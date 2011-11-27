@@ -137,7 +137,7 @@ public abstract class AbstractTestConfiguration {
 						.versionAsInProject(),
 				mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc")
 						.artifactId("jabsorb-exporter").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose")
+				mavenBundle().groupId("org.ow2.chameleon.rose.registry")
 						.artifactId("pubsubhubbub").versionAsInProject()
 
 		));

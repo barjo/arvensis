@@ -1,5 +1,7 @@
 package org.ow2.chameleon.pubsubhubbub.test.hub;
 
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.ops4j.pax.exam.CoreOptions.felix;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
@@ -9,8 +11,19 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
 import static org.ow2.chameleon.pubsubhubbub.test.clients.AbstractTestConfiguration.waitForIt;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.*;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_NEW;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_CONTENT;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
+import static org.ow2.chameleon.syndication.FeedReader.FEED_TITLE_PROPERTY;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -52,9 +65,9 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseEndpointDescription;
+import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.syndication.FeedEntry;
-import org.ow2.chameleon.syndication.FeedReader;
 import org.ow2.chameleon.syndication.FeedWriter;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
@@ -101,8 +114,7 @@ public class HubTest {
 
 		initMocks(this);
 
-		hubUrl = "http://" + InetAddress.getLocalHost().getHostName() + ":8080"
-				+ HUB_RELATIVE_PATH;
+		hubUrl = "http://localhost:8080" + HUB_RELATIVE_PATH;
 
 		// get http service
 		http = (HttpService) osgi.getServiceObject(HttpService.class.getName(),
@@ -158,7 +170,7 @@ public class HubTest {
 						.versionAsInProject(),
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
 						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose")
+				mavenBundle().groupId("org.ow2.chameleon.rose.registry")
 						.artifactId("pubsubhubbub").versionAsInProject(),
 				mavenBundle().groupId("org.apache.felix")
 						.artifactId("org.apache.felix.eventadmin")
@@ -208,10 +220,9 @@ public class HubTest {
 		publisher = new TestPublisher("/rss");
 		publisher.registerPublisher();
 		// hub can not register the publisher, because of rss topic not found
-		Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, hubResponseCode);
+		Assert.assertEquals(SC_BAD_REQUEST, hubResponseCode);
 		// stop publisher
 		publisher.stop();
-
 	}
 
 	/**
@@ -231,10 +242,9 @@ public class HubTest {
 		publisher.registerPublisher();
 
 		// hub successfully register a publisher
-		Assert.assertEquals(HttpStatus.SC_CREATED, hubResponseCode);
+		Assert.assertEquals(SC_CREATED, hubResponseCode);
 		// stop publisher
 		publisher.stop();
-
 	}
 
 	/**
@@ -820,15 +830,9 @@ public class HubTest {
 
 		public TestPublisher(final String pRelativeRssUrl) {
 			this.relativeRssUrl = pRelativeRssUrl;
-			try {
-				// creating full url address to rss topic
-				this.fullRssUrl = "http://"
-						+ InetAddress.getLocalHost().getHostAddress() + ":8080"
-						+ pRelativeRssUrl;
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-				Assert.fail("Publisher creation error");
-			}
+			
+			// creating full url address to rss topic
+			this.fullRssUrl = "http://localhost:8080"+ pRelativeRssUrl;
 		}
 
 		public void addRSSFeed(final EndpointDescription endpointDescription,
@@ -850,7 +854,7 @@ public class HubTest {
 		private void createRSSTopic() {
 			// create RSS topic
 			Dictionary<String, String> rssServletProps = new Hashtable<String, String>();
-			rssServletProps.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
+			rssServletProps.put(FEED_TITLE_PROPERTY, "RoseRss");
 			rssServletProps.put(
 					"org.ow2.chameleon.syndication.feed.servlet.alias",
 					relativeRssUrl);

@@ -4,7 +4,9 @@ import static java.lang.Integer.valueOf;
 import static org.osgi.service.log.LogService.LOG_DEBUG;
 import static org.osgi.service.log.LogService.LOG_ERROR;
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
@@ -26,6 +28,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.RoSeConstants;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 import org.ow2.chameleon.rose.rest.provider.ManagedComponentProvider;
@@ -58,12 +61,18 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 */
 	private final static String PROP_HTTP_PORT = "org.osgi.service.http.port";
 
-	private static final String PROP_PATH = "jaxrs.pathname";
+	//relative path
+	private static String PROP_PATH = "path";
+
+	/**
+     * Resources representation will be publish under this URL.
+     */
+    private String myurl;
 
 	/**
 	 * Configuration supported by this component
 	 */
-	@ServiceProperty(name = ENDPOINT_CONFIG_PREFIX, mandatory = true, value = "{jersey,jax-rs,jaxrs,rest}")
+	@ServiceProperty(name = ENDPOINT_CONFIG, mandatory = true, value = "{jersey,jax-rs,jaxrs,rest}")
 	private String[] configs = { "jersey", "jax-rs", "jaxrs", "rest" };
 
 	@Requires(optional = true)
@@ -116,6 +125,13 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	@Validate
 	protected void start() {
 		super.start();
+		
+		//compute the PROP_CXF_URL property
+        try {
+			myurl = new URI("http://"+machine.getHost()+":"+httpport+rootName+"/").toString(); //compute the url
+		} catch (Exception e) {
+			logger.log(LOG_ERROR, "Cannot create the URL of the JAX-WS server, this will lead to incomplete EndpointDescription.",e);
+		}
 	}
 
 	/**
@@ -213,8 +229,9 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 
 		//check if class is annotated by @Path
 		if (klass.isAnnotationPresent(Path.class)) {
+			extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class));
 			// Set the url property
-			extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class)
+			extraProperties.put(RoSeConstants.ENDPOINT_URL,myurl+"/"+klass.getAnnotation(Path.class)
 					.value());
 		} else {
 			//Works only with jax-rs annotations.

@@ -3,7 +3,7 @@ package org.ow2.chameleon.rose;
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.framework.FrameworkUtil.createFilter;
-import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 
 import java.util.HashMap;
 import java.util.List;
@@ -104,7 +104,7 @@ public class DynamicExporter {
 			sb.append("(|");
 			for (String string : protocols) {
 				sb.append("(");
-				sb.append(ENDPOINT_CONFIG_PREFIX);
+				sb.append(ENDPOINT_CONFIG);
 				sb.append("=");
 				sb.append(string);
 				sb.append(")");

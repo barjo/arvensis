@@ -81,6 +81,13 @@ public class Configurator implements ArtifactInstaller{
 
 	public void install(File file) throws Exception {
 		String name = file.getName();
+
+		//GUARD - If the configuration already exists update
+		if (confs.containsKey(name)){
+			update(file);
+			return;
+		}
+		
 		logger.log(LOG_INFO, "Start to load configuration file: "+name);
 		
 		Map<String, Object> json;

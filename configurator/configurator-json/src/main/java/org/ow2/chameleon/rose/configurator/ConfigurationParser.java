@@ -29,9 +29,7 @@ import org.ow2.chameleon.rose.DynamicImporter;
 /**
  * Create a RoseConfiguration object for a given Map based configuration. 
  **/
-public class ConfigurationParser {
-	public static int confnum = 0;
-	
+public class ConfigurationParser {	
 	private static final String MACHINE_COMPONENT = "RoSe_machine";
 	
 	private final BundleContext context;
@@ -96,6 +94,8 @@ public class ConfigurationParser {
 	public enum InToken {
 		endpoint_filter,
 		importer_filter,
+		protocol,
+		customizer,
 		properties;
 		
 		public Object getValue(Map<String,Object> values){
@@ -111,6 +111,7 @@ public class ConfigurationParser {
 		service_filter,
 		exporter_filter,
 		protocol,
+		customizer_filter,
 		properties;
 		
 		public Object getValue(Map<String,Object> values){
@@ -147,7 +148,7 @@ public class ConfigurationParser {
 		}
 		
 		properties.put(ROSE_MACHINE_ID, id);
-		properties.put("instance.name", MACHINE_COMPONENT+"-"+confnum+"_"+id);
+		properties.put("instance.name", MACHINE_COMPONENT+"_"+id);
 		
 		//Get & Set host
 		if (host.isIn(json)){
@@ -178,7 +179,7 @@ public class ConfigurationParser {
 			
 			//Set a machine related instance name if in a machine
 			if (machineId != null){
-				properties.put("instance.name", component+"-"+confnum+"_"+machineId);
+				properties.put("instance.name", component+"_"+machineId);
 			}
 		
 			//Optional
@@ -205,6 +206,11 @@ public class ConfigurationParser {
 				String endpoint = (String) endpoint_filter.getValue(inmap);
 				DynamicImporter.Builder builder = new DynamicImporter.Builder(context, endpoint);
 			
+				//Optional protocols
+				if (InToken.protocol.isIn(inmap)){
+					builder.protocol((List<String>) InToken.protocol.getValue(inmap));
+				}
+				
 				//Optional IMPORTER_FILTER
 				if (importer_filter.isIn(inmap)){
 				builder.importerFilter((String) importer_filter.getValue(inmap));
@@ -233,12 +239,15 @@ public class ConfigurationParser {
 				if (exporter_filter.isIn(outmap)){
 					builder.exporterFilter((String) exporter_filter.getValue(outmap));
 				}
-				
-				
 			
 				//optional PROPERTIES
 				if(OutToken.properties.isIn(outmap)){
 					builder.extraProperties((Map) OutToken.properties.getValue(outmap));
+				}
+				
+				//optional Customizer
+				if (OutToken.customizer_filter.isIn(outmap)){
+					//TODO
 				}
 				
 				conf.add(new DExporterConfiguration(builder.build()));
@@ -249,10 +258,6 @@ public class ConfigurationParser {
 
 	public RoseConfiguration parse(Map<String, Object> json,String machineId) throws InvalidSyntaxException, ParseException {
 		GlobalRoseConfiguration conf = new GlobalRoseConfiguration();
-		
-		if (machineId == null){ //incremente conf number
-			confnum++;
-		}
 		
 		//Parse each entry
 		for (String key : json.keySet()) {

@@ -1,5 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- Project's parent -->
+	<parent>
+		<groupId>org.ow2.chameleon</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>0.3.2</version>
+	</parent>
+	
 	<groupId>org.ow2.chameleon.rose</groupId>
 	<artifactId>rose-reactor</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -7,14 +15,46 @@
 	<packaging>pom</packaging>	
 	<modules>
 		<module>core</module>
-		<module>testing</module>
 		<module>configurator/configurator-json</module>
 		<module>jax-rs/jersey-exporter</module>
+		<module>jax-ws/cxf-exporter</module>
 		<module>json-rpc/jabsorb-exporter</module>
 		<module>json-rpc/jabsorb-importer</module>
-		<module>json-rpc/jabsorb-exporter-it</module>
-		<module>json-rpc/jabsorb-importer-it</module>
-		<module>registry/zookeeper-registry</module>
 	</modules>
+
+	<profiles>
+
+		<!-- Profile used to build core bundles-->
+		<profile>
+			<id>core</id>
+			<modules>
+				<module>core</module>
+				<module>configurator/configurator-json</module>
+			</modules>
+		</profile>
+
+		<!-- Profile used to build protocol bundles-->
+		<profile>
+			<id>protocol</id>
+			<modules>
+				<module>jax-rs/jersey-exporter</module>
+				<module>jax-ws/cxf-exporter</module>
+				<module>json-rpc/jabsorb-exporter</module>
+				<module>json-rpc/jabsorb-importer</module>
+				<module>registry/zookeeper-registry</module>
+			</modules>
+		</profile>
+
+		<!-- Profile used in order to run the integration tests -->
+		<profile>
+			<id>test</id>
+			<modules>
+				<module>testing</module>
+				<module>jax-ws/cxf-exporter-it</module>
+				<module>json-rpc/jabsorb-exporter-it</module>
+				<module>json-rpc/jabsorb-importer-it</module>
+			</modules>
+		</profile>
+	</profiles>
 </project>
 

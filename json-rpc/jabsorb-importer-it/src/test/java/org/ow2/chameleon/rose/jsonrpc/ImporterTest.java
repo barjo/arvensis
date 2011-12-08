@@ -5,7 +5,8 @@ import static org.ops4j.pax.swissbox.tinybundles.core.TinyBundles.newBundle;
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.ImporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,7 @@ import org.ow2.chameleon.rose.testing.ImporterComponentAbstractTest;
  */
 @RunWith(JUnit4TestRunner.class)
 public class ImporterTest extends ImporterComponentAbstractTest {
-    private static final String FILTER="("+ENDPOINT_CONFIG_PREFIX+"=jsonrpc)";
-    private static final String PROP_JABSORB_URL="org.jabsorb.url";
+    private static final String FILTER="("+ENDPOINT_CONFIG+"=jsonrpc)";
     protected static final String SERVLETNAME ="/JSONRPC";
     
 
@@ -71,7 +71,7 @@ public class ImporterTest extends ImporterComponentAbstractTest {
         JSONRPCBridge jsonbridge = JSONRPCBridge.getGlobalBridge();
 		
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(PROP_JABSORB_URL, "http://localhost:"+HTTP_PORT+SERVLETNAME);
+        props.put(ENDPOINT_URL, "http://localhost:"+HTTP_PORT+SERVLETNAME);
         props.put(ENDPOINT_ID, endpointId);
         props.put(OBJECTCLASS, new String[]{klass.getName()});
         props.put(SERVICE_IMPORTED_CONFIGS, "jsonrpc");

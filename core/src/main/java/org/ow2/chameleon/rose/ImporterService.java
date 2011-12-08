@@ -16,8 +16,6 @@ import org.osgi.service.remoteserviceadmin.ImportRegistration;
  */
 public interface ImporterService {
 
-	String ENDPOINT_CONFIG_PREFIX = "rose.protos.configs";
-
 	/**
 	 * Reify the endpoint of given description as a local service.
 	 * 

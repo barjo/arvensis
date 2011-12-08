@@ -5,6 +5,7 @@ import static org.osgi.framework.Constants.SERVICE_PID;
 import static org.osgi.framework.Constants.SERVICE_RANKING;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 import static org.ow2.chameleon.rose.util.RoseTools.getAllExporter;
 import static org.ow2.chameleon.rose.util.RoseTools.getAllImporter;
 
@@ -225,7 +226,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		
 		for (String conf : endpoint.getConfigurationTypes()) {
 			filterb.append("(");
-			filterb.append(ImporterService.ENDPOINT_CONFIG_PREFIX);
+			filterb.append(ENDPOINT_CONFIG);
 			filterb.append("=");
 			filterb.append(conf);
 			filterb.append(")");

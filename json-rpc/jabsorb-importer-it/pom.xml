@@ -5,8 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- Project's parent -->
-	<!-- <parent> <groupId>org.ow2.chameleon</groupId> <artifactId>parent-pom</artifactId> 
-		<version>0.2.2</version> </parent> -->
+	<parent>
+		<groupId>org.ow2.chameleon</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>0.3.2</version>
+	</parent>
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
@@ -62,31 +65,14 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
-			<id>objectweb-release</id>
-
+			<id>objectweb-public</id>
 			<name>ow2 Maven Repository</name>
-			<url>http://maven.ow2.org/maven2</url>
+			<url>http://repository.ow2.org/nexus/content/repositories/public</url>
 			<releases>
 				<enabled>true</enabled>
-
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
-		<repository>
-			<id>objectweb-snapshot</id>
-			<name>ow2 Maven Repository</name>
-			<url>http://maven.ow2.org/maven2-snapshot</url>
-
-			<releases>
-				<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-
-				<updatePolicy>daily</updatePolicy>
 			</snapshots>
 		</repository>
 	</repositories>

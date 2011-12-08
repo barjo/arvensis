@@ -2,6 +2,8 @@ package org.ow2.chameleon.rose.jsonrpc;
 
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
 import static org.ow2.chameleon.rose.util.RoseTools.registerProxy;
 
 import java.net.URI;
@@ -36,15 +38,9 @@ import org.ow2.chameleon.rose.util.RoseTools;
 @Provides(specifications={ImporterService.class})
 public class ProxyCreator extends AbstractImporterComponent{
 	/**
-	 * Property containing the URL of the JSONRPC orb.
-	 */
-	private final static String PROP_JABSORB_URL = "org.jabsorb.url";
-	
-	
-	/**
 	 * Configuration supported by this component
 	 */
-	@ServiceProperty(name=ENDPOINT_CONFIG_PREFIX,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
+	@ServiceProperty(name=ENDPOINT_CONFIG,mandatory=true,value="{json-rpc,jsonrpc,org.jabsorb}")
 	private String[] CONFIGS;
 	
 	/**
@@ -77,9 +73,9 @@ public class ProxyCreator extends AbstractImporterComponent{
         final Client client;
         
     	// Get the endpoint properties
-    	String uri = valueOf(description.getProperties().get(PROP_JABSORB_URL));
+    	String uri = valueOf(description.getProperties().get(ENDPOINT_URL));
         if (uri == null){
-         	uri = valueOf(properties.get(PROP_JABSORB_URL));
+         	uri = valueOf(properties.get(ENDPOINT_URL));
         }
         
         //Try to load the class
@@ -96,7 +92,7 @@ public class ProxyCreator extends AbstractImporterComponent{
         	MyHttpSession session = new MyHttpSession(new URI(uri));
             client = new MyClient(session);
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("The property" + PROP_JABSORB_URL + "must be set and a valid String form of the endpoint URL", e);
+            throw new IllegalArgumentException("The property" + ENDPOINT_URL + "must be set and a valid String form of the endpoint URL", e);
         }
         
 

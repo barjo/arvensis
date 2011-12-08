@@ -5,7 +5,13 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,6 +42,7 @@ public class AbstractImporterComponentTest {
 	//Mock object
 	@Mock LogService logservice;
 	@Mock RoseMachine machine;
+	@Mock Importer importermock;
 	
 	//Tested Object
 	TestedClass creator;
@@ -75,12 +82,17 @@ public class AbstractImporterComponentTest {
 	 * Test the {@link ImporterService#importService(EndpointDescription, Map)
 	 * importService(mock desc,null)} while the proxy-creator is valid.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testImportServiceWhileValid(){
 		EndpointDescription desc = mock(EndpointDescription.class);
 		
 		creator.start(); //validate the simulated instance
 		ImportRegistration reg = creator.importService(desc, null);
+
+		//verify that createProxy has been called
+		verify(importermock,times(1)).createProxy(eq(desc), anyMap());
+
 		
 		assertEquals(1, creator.nbProxies()); //Verify that the create method has been called
 		
@@ -91,12 +103,51 @@ public class AbstractImporterComponentTest {
 		
 		reg.close(); //UnImport !
 		
+		//verify that the destroyproxy method has been called only once
+		verify(importermock,times(1)).destroyProxy(eq(desc), any(ServiceRegistration.class));
+		
 		assertNull(reg.getImportReference()); //Now that is has been closed
 		assertTrue(creator.getAllImportReference().isEmpty()); //No more ImportReferences, that was the last registration
 
 		assertEquals(0, creator.nbProxies()); //Verify that the destroy method has been called
 		
 		creator.stop(); //Invalidate the instance
+	}
+	
+	/**
+	 * Test the {@link ImporterService#importService(EndpointDescription, Map)
+	 * importService(mock desc,null)} while the proxy-creator is valid and then stop the importer.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testImportServiceWhileValidAndThenStop(){
+		EndpointDescription desc = mock(EndpointDescription.class);
+		
+		creator.start(); //validate the simulated instance
+		ImportRegistration reg = creator.importService(desc, null);
+		
+		//verify that createProxy has been called
+		verify(importermock,times(1)).createProxy(eq(desc), anyMap());
+		
+		assertEquals(1, creator.nbProxies()); //Verify that the create method has been called
+		
+		ImportReference iref = reg.getImportReference(); //get the ImportReference
+		
+		assertNotNull(iref); //Import is a success
+		assertNull(reg.getException()); //No Exception
+		
+		creator.stop(); //stop the importer
+		
+		//verify that the destroyproxy method has been called only once
+		verify(importermock,times(1)).destroyProxy(eq(desc), any(ServiceRegistration.class));
+		
+		assertNull(reg.getImportReference().getImportedEndpoint()); //Now that is has been closed
+		assertTrue(creator.getAllImportReference().isEmpty()); //No more ImportReferences, that was the last registration
+
+		assertEquals(0, creator.nbProxies()); //Verify that the destroy method has been called
+		
+		//No unexpected call to destroy or import
+		verifyNoMoreInteractions(importermock);
 	}
 	
 	/**
@@ -231,6 +282,8 @@ public class AbstractImporterComponentTest {
 				Map<String, Object> extraProperties) {
 			ServiceRegistration reg = mock(ServiceRegistration.class);
 			regs.add(reg);
+			
+			importermock.createProxy(description, extraProperties); //for test purpose
 			return reg;
 		}
 
@@ -238,6 +291,7 @@ public class AbstractImporterComponentTest {
 		protected void destroyProxy(EndpointDescription description,
 				ServiceRegistration registration) {
 			regs.remove(registration);
+			importermock.destroyProxy(description, registration); //for test purpose
 		}
 
 		
@@ -267,5 +321,10 @@ public class AbstractImporterComponentTest {
 		protected RoseMachine getRoseMachine() {
 			return machine;
 		}
+	}
+	
+	private interface Importer {
+		ServiceRegistration createProxy(EndpointDescription description, Map<String, Object> extraProperties);
+		void destroyProxy(EndpointDescription description, ServiceRegistration registration);
 	}
 }

@@ -3,8 +3,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<parent> <groupId>org.ow2.chameleon</groupId> <artifactId>parent-pom</artifactId> 
-		<version>0.2.2</version> </parent> 
+	<!-- Project's parent -->
+	<parent>
+		<groupId>org.ow2.chameleon</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>0.3.2</version>
+	</parent>
 
 	<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
 	<artifactId>jabsorb-importer</artifactId>
@@ -27,20 +31,20 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
   
-  <!--Project Repository -->
-  <repositories>
-    <repository>
-      <id>ow2-release</id>
-      <name>ow2 Maven Repository</name>
-      <url>http://maven.ow2.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
+	<!-- Project repositories -->
+	<repositories>
+		<repository>
+			<id>objectweb-public</id>
+			<name>ow2 Maven Repository</name>
+			<url>http://repository.ow2.org/nexus/content/repositories/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>

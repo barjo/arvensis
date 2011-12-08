@@ -6,7 +6,7 @@ import static org.osgi.framework.Constants.SERVICE_PID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
 
@@ -163,7 +163,7 @@ public final class RoseTools {
 	public static List<ExporterService> getAllExporter(BundleContext context) {
 
 		try {
-			return getAllExporter(context, "(" + ENDPOINT_CONFIG_PREFIX + "=*)");
+			return getAllExporter(context, "(" + ENDPOINT_CONFIG + "=*)");
 		} catch (InvalidSyntaxException e) {
 			assert false; // What would Dr. Gordon Freeman do ?
 		}
@@ -204,7 +204,7 @@ public final class RoseTools {
 	public static List<ImporterService> getAllImporter(BundleContext context) {
 		try {
 			return getAllImporter(context, "("
-					+ ImporterService.ENDPOINT_CONFIG_PREFIX + "=*)");
+					+ ENDPOINT_CONFIG + "=*)");
 		} catch (InvalidSyntaxException e) {
 			assert false; // What would Dr. Gordon Freeman do ?
 		}

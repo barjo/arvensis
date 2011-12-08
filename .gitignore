@@ -11,3 +11,6 @@
 maven-eclipse.xml
 target
 
+# Mac OsX  #
+##########
+.DS_Store

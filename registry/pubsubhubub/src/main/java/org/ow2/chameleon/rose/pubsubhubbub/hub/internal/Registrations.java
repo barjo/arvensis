@@ -230,9 +230,7 @@ public class Registrations {
 	 */
 	public final void removeInterestedEndpoint(final String callBackUrl,
 			final EndpointDescription edp) {
-		lock.writeLock().lock();
 		subscribers.get(callBackUrl).removeEndpoint(edp);
-		lock.writeLock().unlock();
 	}
 
 	/**

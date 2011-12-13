@@ -1,5 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
+import static  org.osgi.service.log.LogService.LOG_ERROR;
+import static  org.osgi.service.log.LogService.LOG_INFO;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
@@ -118,9 +120,10 @@ public class HubImpl extends HttpServlet implements Hub {
 			feedReaderTracker = new ServiceTracker(context,
 					FeedReader.class.getName(), new FeedReaderTracker());
 			feedReaderTracker.open();
+			logger.log(LOG_INFO, "Pubsubhubbub successfully starts");
 
 		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Error in starting a hub", e);
+			logger.log(LOG_ERROR, "Error in starting a hub", e);
 		}
 	}
 
@@ -128,6 +131,8 @@ public class HubImpl extends HttpServlet implements Hub {
 	public final void stop() {
 		feedReaderTracker.close();
 		httpService.unregister(hubServlet);
+		logger.log(LOG_INFO, "Pubsubhubbub successfully stops");
+
 	}
 
 	/**
@@ -171,7 +176,7 @@ public class HubImpl extends HttpServlet implements Hub {
 			context.ungetService(sref[0]);
 
 		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Can not create reader for "
+			logger.log(LOG_ERROR, "Can not create reader for "
 					+ rssUrl, e);
 			return false;
 		}
@@ -238,6 +243,7 @@ public class HubImpl extends HttpServlet implements Hub {
 				// register a topic
 				registrations.addTopic(rssUrl);
 				responseCode = HttpStatus.SC_CREATED;
+				logger.log(LOG_INFO, "Successfully register publisher from: "+rssUrl);
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			}
@@ -252,6 +258,7 @@ public class HubImpl extends HttpServlet implements Hub {
 						HUB_UPDATE_TOPIC_DELETE);
 				subscription.start();
 				responseCode = HttpStatus.SC_ACCEPTED;
+				logger.log(LOG_INFO, "Successfully removed publisher from: "+rssUrl);
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			}
@@ -283,9 +290,10 @@ public class HubImpl extends HttpServlet implements Hub {
 					subscription.start();
 				}
 				responseCode = HttpStatus.SC_ACCEPTED;
+				logger.log(LOG_INFO, "Received update from "+rssUrl);
 			} catch (ParseException e) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
-				logger.log(LogService.LOG_ERROR, "Update false", e);
+				logger.log(LOG_ERROR, "Update false", e);
 			}
 			break;
 
@@ -295,6 +303,7 @@ public class HubImpl extends HttpServlet implements Hub {
 			} else {
 				registrations.addSubscrition(callBackUrl, endpointFilter);
 				responseCode = HttpStatus.SC_CREATED;
+				logger.log(LOG_INFO, "Successfully register subscriber from  "+callBackUrl + "with filer: "+endpointFilter);
 				// check if already register an endpoint which matches the
 				// filter
 
@@ -312,6 +321,8 @@ public class HubImpl extends HttpServlet implements Hub {
 			}
 			registrations.removeSubscribtion(callBackUrl);
 			responseCode = HttpStatus.SC_ACCEPTED;
+			logger.log(LOG_INFO, "Successfully removed subscriber from  "+callBackUrl);
+
 			break;
 
 		case getAllEndpoints:

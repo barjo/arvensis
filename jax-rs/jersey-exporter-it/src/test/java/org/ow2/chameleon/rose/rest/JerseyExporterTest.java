@@ -1,7 +1,7 @@
 package org.ow2.chameleon.rose.rest;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ow2.chameleon.rose.ExporterService.ENDPOINT_CONFIG_PREFIX;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -19,7 +19,7 @@ import org.ow2.chameleon.rose.testing.ExporterComponentAbstractTest;
  */
 @RunWith(JUnit4TestRunner.class)
 public class JerseyExporterTest extends ExporterComponentAbstractTest {
-    private static final String FILTER="("+ENDPOINT_CONFIG_PREFIX+"=rest)";
+    private static final String FILTER="("+ENDPOINT_CONFIG+"=rest)";
 
     @Before
     public void setUp() {

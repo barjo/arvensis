@@ -90,6 +90,8 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	private Map<String, Object> eventProperties;
 	private Event event;
 	private HubPublisher hubPublisher;
+	private int feedNumber;
+	private StringBuilder feedContent;
 
 	public PublisherImpl(final BundleContext pContext) {
 		super();
@@ -99,6 +101,9 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	@Validate
 	public final void start() throws Exception {
 
+		feedContent = new StringBuilder();
+		feedNumber = 0;
+		
 		// prepare RSS servlet instance properties
 		instanceServletDictionary = new Hashtable<String, Object>();
 		instanceServletDictionary
@@ -152,21 +157,28 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	 */
 	public final void endpointAdded(final EndpointDescription endp,
 			final String filter) {
+		//TODO remove logging
+		System.out.println("Demo service available at: "+ System.nanoTime());
 		if (writer == null) {
 			logger.log(LOG_WARNING,
 					"Rss feed not published, Rss writer not found");
 			return;
 		}
 		final FeedEntry feed = writer.createFeedEntry();
+		feedNumber++;
+		//number of digits in feed number,feed number,endpoint description
+		feedContent.append((int)(Math.log10(feedNumber)+1));
+		feedContent.append(feedNumber);
+		feedContent.append(json.toJSON(endp.getProperties()));
 		feed.title(FEED_TITLE_NEW);
-		feed.content(json.toJSON(endp.getProperties()));
+		feed.content(feedContent.toString());
 		feed.url(rssUrl);
+		feedContent.setLength(0);
 		try {
 			// publish a feed
 			writer.addEntry(feed);
 			// sending an event
 			sendEndpointEvent(FEED_TITLE_NEW, json.toJSON(endp.getProperties()));
-
 			hubPublisher.update();
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updating a feed", e);
@@ -189,8 +201,14 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			return;
 		}
 		final FeedEntry feed = writer.createFeedEntry();
+		feedNumber++;
+		//number of digits in feed number,feed number,endpoint description
+		feedContent.append((int)(Math.log10(feedNumber)+1));
+		feedContent.append(feedNumber);
+		feedContent.append(json.toJSON(endp.getProperties()));
 		feed.title(FEED_TITLE_REMOVE);
-		feed.content(json.toJSON(endp.getProperties()));
+		feed.content(feedContent.toString());
+		feedContent.setLength(0);
 		try {
 			// publish a feed
 			writer.addEntry(feed);
@@ -200,7 +218,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 
 			hubPublisher.update();
 		} catch (IOException e) {
-			logger.log(LOG_WARNING, "Error in updateing a feed", e);
+			logger.log(LOG_WARNING, "Error in updating a feed", e);
 		} catch (Exception e) {
 			logger.log(LOG_WARNING, "Error in sending a feed", e);
 		}

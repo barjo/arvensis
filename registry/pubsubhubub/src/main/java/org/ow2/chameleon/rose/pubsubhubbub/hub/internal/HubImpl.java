@@ -1,7 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
-import static  org.osgi.service.log.LogService.LOG_ERROR;
-import static  org.osgi.service.log.LogService.LOG_INFO;
+import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
@@ -26,7 +26,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -77,7 +76,7 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	@Requires
 	private transient HttpService httpService;
-	
+
 	@Requires
 	private transient JSONService json;
 
@@ -94,7 +93,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	private int responseCode;
 
 	// store instances of RSS reader for different topics
-	private Map<Object, FeedReader> readers;
+	private Map<Object, ReaderWithFeedIndex> readers;
 	private Dictionary<String, Object> instanceDictionary;
 	private transient SendSubscription subscription;
 	private transient ServiceTracker feedReaderTracker;
@@ -113,7 +112,7 @@ public class HubImpl extends HttpServlet implements Hub {
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
 			registrations = new Registrations();
-			readers = new HashMap<Object, FeedReader>();
+			readers = new HashMap<Object, ReaderWithFeedIndex>();
 			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
 
 			// start tracking for all feed readers
@@ -164,20 +163,21 @@ public class HubImpl extends HttpServlet implements Hub {
 				instanceDictionary.put("feed.url", rssUrl);
 				instanceDictionary.put("feed.period", FEED_PERIOD);
 				feedReaderFactory.createComponentInstance(instanceDictionary);
-
 				sref = context.getServiceReferences(READER_SERVICE_CLASS,
 						readerFilter);
 
 			}
 			// store reader
-			readers.put(rssUrl, (FeedReader) context.getService(sref[0]));
-			
-			//release reference
+			readers.put(
+					rssUrl,
+					new ReaderWithFeedIndex((FeedReader) context
+							.getService(sref[0])));
+
+			// release reference
 			context.ungetService(sref[0]);
 
 		} catch (Exception e) {
-			logger.log(LOG_ERROR, "Can not create reader for "
-					+ rssUrl, e);
+			logger.log(LOG_ERROR, "Can not create reader for " + rssUrl, e);
 			return false;
 		}
 
@@ -225,6 +225,8 @@ public class HubImpl extends HttpServlet implements Hub {
 		String endpointFilter;
 		String callBackUrl;
 		FeedEntry feed;
+		int feedIndex = 0;
+		int feedIndexDigit = 0;
 
 		// check the content type, must be application/x-www-form-urlencoded
 		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
@@ -243,7 +245,8 @@ public class HubImpl extends HttpServlet implements Hub {
 				// register a topic
 				registrations.addTopic(rssUrl);
 				responseCode = HttpStatus.SC_CREATED;
-				logger.log(LOG_INFO, "Successfully register publisher from: "+rssUrl);
+				logger.log(LOG_INFO, "Successfully register publisher from: "
+						+ rssUrl);
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			}
@@ -258,7 +261,8 @@ public class HubImpl extends HttpServlet implements Hub {
 						HUB_UPDATE_TOPIC_DELETE);
 				subscription.start();
 				responseCode = HttpStatus.SC_ACCEPTED;
-				logger.log(LOG_INFO, "Successfully removed publisher from: "+rssUrl);
+				logger.log(LOG_INFO, "Successfully removed publisher from: "
+						+ rssUrl);
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			}
@@ -269,15 +273,33 @@ public class HubImpl extends HttpServlet implements Hub {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
-			feed = readers.get(rssUrl).getLastEntry();
+			feed = readers.get(rssUrl).getFeedReader().getLastEntry();
 			if (feed == null) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
+			// retrieve feed index from feed content
+			feedIndexDigit = getFeedIndexDigit(feed.content());
+			feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
+			while (readers.get(rssUrl).getFeedIndex() != feedIndex) {
+				try {
+					Thread.sleep(10);
+					// try to get newest feed
+					feed = readers.get(rssUrl).getFeedReader().getLastEntry();
+					// update index from new feed
+					feedIndexDigit = getFeedIndexDigit(feed.content());
+					feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 			try {
 				@SuppressWarnings("unchecked")
 				EndpointDescription edp = getEndpointDescriptionFromJSON(json
-						.fromJSON(feed.content()));
+						.fromJSON(feed.content().substring(feedIndexDigit + 1,
+								feed.content().length())));
+				logger.log(LOG_INFO, "Received update from " + rssUrl + ", "
+						+ feed.title() + " : " + edp);
 				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpoint(rssUrl, edp);
 					subscription = new SendSubscription(client, edp,
@@ -289,8 +311,8 @@ public class HubImpl extends HttpServlet implements Hub {
 							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this);
 					subscription.start();
 				}
+				readers.get(rssUrl).increaseIndex();
 				responseCode = HttpStatus.SC_ACCEPTED;
-				logger.log(LOG_INFO, "Received update from "+rssUrl);
 			} catch (ParseException e) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				logger.log(LOG_ERROR, "Update false", e);
@@ -303,7 +325,8 @@ public class HubImpl extends HttpServlet implements Hub {
 			} else {
 				registrations.addSubscrition(callBackUrl, endpointFilter);
 				responseCode = HttpStatus.SC_CREATED;
-				logger.log(LOG_INFO, "Successfully register subscriber from  "+callBackUrl + "with filer: "+endpointFilter);
+				logger.log(LOG_INFO, "Successfully register subscriber from  "
+						+ callBackUrl + "with filer: " + endpointFilter);
 				// check if already register an endpoint which matches the
 				// filter
 
@@ -321,7 +344,8 @@ public class HubImpl extends HttpServlet implements Hub {
 			}
 			registrations.removeSubscribtion(callBackUrl);
 			responseCode = HttpStatus.SC_ACCEPTED;
-			logger.log(LOG_INFO, "Successfully removed subscriber from  "+callBackUrl);
+			logger.log(LOG_INFO, "Successfully removed subscriber from  "
+					+ callBackUrl);
 
 			break;
 
@@ -340,6 +364,31 @@ public class HubImpl extends HttpServlet implements Hub {
 			break;
 		}
 		resp.setStatus(responseCode);
+	}
+
+	/**
+	 * Gets feed index digit from feed content.
+	 * 
+	 * @param pContent
+	 *            feed content
+	 * @return number of digits in index
+	 */
+	private int getFeedIndexDigit(String pContent) {
+		return Integer.parseInt(pContent.substring(0, 1));
+
+	}
+
+	/**
+	 * Gets feed index from feed content.
+	 * 
+	 * @param pContent
+	 *            feed content
+	 * @param pFeedIndexDigit
+	 *            number of digits in index number
+	 * @return feed index
+	 */
+	private int getFeedIndex(String pContent, int pFeedIndexDigit) {
+		return Integer.parseInt(pContent.substring(1, pFeedIndexDigit + 1));
 	}
 
 	public final JSONService json() {
@@ -368,7 +417,7 @@ public class HubImpl extends HttpServlet implements Hub {
 					.getProperty(FeedReader.FEED_URL_PROPERTY)))) {
 				readers.put(
 						reference.getProperty(FeedReader.FEED_URL_PROPERTY),
-						reader);
+						new ReaderWithFeedIndex(reader));
 			}
 			return reader;
 		}
@@ -382,6 +431,34 @@ public class HubImpl extends HttpServlet implements Hub {
 				final Object service) {
 			readers.remove(reference.getProperty(FeedReader.FEED_URL_PROPERTY));
 
+		}
+	}
+
+	/**
+	 * Contains FeedREader with feed index.
+	 * 
+	 * @author Bartek
+	 * 
+	 */
+	private class ReaderWithFeedIndex {
+		private FeedReader feedReader;
+		private int feedIndex;
+
+		public ReaderWithFeedIndex(FeedReader feedReader) {
+			this.feedReader = feedReader;
+			feedIndex = 1;
+		}
+
+		public FeedReader getFeedReader() {
+			return feedReader;
+		}
+
+		public int getFeedIndex() {
+			return feedIndex;
+		}
+
+		public void increaseIndex() {
+			feedIndex++;
 		}
 	}
 }

@@ -128,7 +128,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 		
 		//compute the PROP_CXF_URL property
         try {
-			myurl = new URI("http://"+machine.getHost()+":"+httpport+rootName+"/").toString(); //compute the url
+			myurl = new URI("http://"+machine.getHost()+":"+httpport+rootName).toString(); //compute the url
 		} catch (Exception e) {
 			logger.log(LOG_ERROR, "Cannot create the URL of the JAX-WS server, this will lead to incomplete EndpointDescription.",e);
 		}
@@ -229,9 +229,9 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 
 		//check if class is annotated by @Path
 		if (klass.isAnnotationPresent(Path.class)) {
-			extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class));
+			extraProperties.put(PROP_PATH, klass.getAnnotation(Path.class).value());
 			// Set the url property
-			extraProperties.put(RoSeConstants.ENDPOINT_URL,myurl+"/"+klass.getAnnotation(Path.class)
+			extraProperties.put(RoSeConstants.ENDPOINT_URL,myurl+klass.getAnnotation(Path.class)
 					.value());
 		} else {
 			//Works only with jax-rs annotations.

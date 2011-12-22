@@ -4,12 +4,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-
-	<name>MODBUS/TCP - core protocol</name>
 	<groupId>fr.liglab.adele.cilia</groupId>
-	<artifactId>modbus-core</artifactId>
-	<version>1.0.0</version>
+	<artifactId>rose-generics-proxies</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
+	<name>RoSe - Generics Proxies</name>
 	
 	<repositories>
 		<repository>
@@ -56,11 +55,6 @@
 			<scope>compile</scope>
 		</dependency>
 		
-		<dependency>
-			<groupId>fr.liglab.adele.cilia</groupId>
-			<artifactId>modbus-api</artifactId>
-			<version>1.0.0</version>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -73,11 +67,9 @@
 					<instructions>
 						<Bundle-SymbolicName>${pom.artifactId}</Bundle-SymbolicName>
 						<Private-Package>
-							fr.liglab.adele.protocol.impl.modbus,
-							net.wimpi.*,
+							fr.liglab.adele.cilia.proxies.rose
 						</Private-Package>
 						<Import-Package>
-						    fr.liglab.adele.protocol.modbus,
 							org.osgi.framework,						
 							org.osgi.service.log,
 							org.apache.felix.ipojo,

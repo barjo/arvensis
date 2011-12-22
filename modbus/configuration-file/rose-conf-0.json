@@ -4,17 +4,16 @@
     "host" : "A7D468EA-1BE7-4E1A-B8AC-E246B14F3033",
     "component" : [ 
         { 
-           "factory" : "factory.proxy.service.modbus",
-		   "properties" : {
-							"devices.properties" : "file:load/devices.properties",								
-                          }, 
+           "factory" : "Cilia_DeviceProxy.importer",
+		},
 		{ 
-           "factory" : "modbus.tcp.ip.scanner" ,
+           "factory" : "Modbus/TCP.discovery" ,
 		   "properties" : { 
-		                    "start.address" : "192.168.10.40",  
-		                    "end.address" : "192.168.10.41",    
+		                    "start.address" : "10.10.7.20",  
+		                    "end.address" : "10.10.7.22",    
 		                    "modbus.port.number" : "502",     
 							"domain.id" : "carros-06-building-#B2-room-#1",
+							"ranking.file" : "file:./load/devicesFile.properties",
 							"scan.period" : "100" ,
 							"scan.delay" : "10" ,
 							"ping.time.out" : "2000"

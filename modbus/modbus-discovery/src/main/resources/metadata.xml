@@ -13,7 +13,7 @@
 
 	<!-- Component Modbus/TCP Scanner -->
 	<component classname="fr.liglab.adele.discovery.impl.modbus.ModbusTCPScanner"
-		name="modbus.tcp.ip.scanner">
+		name="Modbus/TCP.discovery">
 		<properties>
 			<property name="start.address" type="java.lang.String"
 				method="setStartAddress" mandatory="true" />
@@ -22,6 +22,8 @@
 			<property name="domain.id" field="m_domainID" type="java.lang.String" />
 			<property name="scan.period" type="java.lang.String" field="m_period"
 				value="1000" />
+			<property name="ranking.file" type="java.lang.String"
+				field="m_urlProperties"  />
 			<property name="scan.delay" field="m_delay" value="100" />
 			<property name="ping.time.out" field="m_timeout" value="2000" />
 			<property name="modbus.port.number" field="m_port" value="502" />

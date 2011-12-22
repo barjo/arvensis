@@ -17,12 +17,15 @@ package fr.liglab.adele.discovery.impl.modbus;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,6 +38,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import fr.liglab.adele.protocol.modbus.ModbusProcotolSchneider;
 
 /**
  * Periodic scan devices between 2 IP V4:port <br>
@@ -50,9 +54,13 @@ public class ModbusTCPScanner extends TimerTask  {
 	private InetAddress startAddress, endAddress;
 	private int m_delay, m_period, m_timeout, m_port;
 	private String m_domainID ;
-	private Timer timer;
+	private Timer m_timer;
+	private String m_urlProperties;
+	private Properties m_devicesRankingProps;
+	
 	public ModbusTCPScanner(BundleContext bc) {
-		timer = new Timer() ;
+		m_timer = new Timer() ;
+		m_devicesRankingProps = new Properties();
 	}
 
 	public void setStartAddress(String addr) {
@@ -77,7 +85,7 @@ public class ModbusTCPScanner extends TimerTask  {
 
 	public void runScan() {
 		checksParam();
-		timer.scheduleAtFixedRate(this, m_delay, m_period);
+		m_timer.scheduleAtFixedRate(this, m_delay, m_period);
 
 		if (logger.isDebugEnabled()) {
 			StringBuffer sb = new StringBuffer("Scanner modbus started [from ");
@@ -89,7 +97,7 @@ public class ModbusTCPScanner extends TimerTask  {
 	}
 
 	public void cancelScan() {
-		timer.cancel();
+		m_timer.cancel();
 	}
 
 	private void setRemoteDevice(Socket socket) {
@@ -217,19 +225,58 @@ public class ModbusTCPScanner extends TimerTask  {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map setDeviceEndPoint(String hostAddr, int port) {
+		String score ;
 		Map m_props = new HashMap();
+
 		m_props.put(RemoteConstants.ENDPOINT_ID, generateID(hostAddr, port));
-		m_props.put(Constants.OBJECTCLASS, new String[] { "NoneObject" });
-		m_props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.modbus.tcp");
-		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "");
-		/* Parameter for the Service */
-		m_props.put("device.type", "modbus.slave");
+		/* Name for the Factory */
+		m_props.put(Constants.OBJECTCLASS, new String[] {"None"});
+		/* 
+		 * Generic Protocol for Devices 
+		 * key used for the proxy importer type 'device' 
+		 */
+		m_props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.device");
+  		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "None");
+		/* 
+         * Factory name	
+		 */
+		m_props.put("service.factory", "FactoryModbus.TCP") ;
+		/*
+		 * used by the ( dynamic importer ranking to set the service ranking value )
+		 */
+		score = setScore(hostAddr);
+		if (score !=null) {
+			m_props.put("service.ranking",score);
+		}
+		/* 
+		 * specifics   
+		 */
 		m_props.put("device.ip.address", hostAddr);
 		m_props.put("device.ip.port", port);
 		m_props.put("domain.id", m_domainID);
 		return m_props;
 	}
 
+	public String setScore(String hostAddr) {
+		String score = null;
+		if (!m_devicesRankingProps.isEmpty()) {
+			/* Key = IP address, value = rank */
+			String value = m_devicesRankingProps.getProperty(hostAddr);
+			if (value != null) {
+				try {
+					Integer.parseInt(value);
+					score= value ;
+					logger.debug("device=" + hostAddr + " 'service.ranking=" + value);
+				} catch (NumberFormatException e) {
+					logger.error("Malformed number in device properties file ,value ="
+							+ value);
+				}
+			}
+
+		}
+		return score;
+	}
+		
 	private static String generateID(String addr, int port) {
 		StringBuffer sb = new StringBuffer(addr);
 		sb.append(":").append(Integer.toString(port));
@@ -260,6 +307,16 @@ public class ModbusTCPScanner extends TimerTask  {
 			              startAddress.toString()+"-"+
 			              endAddress.toString()+"-"+System.currentTimeMillis();
 		}
+		if (m_urlProperties !=null) {
+			try {
+				m_devicesRankingProps.load(new URL(m_urlProperties).openStream());
+				logger.debug("Properties read " + m_devicesRankingProps.toString());
+			} catch (MalformedURLException e) {
+				logger.error("Invalid URL");
+			} catch (IOException e) {
+				logger.error("file " + m_urlProperties + " not existing");
+			}
+		}
 	}
-
+	
 }

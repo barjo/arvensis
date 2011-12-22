@@ -10,29 +10,14 @@
 	the specific language governing permissions and limitations under the License. 
 -->
 <ipojo>
-	<!-- Factory Modbus Service or Modbus Schneider Service Proxy -->
-	<component classname="fr.liglab.adele.protocol.impl.modbus.ProxyImporter"
-		name="factory.proxy.service.modbus">
-		<provides>
-			<property type="java.lang.String" name="rose.protos.configs"
-				value="fr.liglab.adele.modbus.tcp" />
-		</provides>
-		<properties>
-			<property name="devices.properties" type="java.lang.String"
-				field="m_urlProperties" value="file:load/devices.properties" />
-		</properties>
-		<requires field="roseMachine" />
-		<requires field="modbusFactory" filter="(factory.name=service.modbus.tcp.schneider)" />
-		<callback transition="validate" method="start" />
-		<callback transition="invalidate" method="stop" />
-	</component>
 
 	<!-- Modbus/TCP Protocol Schneider = (Modbus + identification) -->
 	<component
 		classname="fr.liglab.adele.protocol.impl.modbus.ModbusProxySchneiderImpl"
-		name="service.modbus.tcp.schneider">
+		name="FactoryModbus.TCP">
 		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocolSchneider" />
 		<provides>
+			<prpoerty name="factory.proxy" type="java.lang.String" value="Modbus/TCP" />
 			<property name="service.ranking" value="0" type="java.lang.Integer" />
 			<property name="rose.protos.configs" type="java.lang.String"
 				value="fr.liglab.adele.modbus.tcp" />

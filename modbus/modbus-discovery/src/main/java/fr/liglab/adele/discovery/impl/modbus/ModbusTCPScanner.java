@@ -38,7 +38,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import fr.liglab.adele.protocol.modbus.ModbusProcotolSchneider;
+import fr.liglab.adele.protocol.modbus.ModbusProcotol;
 
 /**
  * Periodic scan devices between 2 IP V4:port <br>

@@ -13,11 +13,10 @@
 
 	<!-- Modbus/TCP Protocol Schneider = (Modbus + identification) -->
 	<component
-		classname="fr.liglab.adele.protocol.impl.modbus.ModbusProxySchneiderImpl"
+		classname="fr.liglab.adele.protocol.impl.modbus.ModbusProtocolImpl"
 		name="FactoryModbus.TCP">
-		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocolSchneider" />
+		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocol" />
 		<provides>
-			<prpoerty name="factory.proxy" type="java.lang.String" value="Modbus/TCP" />
 			<property name="service.ranking" value="0" type="java.lang.Integer" />
 			<property name="rose.protos.configs" type="java.lang.String"
 				value="fr.liglab.adele.modbus.tcp" />

@@ -60,6 +60,7 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 	BundleContext m_bundleContext;
 
 	public ProxyDeviceImporter(BundleContext context) throws InvalidSyntaxException {
+		super();
 		ranker = new ProxyRanker();
 		m_bundleContext = context;
 		/*
@@ -82,7 +83,7 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 
 		Hashtable props = new Hashtable(description.getProperties());
 		props.putAll(extraProperties);
-
+		/* Retreive the factory name */
 		String factoryName = (String) props.get("service.factory");
 		StringBuilder sb = new StringBuilder("(&");
 		sb.append(FACTORY_FILTER);

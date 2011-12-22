@@ -38,7 +38,6 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import fr.liglab.adele.protocol.modbus.ModbusProcotol;
 
 /**
  * Periodic scan devices between 2 IP V4:port <br>
@@ -227,25 +226,27 @@ public class ModbusTCPScanner extends TimerTask  {
 	public Map setDeviceEndPoint(String hostAddr, int port) {
 		String score ;
 		Map m_props = new HashMap();
-
 		m_props.put(RemoteConstants.ENDPOINT_ID, generateID(hostAddr, port));
-		/* Name for the Factory */
+		
 		m_props.put(Constants.OBJECTCLASS, new String[] {"None"});
-		/* 
-		 * Generic Protocol for Devices 
-		 * key used for the proxy importer type 'device' 
-		 */
-		m_props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.device");
   		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "None");
 		/* 
-         * Factory name	
+		 * property 'service.imported" used by the dynamic imported to be wake up 
+		 * on proxy device.
+		 */
+		m_props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.device");
+		/* 
+         * property : 'service.ranking' is used by the dynamic importer service 
+         * to look up the factory and instanciate the proxy
 		 */
 		m_props.put("service.factory", "FactoryModbus.TCP") ;
-		/*
-		 * used by the ( dynamic importer ranking to set the service ranking value )
-		 */
-		score = setScore(hostAddr);
+
+		score = getScore(hostAddr);
 		if (score !=null) {
+			/*
+			 * property : 'service.ranking' is used by the dynamic importer service
+			 * to set the ranking value
+			 */
 			m_props.put("service.ranking",score);
 		}
 		/* 
@@ -257,7 +258,7 @@ public class ModbusTCPScanner extends TimerTask  {
 		return m_props;
 	}
 
-	public String setScore(String hostAddr) {
+	public String getScore(String hostAddr) {
 		String score = null;
 		if (!m_devicesRankingProps.isEmpty()) {
 			/* Key = IP address, value = rank */

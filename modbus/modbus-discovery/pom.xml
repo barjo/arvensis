@@ -56,12 +56,6 @@
 			<scope>compile</scope>
 		</dependency>
 		
-		<dependency>
-			<groupId>fr.liglab.adele.cilia</groupId>
-			<artifactId>modbus-api</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>

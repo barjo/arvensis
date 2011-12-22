@@ -45,7 +45,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Service importer for 'Device' <br>
- * @author Denis Morand 
+ * 
+ * @author Denis Morand
  */
 public class ProxyDeviceImporter extends AbstractImporterComponent {
 	private static final Logger logger = LoggerFactory.getLogger("cilia.rose.proxies");
@@ -78,7 +79,7 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 
 	protected ServiceRegistration createProxy(EndpointDescription description,
 			Map<String, Object> extraProperties) {
-		
+
 		Hashtable props = new Hashtable(description.getProperties());
 		props.putAll(extraProperties);
 
@@ -186,7 +187,6 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 
 	/* OSGI Ranker */
 	private class ProxyRanker implements DynamicImporterCustomizer {
-		private Properties devicesProps;
 
 		public ProxyRanker() {
 		}
@@ -225,7 +225,7 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 					Integer.parseInt(value);
 					properties.put(org.osgi.framework.Constants.SERVICE_RANKING, value);
 				} catch (NumberFormatException e) {
-					logger.error("Service ranking property must be an integer");
+					logger.error("Service ranking property must be an integer string format");
 				}
 			}
 		}

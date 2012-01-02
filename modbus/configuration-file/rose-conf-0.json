@@ -1,6 +1,6 @@
 {
 "machine" : {
-    "id" : "modbus.protocol",
+    "id" : "Cilia_RoseMachine",
     "host" : "A7D468EA-1BE7-4E1A-B8AC-E246B14F3033",
     "component" : [ 
         { 
@@ -18,6 +18,13 @@
 							"scan.delay" : "10" ,
 							"ping.time.out" : "2000"
 						  } 
+		},
+		{ 
+            "factory" : "Cilia_WebServiceProxy.exporter",
+		},
+		{ 
+			"factory" : "RoSe_exporter.cxf",
+			"properties" : { "cxf.servlet.name" : "/ws" }
 		},
     ]
  }

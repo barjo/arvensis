@@ -17,9 +17,7 @@
 		name="FactoryModbus.TCP">
 		<provides specification="fr.liglab.adele.protocol.modbus.ModbusProtocol" />
 		<provides>
-			<property name="service.ranking" value="0" type="java.lang.Integer" />
-			<property name="rose.protos.configs" type="java.lang.String"
-				value="fr.liglab.adele.modbus.tcp" />
+			<property name="service.ranking" value="0" type="java.lang.Integer" /> 
 			<property name="modbus.ip.address" type="java.lang.String"
 				field="m_hostAddress" />
 			<property name="modbus.port" type="int" field="m_port" />

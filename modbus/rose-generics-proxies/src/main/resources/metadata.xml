@@ -22,9 +22,9 @@
 	<component classname="fr.liglab.adele.cilia.proxies.rose.ProxyDeviceImporter"
 		name="Cilia_DeviceProxy.importer">
 		<provides>
-			<property type="java.lang.String[]" name="rose.protos.configs"
+			<property type="java.lang.String[]" name="endpoint.config"
 				value="{fr.liglab.adele.device}" />
-		</provides>
+		</provides>		
 		<requires field="roseMachine" />
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />

@@ -117,7 +117,13 @@ public class ModbusTCPScanner extends TimerTask  {
 				logger.debug("Device Present at " + deviceID);
 				logger.debug("Device info :" + deviceProperties.toString());
 			}
-			roseMachine.putRemote(deviceID, new EndpointDescription(deviceProperties));
+			try {
+				roseMachine.putRemote(deviceID, new EndpointDescription(deviceProperties));
+			}
+			catch (Exception e) {
+				roseMachine.removeRemote(deviceID);
+				logger.error("The proxy has not imported the service !");
+			}
 		} else {
 			logger.trace("Device already registered "
 					+ socket.getRemoteSocketAddress().toString());

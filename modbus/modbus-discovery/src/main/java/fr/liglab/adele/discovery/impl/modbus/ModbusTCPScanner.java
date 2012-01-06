@@ -235,15 +235,14 @@ public class ModbusTCPScanner extends TimerTask  {
 		m_props.put(RemoteConstants.ENDPOINT_ID, generateID(hostAddr, port));
 		
 		m_props.put(Constants.OBJECTCLASS, new String[] {"None"});
-  		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "None");
+  		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, " ");
 		/* 
 		 * property 'service.imported" used by the dynamic imported to be wake up 
 		 * on proxy device.
 		 */
 		m_props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.device");
 		/* 
-         * property : 'service.ranking' is used by the dynamic importer service 
-         * to look up the factory and instanciate the proxy
+		 * Factory name , service reified locally
 		 */
 		m_props.put("service.factory", "FactoryModbus.TCP") ;
 

@@ -171,7 +171,7 @@ public class WebServiceHttpPing extends TimerTask {
 			props.put(RemoteConstants.ENDPOINT_ID, url);
 			props.put(Constants.OBJECTCLASS, new String[] { m_serviceProxy });
 			props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "jax-ws");
-			props.put(RemoteConstants.SERVICE_IMPORTED, "jax-ws");
+			props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.webservice");
 			props.put(ENDPOINT_URL, url);
 			/* Porperty for the Adapter */
 			try {

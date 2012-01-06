@@ -10,24 +10,22 @@
 	the specific language governing permissions and limitations under the License. 
 -->
 <ipojo>
-	<!-- Proxy Exporter for Web Service 'jaw-ws' -->
-	<component classname="fr.liglab.adele.cilia.proxies.rose.ProxyWebServiceExporter"
-		name="Cilia_WebServiceProxy.exporter">
-		<requires field="roseMachine" />
-		<callback transition="validate" method="start" />
-		<callback transition="invalidate" method="stop" />
-	</component>
-
 	<!-- Proxy Importer for 'Devices' -->
 	<component classname="fr.liglab.adele.cilia.proxies.rose.ProxyDeviceImporter"
-		name="Cilia_DeviceProxy.importer">
+		name="Cilia_Importer.device">
 		<provides>
 			<property type="java.lang.String[]" name="endpoint.config"
-				value="{fr.liglab.adele.device}" />
+				value="{tcp.ip}" />
 		</provides>		
 		<requires field="roseMachine" />
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />
 	</component>
 
+	<component classname="fr.liglab.adele.cilia.proxies.rose.CiliaProxiesConfigurator"
+		name="Cilia_RoseProxies.configurator">
+		<callback transition="validate" method="start" />
+		<callback transition="invalidate" method="stop" />
+	</component>
+	
 </ipojo>

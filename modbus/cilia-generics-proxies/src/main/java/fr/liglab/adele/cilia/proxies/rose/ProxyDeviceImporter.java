@@ -44,7 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Service importer for 'Device' <br>
+ * Service importer for tcp/ip protocol <br>
+ * 
  * 
  * @author Denis Morand
  */
@@ -55,26 +56,19 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 			+ Factory.class.getName() + ")(factory.state=" + VALID + ")";
 
 	private RoseMachine roseMachine;
-	private final DynamicImporter dynaimp;
-	private final ProxyRanker ranker;
 	BundleContext m_bundleContext;
 
 	public ProxyDeviceImporter(BundleContext context) throws InvalidSyntaxException {
 		super();
-		ranker = new ProxyRanker();
 		m_bundleContext = context;
-		/*
-		 * The endpoint has the property service.imported =
-		 * fr.liglag.adele.device
-		 */
-		dynaimp = new DynamicImporter.Builder(context,
-				"(service.imported=fr.liglab.adele.device)").protocol(getConfigPrefix())
-				.customizer(ranker).build();
 	}
 
+	/* 
+	 * list of currently supported protocol 
+	 */
 	public List getConfigPrefix() {
 		List list = new ArrayList();
-		list.add("fr.liglab.adele.device");
+		list.add("tcp.ip");
 		return list;
 	}
 
@@ -128,15 +122,11 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 
 	protected void start() {
 		super.start();
-		ranker.start();
-		dynaimp.start();
 		logger.debug("Proxy importer started");
 	}
 
 	protected void stop() {
 		super.stop();
-		dynaimp.stop();
-		ranker.stop();
 		logger.debug("Proxy importer stopped");
 	}
 
@@ -186,49 +176,4 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 		}
 	}
 
-	/* OSGI Ranker */
-	private class ProxyRanker implements DynamicImporterCustomizer {
-
-		public ProxyRanker() {
-		}
-
-		public void start() {
-		}
-
-		public void stop() {
-		}
-
-		public ImportReference[] getImportReferences()
-				throws UnsupportedOperationException {
-			throw new UnsupportedOperationException();
-		}
-
-		public Object doImport(ImporterService importer, EndpointDescription description,
-				Map<String, Object> properties) {
-			setRank(properties, description);
-			ImportRegistration registration = importer.importService(description,
-					properties);
-			ImportReference iref = registration.getImportReference();
-			return registration;
-		}
-
-		public void unImport(ImporterService importer, EndpointDescription description,
-				Object registration) {
-			ImportRegistration regis = (ImportRegistration) registration;
-			regis.close();
-		}
-
-		public void setRank(Map properties, EndpointDescription description) {
-			Map props = description.getProperties();
-			String value = (String) props.get("service.ranking");
-			if (value != null) {
-				try {
-					Integer.parseInt(value);
-					properties.put(org.osgi.framework.Constants.SERVICE_RANKING, value);
-				} catch (NumberFormatException e) {
-					logger.error("Service ranking property must be an integer string format");
-				}
-			}
-		}
-	}
 }

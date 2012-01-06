@@ -25,16 +25,17 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.DynamicExporter;
+import org.ow2.chameleon.rose.DynamicImporter;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProxyWebServiceExporter extends AbstractExporterComponent {
+public class ProxyWebServiceExporter /* extends AbstractExporterComponent */{
 
-	private static final Logger logger = LoggerFactory
-			.getLogger("cilia.rose.proxies");
-	private final DynamicExporter dynaimp;
+	private static final Logger logger = LoggerFactory.getLogger("cilia.rose.proxies");
+	private final DynamicExporter dynamicExporter;
+	private DynamicImporter dynamicImporter;
 	private RoseMachine roseMachine;
 
 	/**
@@ -48,13 +49,19 @@ public class ProxyWebServiceExporter extends AbstractExporterComponent {
 	 */
 	public ProxyWebServiceExporter(BundleContext context) throws InvalidSyntaxException {
 		super();
-		dynaimp = new DynamicExporter.Builder(context,
+		
+		dynamicExporter = new DynamicExporter.Builder(context,
 				"(service.exported=fr.liglab.adele.webservice)").protocol(
 				getConfigPrefix()).build();
+		
+		dynamicImporter = new DynamicImporter.Builder(context,
+				"(service.imported=fr.liglab.adele.webservice)").protocol(
+				getConfigPrefix()).build();
+
 		logger.debug("Proxy WebServiceExporter Created");
 	}
 
-	/** 
+	/**
 	 * List of protocols actually managed
 	 */
 	public List getConfigPrefix() {
@@ -83,13 +90,15 @@ public class ProxyWebServiceExporter extends AbstractExporterComponent {
 	}
 
 	protected void start() {
-		super.start();
-		dynaimp.start();
+		//super.start();
+		dynamicExporter.start();
+		dynamicImporter.start();
 	}
 
 	protected void stop() {
-		super.stop();
-		dynaimp.stop();
+		//super.stop();
+		dynamicExporter.stop();
+		dynamicImporter.stop();
 	}
 
 }

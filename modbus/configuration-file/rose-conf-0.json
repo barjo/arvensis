@@ -3,8 +3,18 @@
     "id" : "Cilia_RoseMachine",
     "host" : "A7D468EA-1BE7-4E1A-B8AC-E246B14F3033",
     "component" : [ 
+		{ 
+            "factory" : "Cilia_RoseProxies.configurator",
+		},
         { 
-           "factory" : "Cilia_DeviceProxy.importer",
+           "factory" : "Cilia_Importer.device",
+		},
+		{ 
+			"factory" : "RoSe_exporter.cxf",
+			"properties" : { "cxf.servlet.name" : "/ws" }
+		},
+        { 
+           "factory" : "RoSe_importer.cxf",
 		},
 		{ 
            "factory" : "Modbus/TCP.discovery" ,
@@ -19,13 +29,15 @@
 							"ping.time.out" : "2000"
 						  } 
 		},
-		{ 
-            "factory" : "Cilia_WebServiceProxy.exporter",
+        { 
+           "factory" : "WebService_HttpPing.inquiry" ,
+		   "properties" : {   
+							"url" : "http://www.html2xml.nl/Services/Calculator/Version1/Calculator.asmx",
+							"scan.period" : "10000" ,
+							"service.interface" : "fr.liglab.adele.cilia.simpledata.service.contract.CalculatorPortType",
+						  } 
 		},
-		{ 
-			"factory" : "RoSe_exporter.cxf",
-			"properties" : { "cxf.servlet.name" : "/ws" }
-		},
+
     ]
  }
 }

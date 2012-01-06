@@ -38,6 +38,8 @@ import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
+
 /**
  * Simple http ping url
  * 
@@ -57,6 +59,7 @@ public class WebServiceHttpPing extends TimerTask {
 	private RemoteServiceAdmin adminService;
 	private String m_factoryName ;
 	private URL m_url;
+	private String m_serviceProxy ;
 
 	public WebServiceHttpPing(BundleContext context) {
 		m_bundleContext = context;
@@ -116,12 +119,12 @@ public class WebServiceHttpPing extends TimerTask {
 		}
 		
 		if (m_delay <= 0) {
-			String str = "Properties 'scan.delay' must not be a negative value" + m_delay;
+			String str = "Property 'scan.delay' must not be a negative value :" + m_delay;
 			logger.error(str);
 			throw new IllegalArgumentException(str);
 		}
 		if (m_period <= 0) {
-			String str = "Properties 'scan.period' must not be a negative value"
+			String str = "Property 'scan.period' must not be a negative value"
 					+ m_period;
 			logger.error(str);
 			throw new IllegalArgumentException(str);
@@ -130,12 +133,17 @@ public class WebServiceHttpPing extends TimerTask {
 		if (m_urlRanking != null) {
 			try {
 				m_wsRankingProperties.load(new URL(m_urlRanking).openStream());
-				logger.debug("Properties read " + m_wsRankingProperties.toString());
+				logger.debug("Property read " + m_wsRankingProperties.toString());
 			} catch (MalformedURLException e) {
 				logger.error("Invalid URL");
 			} catch (IOException e) {
 				logger.error("file " + m_urlRanking + " not existing");
 			}
+		}
+		if (m_serviceProxy ==null) {
+			String str = "Property 'service.proxy' must not be null" ;
+		    logger.error(str);
+		throw new IllegalArgumentException(str);
 		}
 	}
 
@@ -161,10 +169,11 @@ public class WebServiceHttpPing extends TimerTask {
 		if (!isEndPointRegistered(url)) {
 			props = new HashMap();
 			props.put(RemoteConstants.ENDPOINT_ID, url);
-			props.put(Constants.OBJECTCLASS, new String[] { "None" });
-			props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "None");
-			props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.webservice");
-			props.put("service.factory", m_factoryName);
+			props.put(Constants.OBJECTCLASS, new String[] { m_serviceProxy });
+			props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "jax-ws");
+			props.put(RemoteConstants.SERVICE_IMPORTED, "jax-ws");
+			props.put(ENDPOINT_URL, url);
+			/* Porperty for the Adapter */
 			try {
 				roseMachine.putRemote(url, new EndpointDescription(props));
 			}

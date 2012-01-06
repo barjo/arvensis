@@ -20,7 +20,8 @@
 				value="1000" />
 			<property name="scan.delay" field="m_delay" value="100" />
 			<property name="web.service.factory" type="java.lang.String" field="m_factoryName" 
-			          value="simpleWebServiceRequestor.factory"/>
+			          value="simpleWebServiceRequestor.factory"/> 
+			<property name="service.interface" type="java.lang.String" field="m_serviceProxy" />
 		</properties>
 		<requires field="roseMachine" />
 		<requires field="adminService" />

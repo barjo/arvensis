@@ -18,6 +18,7 @@
 		<module>configurator/configurator-json</module>
 		<module>jax-rs/jersey-exporter</module>
 		<module>jax-ws/cxf-exporter</module>
+		<module>jax-ws/cxf-importer</module>
 		<module>json-rpc/jabsorb-exporter</module>
 		<module>json-rpc/jabsorb-importer</module>
 	</modules>
@@ -39,6 +40,7 @@
 			<modules>
 				<module>jax-rs/jersey-exporter</module>
 				<module>jax-ws/cxf-exporter</module>
+				<module>jax-ws/cxf-importer</module>
 				<module>json-rpc/jabsorb-exporter</module>
 				<module>json-rpc/jabsorb-importer</module>
 				<module>registry/zookeeper-registry</module>

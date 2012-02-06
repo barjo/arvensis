@@ -18,7 +18,7 @@
 
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
+		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<jersey.version>1.8</jersey.version>

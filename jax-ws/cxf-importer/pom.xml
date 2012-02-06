@@ -32,7 +32,7 @@
 	<!-- All the version number should be set here-->
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
+		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
@@ -41,7 +41,7 @@
 		<!-- Plugins version-->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
 		<compiler.plugin.version>2.1</compiler.plugin.version>
-		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+		<ipojo.plugin.version>1.6.0</ipojo.plugin.version>
 		
 		<!-- Source Encoding-->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

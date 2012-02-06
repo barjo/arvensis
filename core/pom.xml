@@ -21,8 +21,8 @@
 
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
-		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+		<ipojo.version>1.6.8</ipojo.version>
+		<ipojo.plugin.version>1.6.0</ipojo.plugin.version>
 		<osgi.version>4.2.0</osgi.version>
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
 		<compiler.plugin.version>2.1</compiler.plugin.version>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<version>${ipojo.version}</version>
+			<version>1.6.4</version>
 		</dependency>
 
 		<!-- Test dependencies -->

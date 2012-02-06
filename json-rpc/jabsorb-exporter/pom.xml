@@ -21,7 +21,7 @@
 
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
+		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<jabsorb.version>1.3.1</jabsorb.version>
@@ -30,7 +30,7 @@
 		<!-- Plugins version-->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
 		<compiler.plugin.version>2.1</compiler.plugin.version>
-		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+		<ipojo.plugin.version>1.6.0</ipojo.plugin.version>
 		
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -46,7 +46,7 @@
 		<dependency>
       		<groupId>org.apache.felix</groupId>
      	 	<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-    	  	<version>${ipojo.version}</version>
+    	  	<version>1.6.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>

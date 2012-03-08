@@ -19,7 +19,7 @@ public interface Subscriber {
 	String INSTANCE_PROPERTY_HUB_URL = "hub.url";
 	String INSTANCE_PROPERTY_ENDPOINT_FILTER = "endpoint.filter";
 
-	void start() throws ServletException, NamespaceException, IOException;
+	void start();
 
 	void stop();
 

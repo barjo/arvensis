@@ -4,6 +4,9 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.DEFAULT_HTTP_PORT;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
+
+import static org.osgi.service.log.LogService.LOG_INFO;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -95,6 +98,8 @@ public class HubPublisher {
 				HubMode.publish.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 				this.rssUrl));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
+				rose.getId()));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		final HttpResponse response = client.execute(postMethod);
@@ -106,6 +111,7 @@ public class HubPublisher {
 		}
 		// read an empty entity and close a connection
 		response.getEntity().getContent().close();
+		logger.log(LOG_INFO, "Publisher successfully registered");
 	}
 
 	/**

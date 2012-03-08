@@ -79,12 +79,16 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	}
 
 	@Validate
-	public final void start() throws ServletException, NamespaceException,
-			IOException {
+	public final void start(){
 		endpointRegistrations = new ArrayList<String>();
+		try{
 		httpService.registerServlet(callBackUrl, this, null, null);
 		subscritpion = new HubSubscriber(hubUrl, callBackUrl, endpointFilter,
 				context, rose);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	@Invalidate

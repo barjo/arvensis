@@ -9,9 +9,9 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_UPDATE_TOPIC_DELETE;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
 
 import java.io.IOException;
@@ -26,10 +26,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
@@ -40,6 +42,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -52,6 +55,9 @@ import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
 
+import com.sun.jersey.api.core.PackagesResourceConfig;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
+
 /**
  * Component class to work as Hub in Pubsubhubbub technology, specially modified
  * to work with Rose.
@@ -60,6 +66,7 @@ import org.ow2.chameleon.syndication.FeedReader;
  * 
  */
 @Component(name = COMPONENT_NAME)
+@Provides
 public class HubImpl extends HttpServlet implements Hub {
 
 	/**
@@ -73,6 +80,8 @@ public class HubImpl extends HttpServlet implements Hub {
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
 
 	private static final int FEED_PERIOD = 10;
+
+	private static final boolean FEED_POLLING = false;
 
 	@Requires
 	private transient HttpService httpService;
@@ -95,10 +104,10 @@ public class HubImpl extends HttpServlet implements Hub {
 	// store instances of RSS reader for different topics
 	private Map<Object, ReaderWithFeedIndex> readers;
 	private Dictionary<String, Object> instanceDictionary;
-	private transient SendSubscription subscription;
+	private transient SendSubscription sendSubscription;
 	private transient ServiceTracker feedReaderTracker;
 	private transient BundleContext context;
-	private transient Registrations registrations;
+	private transient RegistrationsImpl registrations;
 
 	// client to send notification to subscribers;
 	private transient HttpClient client;
@@ -111,9 +120,10 @@ public class HubImpl extends HttpServlet implements Hub {
 	public final void start() {
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
-			registrations = new Registrations();
 			readers = new HashMap<Object, ReaderWithFeedIndex>();
 			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
+			registrations = new RegistrationsImpl();
+			sendSubscription = new SendSubscription(client, registrations,logger,json);
 
 			// start tracking for all feed readers
 			feedReaderTracker = new ServiceTracker(context,
@@ -129,8 +139,8 @@ public class HubImpl extends HttpServlet implements Hub {
 	@Invalidate
 	public final void stop() {
 		feedReaderTracker.close();
+		// unregister hubServlet (subscriber/publisher purpose)
 		httpService.unregister(hubServlet);
-		logger.log(LOG_INFO, "Pubsubhubbub successfully stops");
 
 	}
 
@@ -161,7 +171,9 @@ public class HubImpl extends HttpServlet implements Hub {
 				// create instance
 				instanceDictionary = new Hashtable<String, Object>();
 				instanceDictionary.put("feed.url", rssUrl);
-				instanceDictionary.put("feed.period", FEED_PERIOD);
+				// instanceDictionary.put("feed.period", FEED_PERIOD);
+				instanceDictionary.put("feed.pooling", FEED_POLLING);
+
 				feedReaderFactory.createComponentInstance(instanceDictionary);
 				sref = context.getServiceReferences(READER_SERVICE_CLASS,
 						readerFilter);
@@ -224,6 +236,7 @@ public class HubImpl extends HttpServlet implements Hub {
 		String rssUrl;
 		String endpointFilter;
 		String callBackUrl;
+		String machineID;
 		FeedEntry feed;
 		int feedIndex = 0;
 		int feedIndexDigit = 0;
@@ -237,13 +250,14 @@ public class HubImpl extends HttpServlet implements Hub {
 		rssUrl = req.getParameter(HTTP_POST_PARAMETER_RSS_TOPIC_URL);
 		endpointFilter = req.getParameter(HTTP_POST_PARAMETER_ENDPOINT_FILTER);
 		callBackUrl = req.getParameter(HTTP_POST_PARAMETER_URL_CALLBACK);
+		machineID = req.getParameter(HTTP_POST_PARAMETER_MACHINEID);
 		// check the hub mode
 		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
 		case publish:
 
-			if ((rssUrl != null) && (createReader(rssUrl))) {
-				// register a topic
-				registrations.addTopic(rssUrl);
+			if ((rssUrl != null) && (machineID != null)
+					&& (createReader(rssUrl))) {
+				registrations.addTopic(rssUrl, machineID);
 				responseCode = HttpStatus.SC_CREATED;
 				logger.log(LOG_INFO, "Successfully register publisher from: "
 						+ rssUrl);
@@ -256,10 +270,8 @@ public class HubImpl extends HttpServlet implements Hub {
 
 			if (rssUrl != null) {
 				// remove a topic
-				subscription = new SendSubscription(client, rssUrl,
-						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this,
-						HUB_UPDATE_TOPIC_DELETE);
-				subscription.start();
+				sendSubscription.topicDelete(rssUrl);
+				readers.remove(rssUrl);
 				responseCode = HttpStatus.SC_ACCEPTED;
 				logger.log(LOG_INFO, "Successfully removed publisher from: "
 						+ rssUrl);
@@ -301,15 +313,13 @@ public class HubImpl extends HttpServlet implements Hub {
 				logger.log(LOG_INFO, "Received update from " + rssUrl + ", "
 						+ feed.title() + " : " + edp);
 				if (feed.title().equals(FEED_TITLE_NEW)) {
-					registrations.addEndpoint(rssUrl, edp);
-					subscription = new SendSubscription(client, edp,
-							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
-					subscription.start();
+					registrations.addEndpointByTopicRssUrl(rssUrl, edp);
+					sendSubscription.endpoindUpdated(edp,
+							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
 				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
 					registrations.removeEndpoint(rssUrl, edp);
-					subscription = new SendSubscription(client, edp,
-							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this);
-					subscription.start();
+					sendSubscription.endpoindUpdated(edp,
+							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
 				}
 				readers.get(rssUrl).increaseIndex();
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -323,16 +333,14 @@ public class HubImpl extends HttpServlet implements Hub {
 			if ((endpointFilter == null) || (callBackUrl == null)) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			} else {
-				registrations.addSubscrition(callBackUrl, endpointFilter);
+				registrations.addSubscription(callBackUrl, endpointFilter);
 				responseCode = HttpStatus.SC_CREATED;
 				logger.log(LOG_INFO, "Successfully register subscriber from  "
 						+ callBackUrl + "with filer: " + endpointFilter);
 				// check if already register an endpoint which matches the
 				// filter
 
-				subscription = new SendSubscription(client, callBackUrl,
-						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
-				subscription.start();
+				sendSubscription.subscriberAdded(callBackUrl);
 			}
 
 			break;
@@ -352,7 +360,8 @@ public class HubImpl extends HttpServlet implements Hub {
 		case getAllEndpoints:
 			// for Rose Pubsuhhubbub webconsole purpose
 			resp.setContentType("text/html");
-			for (EndpointDescription endpoint : registrations.getAllEndpoints()) {
+			for (EndpointDescription endpoint : registrations.getAllEndpoints()
+					.keySet()) {
 				resp.getWriter().append(endpoint.toString() + "<br><br>");
 			}
 			responseCode = HttpStatus.SC_ACCEPTED;
@@ -395,14 +404,13 @@ public class HubImpl extends HttpServlet implements Hub {
 		return json;
 	}
 
-	public final Registrations registrations() {
-		return registrations;
-	}
-
 	public final LogService logger() {
 		return logger;
 	}
-
+	public RegistrationsImpl getRegistrations() {
+		return registrations;
+	}
+	
 	/**
 	 * Tracker for Feed reader.
 	 * 

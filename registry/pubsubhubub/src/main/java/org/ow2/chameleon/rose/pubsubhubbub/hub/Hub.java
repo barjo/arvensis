@@ -1,5 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub;
 
+import org.ow2.chameleon.rose.pubsubhubbub.hub.internal.RegistrationsImpl;
+
 /**
  * HUB interface with all constants.
  * 
@@ -14,5 +16,7 @@ public interface Hub {
 	void start();
 
 	void stop();
+	
+	public RegistrationsImpl getRegistrations();
 
 }

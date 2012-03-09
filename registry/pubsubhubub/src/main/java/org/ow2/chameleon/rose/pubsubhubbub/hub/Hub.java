@@ -17,6 +17,6 @@ public interface Hub {
 
 	void stop();
 	
-	public RegistrationsImpl getRegistrations();
+	RegistrationsImpl getRegistrations();
 
 }

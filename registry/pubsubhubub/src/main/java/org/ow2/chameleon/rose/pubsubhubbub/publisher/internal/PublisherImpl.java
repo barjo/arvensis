@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
-import javax.management.RuntimeErrorException;
-
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.annotations.Component;
@@ -103,45 +101,45 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	}
 
 	@Validate
-	public final void start(){
+	public final void start() {
 
 		feedContent = new StringBuilder();
 		feedNumber = 0;
 
 		// tracking an FeedWriter
-		try{
-		new FeedWriterTracker();
+		try {
+			new FeedWriterTracker();
 
-		if (writer == null) {
-			// prepare RSS servlet instance properties
-			instanceServletDictionary = new Hashtable<String, Object>();
-			instanceServletDictionary.put(FeedReader.FEED_TITLE_PROPERTY,
-					"RoseRss");
-			instanceServletDictionary.put(
-					"org.ow2.chameleon.syndication.feed.servlet.alias", rssUrl);
+			if (writer == null) {
+				// prepare RSS servlet instance properties
+				instanceServletDictionary = new Hashtable<String, Object>();
+				instanceServletDictionary.put(FeedReader.FEED_TITLE_PROPERTY,
+						"RoseRss");
+				instanceServletDictionary.put(
+						"org.ow2.chameleon.syndication.feed.servlet.alias",
+						rssUrl);
 
-			// create an RSS servlet instance
-			rssServletInstance = factoryRssServlet
-					.createComponentInstance(instanceServletDictionary);
-		}
+				// create an RSS servlet instance
+				rssServletInstance = factoryRssServlet
+						.createComponentInstance(instanceServletDictionary);
+			}
 
-		// Configure an event properties
-		eventProperties = new HashMap<String, Object>();
-		eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
-		eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
+			// Configure an event properties
+			eventProperties = new HashMap<String, Object>();
+			eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
+			eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
 
-		// register publisher
-		 hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose,
-		 logger);
+			// register publisher
+			hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose,
+					logger);
 
-		final Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
-		// Register an EndpointListener
-		endpointListener = context.registerService(
-				EndpointListener.class.getName(), this, props);
-		logger.log(LOG_INFO, "EndpointTrackerRSS successfully started");
-		}
-		catch(Exception e){
+			final Dictionary<String, Object> props = new Hashtable<String, Object>();
+			props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
+			// Register an EndpointListener
+			endpointListener = context.registerService(
+					EndpointListener.class.getName(), this, props);
+			logger.log(LOG_INFO, "EndpointTrackerRSS successfully started");
+		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
 

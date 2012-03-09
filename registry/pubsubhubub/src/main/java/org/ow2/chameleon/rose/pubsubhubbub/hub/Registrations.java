@@ -1,31 +1,34 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.ow2.chameleon.rose.pubsubhubbub.hub.internal.RegistrationsImpl;
 
+
+/**
+ * Keep all informations about registered rss topics with related endpoints and
+ * subscribers with related endpoints filters.
+ * 
+ * @author Bartek
+ * 
+ */
 public interface Registrations {
 
-	/**
-	 * Add new topic (publisher registers topic).
-	 * 
-	 * @param rssURL
-	 *            publisher rss topic url
+	/**Add new topic (publisher registers topic).
+	 * @param rssURL publisher rss topic url
+	 * @param machineID ID of given machine
 	 */
-	public void addTopic(final String rssURL, final String MachineID);
+	void addTopic(final String rssURL, final String machineID);
 
-	
 	/**
 	 * Add endpoint to topic.
 	 * 
 	 * @param rssUrl
 	 *            publisher rss topic url
 	 * @param endp
-	 * @EndpointDescription description to add
+	 * {@link EndpointDescription} description to add
 	 */
-	public void addEndpointByTopicRssUrl(final String rssUrl,
+	void addEndpointByTopicRssUrl(final String rssUrl,
 			final EndpointDescription endp);
 
 	/**
@@ -34,9 +37,9 @@ public interface Registrations {
 	 * @param machineID
 	 *            publisher machineID
 	 * @param endp
-	 * @EndpointDescription description to add
+	 *            the {@link EndpointDescription} description to add
 	 */
-	public void addEndpointByMachineID(final String machineID,
+	void addEndpointByMachineID(final String machineID,
 			final EndpointDescription endp);
 
 	/**
@@ -45,9 +48,9 @@ public interface Registrations {
 	 * @param rssUrl
 	 *            publisher rss topic url
 	 * @param endp
-	 * @EndpointDescription description to remove
+	 *            the {@link EndpointDescription} description to remove
 	 */
-	public void removeEndpointByTopicRssUrl(final String rssUrl,
+	void removeEndpointByTopicRssUrl(final String rssUrl,
 			final EndpointDescription endp);
 
 	/**
@@ -58,7 +61,7 @@ public interface Registrations {
 	 * @param endpointFilter
 	 *            filter to specify endpoints
 	 */
-	public void addSubscriber(final String callBackUrl,
+	void addSubscriber(final String callBackUrl,
 			final String endpointFilter);
 
 	/**
@@ -67,13 +70,13 @@ public interface Registrations {
 	 * @param callBackUrl
 	 *            subscriber full url address to send notifications
 	 */
-	public void removeSubscriber(final String callBackUrl);
+	void removeSubscriber(final String callBackUrl);
 
 	/**
 	 * Provides all registered @EndpointSescription with MachineID.
 	 * 
 	 * @return all @EndpointSescription as Map collection, key as index
 	 */
-	public Map<EndpointDescription, String> getAllEndpoints();
+	Map<EndpointDescription, String> getAllEndpoints();
 
 }

@@ -29,8 +29,6 @@ import org.ow2.chameleon.json.JSONService;
  */
 public class SendSubscription {
 
-
-	private String callBackUrl;
 	private HttpPost postMethod;
 	// client to send notification to subscribers;
 	private HttpClient client;
@@ -38,28 +36,28 @@ public class SendSubscription {
 	private LogService logger;
 
 	/**
-	 * Main constructor
+	 * Main constructor.
 	 * 
-	 * @param pRegistrations
-	 *            Endpoints,subscribers,publishers management
 	 * @param pJson
 	 *            {@link JSONService}
 	 * @param pLogger
 	 *            {@link LogService}
 	 */
-	public SendSubscription(LogService pLogger, JSONService pJson){
+	public SendSubscription(LogService pLogger, JSONService pJson) {
 		this.client = new DefaultHttpClient(new ThreadSafeClientConnManager());
 		this.logger = pLogger;
 		this.json = pJson;
 	}
 
-	/**
-	 * Send subscriptions to subscribers
+	/** Send subscriptions to subscribers.
+	 * @param subscribers subscribers url to send notification
+	 * @param endpoint the {@link EndpointDescription} @EndpointDescription 
+	 * @param updateOption add/remove options
 	 */
-	
-	public void sendSubscriptions(Set<String> subscribers,EndpointDescription endpoint,String updateOption) {
-		//run thread to send subscriptions
-		(new SendingUpdateThread(subscribers,endpoint,updateOption)).start();
+	public final void sendSubscriptions(final Set<String> subscribers,
+			final EndpointDescription endpoint, final String updateOption) {
+		// run thread to send subscriptions
+		(new SendingUpdateThread(subscribers, endpoint, updateOption)).start();
 	}
 
 	private class SendingUpdateThread extends Thread {
@@ -67,19 +65,20 @@ public class SendSubscription {
 		private String updateOption;
 		private Set<String> subcribers;
 		private EndpointDescription endpoint;
-		
-		public SendingUpdateThread(Set<String> subscribers,EndpointDescription endpoint,String updateOption) {
+
+		public SendingUpdateThread(Set<String> pSubscribers,
+				EndpointDescription pEndpoint, String pUpdateOption) {
 			super();
-			this.subcribers = subscribers;
-			this.endpoint = endpoint;
-			this.updateOption = updateOption;
+			this.subcribers = pSubscribers;
+			this.endpoint = pEndpoint;
+			this.updateOption = pUpdateOption;
 		}
 
 		@Override
 		public final void run() {
-			
+
 			for (String subscriberUrl : subcribers) {
-				
+
 				postMethod = new HttpPost(subscriberUrl);
 				postMethod.setHeader("Content-Type",
 						"application/x-www-form-urlencoded");
@@ -90,15 +89,17 @@ public class SendSubscription {
 				nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, json
 						.toJSON(this.endpoint.getProperties())));
 				try {
-					postMethod
-							.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+					postMethod.setEntity(new UrlEncodedFormEntity(nvps,
+							HTTP.UTF_8));
 
 					final HttpResponse response = client.execute(postMethod);
 					if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 						logger.log(LogService.LOG_ERROR,
 								"Error in sending an update to subscriber: "
-										+ callBackUrl + ", got response "
-										+ response.getStatusLine().getStatusCode());
+										+ subscriberUrl
+										+ ", got response "
+										+ response.getStatusLine()
+												.getStatusCode());
 						response.getEntity().getContent().close();
 					}
 					// read an empty entity and close a connection
@@ -108,7 +109,6 @@ public class SendSubscription {
 							"Error in sending an update to subscriber", e);
 				}
 			}
-			
 
 		}
 	}

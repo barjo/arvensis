@@ -10,8 +10,6 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
 
 import java.io.IOException;
@@ -35,9 +33,6 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -89,7 +84,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	private transient LogService logger;
 
 	@Requires(filter = FEED_READER_FACTORY_FILTER)
-	private Factory feedReaderFactory;
+	private transient Factory feedReaderFactory;
 
 	@Property(name = INSTANCE_PROPERTY_HUB_URL, mandatory = true)
 	private String hubServlet;
@@ -382,7 +377,7 @@ public class HubImpl extends HttpServlet implements Hub {
 		return Integer.parseInt(pContent.substring(1, pFeedIndexDigit + 1));
 	}
 
-	public RegistrationsImpl getRegistrations() {
+	public final RegistrationsImpl getRegistrations() {
 		return registrations;
 	}
 
@@ -423,12 +418,12 @@ public class HubImpl extends HttpServlet implements Hub {
 	 * @author Bartek
 	 * 
 	 */
-	private class ReaderWithFeedIndex {
+	private static class ReaderWithFeedIndex {
 		private FeedReader feedReader;
 		private int feedIndex;
 
-		public ReaderWithFeedIndex(FeedReader feedReader) {
-			this.feedReader = feedReader;
+		public ReaderWithFeedIndex(FeedReader pFeedReader) {
+			this.feedReader = pFeedReader;
 			feedIndex = 1;
 		}
 

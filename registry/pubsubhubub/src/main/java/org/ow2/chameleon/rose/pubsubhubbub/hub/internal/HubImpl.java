@@ -7,9 +7,9 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
@@ -42,7 +42,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -54,9 +53,6 @@ import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
 import org.ow2.chameleon.syndication.FeedReader;
-
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 /**
  * Component class to work as Hub in Pubsubhubbub technology, specially modified
@@ -104,13 +100,9 @@ public class HubImpl extends HttpServlet implements Hub {
 	// store instances of RSS reader for different topics
 	private Map<Object, ReaderWithFeedIndex> readers;
 	private Dictionary<String, Object> instanceDictionary;
-	private transient SendSubscription sendSubscription;
 	private transient ServiceTracker feedReaderTracker;
 	private transient BundleContext context;
 	private transient RegistrationsImpl registrations;
-
-	// client to send notification to subscribers;
-	private transient HttpClient client;
 
 	public HubImpl(final BundleContext pContext) {
 		this.context = pContext;
@@ -121,9 +113,7 @@ public class HubImpl extends HttpServlet implements Hub {
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
 			readers = new HashMap<Object, ReaderWithFeedIndex>();
-			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
-			registrations = new RegistrationsImpl();
-			sendSubscription = new SendSubscription(client, registrations,logger,json);
+			registrations = new RegistrationsImpl(json, logger);
 
 			// start tracking for all feed readers
 			feedReaderTracker = new ServiceTracker(context,
@@ -142,6 +132,152 @@ public class HubImpl extends HttpServlet implements Hub {
 		// unregister hubServlet (subscriber/publisher purpose)
 		httpService.unregister(hubServlet);
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
+	 * , javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected final void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
+
+		String rssUrl;
+		String endpointFilter;
+		String callBackUrl;
+		String machineID;
+		FeedEntry feed;
+		int feedIndex = 0;
+		int feedIndexDigit = 0;
+
+		// check the content type, must be application/x-www-form-urlencoded
+		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
+				|| (req.getParameter(HTTP_POST_PARAMETER_HUB_MODE) == null)) {
+			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
+			return;
+		}
+		rssUrl = req.getParameter(HTTP_POST_PARAMETER_RSS_TOPIC_URL);
+		endpointFilter = req.getParameter(HTTP_POST_PARAMETER_ENDPOINT_FILTER);
+		callBackUrl = req.getParameter(HTTP_POST_PARAMETER_URL_CALLBACK);
+		machineID = req.getParameter(HTTP_POST_PARAMETER_MACHINEID);
+		// check the hub mode
+		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
+		case publish:
+
+			if ((rssUrl != null) && (machineID != null)
+					&& (createReader(rssUrl))) {
+				registrations.addTopic(rssUrl, machineID);
+				responseCode = HttpStatus.SC_CREATED;
+				logger.log(LOG_INFO, "Successfully register publisher from: "
+						+ rssUrl);
+			} else {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+			}
+			break;
+
+		case unpublish:
+
+			if (rssUrl != null) {
+				// remove a topic
+				registrations.removeTopic(rssUrl);
+				readers.remove(rssUrl);
+				responseCode = HttpStatus.SC_ACCEPTED;
+				logger.log(LOG_INFO, "Successfully removed publisher from: "
+						+ rssUrl);
+			} else {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+			}
+			break;
+
+		case update:
+			if ((rssUrl == null) || (readers.get(rssUrl) == null)) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
+			feed = readers.get(rssUrl).getFeedReader().getLastEntry();
+			if (feed == null) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
+			// retrieve feed index from feed content
+			feedIndexDigit = getFeedIndexDigit(feed.content());
+			feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
+			while (readers.get(rssUrl).getFeedIndex() != feedIndex) {
+				try {
+					Thread.sleep(10);
+					// try to get newest feed
+					feed = readers.get(rssUrl).getFeedReader().getLastEntry();
+					// update index from new feed
+					feedIndexDigit = getFeedIndexDigit(feed.content());
+					feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			try {
+				@SuppressWarnings("unchecked")
+				EndpointDescription edp = getEndpointDescriptionFromJSON(json
+						.fromJSON(feed.content().substring(feedIndexDigit + 1,
+								feed.content().length())));
+				logger.log(LOG_INFO, "Received update from " + rssUrl + ", "
+						+ feed.title() + " : " + edp);
+				if (feed.title().equals(FEED_TITLE_NEW)) {
+					registrations.addEndpointByTopicRssUrl(rssUrl, edp);
+				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
+					registrations.removeEndpointByTopicRssUrl(rssUrl, edp);
+				}
+				readers.get(rssUrl).increaseIndex();
+				responseCode = HttpStatus.SC_ACCEPTED;
+			} catch (ParseException e) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				logger.log(LOG_ERROR, "Update false", e);
+			}
+			break;
+
+		case subscribe:
+			if ((endpointFilter == null) || (callBackUrl == null)) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+			} else {
+				registrations.addSubscriber(callBackUrl, endpointFilter);
+				responseCode = HttpStatus.SC_CREATED;
+				logger.log(LOG_INFO, "Successfully register subscriber from  "
+						+ callBackUrl + "with filer: " + endpointFilter);
+			}
+
+			break;
+
+		case unsubscribe:
+			if (callBackUrl == null) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
+			registrations.removeSubscriber(callBackUrl);
+			responseCode = HttpStatus.SC_ACCEPTED;
+			logger.log(LOG_INFO, "Successfully removed subscriber from  "
+					+ callBackUrl);
+
+			break;
+
+		case getAllEndpoints:
+			// for Rose Pubsuhhubbub webconsole purpose
+			resp.setContentType("text/html");
+			for (EndpointDescription endpoint : registrations.getAllEndpoints()
+					.keySet()) {
+				resp.getWriter().append(endpoint.toString() + "<br><br>");
+			}
+			responseCode = HttpStatus.SC_ACCEPTED;
+			break;
+
+		// hub.mode not found
+		default:
+			responseCode = HttpStatus.SC_BAD_REQUEST;
+			break;
+		}
+		resp.setStatus(responseCode);
 	}
 
 	/**
@@ -221,160 +357,6 @@ public class HubImpl extends HttpServlet implements Hub {
 		return new EndpointDescription(map);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
-	 * , javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
-	protected final void doPost(final HttpServletRequest req,
-			final HttpServletResponse resp) throws ServletException,
-			IOException {
-
-		String rssUrl;
-		String endpointFilter;
-		String callBackUrl;
-		String machineID;
-		FeedEntry feed;
-		int feedIndex = 0;
-		int feedIndexDigit = 0;
-
-		// check the content type, must be application/x-www-form-urlencoded
-		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
-				|| (req.getParameter(HTTP_POST_PARAMETER_HUB_MODE) == null)) {
-			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
-			return;
-		}
-		rssUrl = req.getParameter(HTTP_POST_PARAMETER_RSS_TOPIC_URL);
-		endpointFilter = req.getParameter(HTTP_POST_PARAMETER_ENDPOINT_FILTER);
-		callBackUrl = req.getParameter(HTTP_POST_PARAMETER_URL_CALLBACK);
-		machineID = req.getParameter(HTTP_POST_PARAMETER_MACHINEID);
-		// check the hub mode
-		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
-		case publish:
-
-			if ((rssUrl != null) && (machineID != null)
-					&& (createReader(rssUrl))) {
-				registrations.addTopic(rssUrl, machineID);
-				responseCode = HttpStatus.SC_CREATED;
-				logger.log(LOG_INFO, "Successfully register publisher from: "
-						+ rssUrl);
-			} else {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-			}
-			break;
-
-		case unpublish:
-
-			if (rssUrl != null) {
-				// remove a topic
-				sendSubscription.topicDelete(rssUrl);
-				readers.remove(rssUrl);
-				responseCode = HttpStatus.SC_ACCEPTED;
-				logger.log(LOG_INFO, "Successfully removed publisher from: "
-						+ rssUrl);
-			} else {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-			}
-			break;
-
-		case update:
-			if ((rssUrl == null) || (readers.get(rssUrl) == null)) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				break;
-			}
-			feed = readers.get(rssUrl).getFeedReader().getLastEntry();
-			if (feed == null) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				break;
-			}
-			// retrieve feed index from feed content
-			feedIndexDigit = getFeedIndexDigit(feed.content());
-			feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
-			while (readers.get(rssUrl).getFeedIndex() != feedIndex) {
-				try {
-					Thread.sleep(10);
-					// try to get newest feed
-					feed = readers.get(rssUrl).getFeedReader().getLastEntry();
-					// update index from new feed
-					feedIndexDigit = getFeedIndexDigit(feed.content());
-					feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			try {
-				@SuppressWarnings("unchecked")
-				EndpointDescription edp = getEndpointDescriptionFromJSON(json
-						.fromJSON(feed.content().substring(feedIndexDigit + 1,
-								feed.content().length())));
-				logger.log(LOG_INFO, "Received update from " + rssUrl + ", "
-						+ feed.title() + " : " + edp);
-				if (feed.title().equals(FEED_TITLE_NEW)) {
-					registrations.addEndpointByTopicRssUrl(rssUrl, edp);
-					sendSubscription.endpoindUpdated(edp,
-							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
-				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
-					registrations.removeEndpoint(rssUrl, edp);
-					sendSubscription.endpoindUpdated(edp,
-							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
-				}
-				readers.get(rssUrl).increaseIndex();
-				responseCode = HttpStatus.SC_ACCEPTED;
-			} catch (ParseException e) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				logger.log(LOG_ERROR, "Update false", e);
-			}
-			break;
-
-		case subscribe:
-			if ((endpointFilter == null) || (callBackUrl == null)) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-			} else {
-				registrations.addSubscription(callBackUrl, endpointFilter);
-				responseCode = HttpStatus.SC_CREATED;
-				logger.log(LOG_INFO, "Successfully register subscriber from  "
-						+ callBackUrl + "with filer: " + endpointFilter);
-				// check if already register an endpoint which matches the
-				// filter
-
-				sendSubscription.subscriberAdded(callBackUrl);
-			}
-
-			break;
-
-		case unsubscribe:
-			if (callBackUrl == null) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				break;
-			}
-			registrations.removeSubscribtion(callBackUrl);
-			responseCode = HttpStatus.SC_ACCEPTED;
-			logger.log(LOG_INFO, "Successfully removed subscriber from  "
-					+ callBackUrl);
-
-			break;
-
-		case getAllEndpoints:
-			// for Rose Pubsuhhubbub webconsole purpose
-			resp.setContentType("text/html");
-			for (EndpointDescription endpoint : registrations.getAllEndpoints()
-					.keySet()) {
-				resp.getWriter().append(endpoint.toString() + "<br><br>");
-			}
-			responseCode = HttpStatus.SC_ACCEPTED;
-			break;
-
-		// hub.mode not found
-		default:
-			responseCode = HttpStatus.SC_BAD_REQUEST;
-			break;
-		}
-		resp.setStatus(responseCode);
-	}
-
 	/**
 	 * Gets feed index digit from feed content.
 	 * 
@@ -400,17 +382,10 @@ public class HubImpl extends HttpServlet implements Hub {
 		return Integer.parseInt(pContent.substring(1, pFeedIndexDigit + 1));
 	}
 
-	public final JSONService json() {
-		return json;
-	}
-
-	public final LogService logger() {
-		return logger;
-	}
 	public RegistrationsImpl getRegistrations() {
 		return registrations;
 	}
-	
+
 	/**
 	 * Tracker for Feed reader.
 	 * 

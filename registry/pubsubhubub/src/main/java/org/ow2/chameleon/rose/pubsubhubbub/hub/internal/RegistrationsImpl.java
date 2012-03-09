@@ -1,5 +1,6 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -8,8 +9,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Registrations;
+
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 
 /**
  * Keep all informations about registered rss topics with related endpoints and
@@ -18,38 +24,36 @@ import org.ow2.chameleon.rose.pubsubhubbub.hub.Registrations;
  * @author Bartek
  * 
  */
-public class RegistrationsImpl implements Registrations{
+public class RegistrationsImpl implements Registrations {
 
-	// endpoint descriptions with publisher machine id
+	// publisher endpoint description with endpoint descriptions machine id
 	private Map<EndpointDescription, String> endpoints;
 
 	// connected publishers (topic rss url with machine id))
 	private Map<String, String> publishers;
 
-	// connected Hubs
-	private Set<String> hubs;
-	// topic url, endpoint descriptions
-	// TODO remove
-	private Map<String, Set<EndpointDescription>> topics;
-
 	// connected subscribers with subscribed endpoints
 	private Map<String, EndpointsByFilter> subscribers;
 	private ReentrantReadWriteLock lock;
 
+	private SendSubscription sendSubscription;
+
 	/**
 	 * Main constructor.
+	 * 
+	 * @param json
+	 * @param logger
 	 */
-	public RegistrationsImpl() {
+	public RegistrationsImpl(JSONService json, LogService logger) {
 		endpoints = new HashMap<EndpointDescription, String>();
 		publishers = new HashMap<String, String>();
-		hubs = new HashSet<String>();
-		topics = new ConcurrentHashMap<String, Set<EndpointDescription>>();
 		subscribers = new ConcurrentHashMap<String, EndpointsByFilter>();
 		lock = new ReentrantReadWriteLock();
+		sendSubscription = new SendSubscription(logger, json);
 	}
 
 	/**
-	 * Add new topic (publisher registers topic).
+	 * Add new topic (publisher registers a topic).
 	 * 
 	 * @param rssURL
 	 *            publisher rss topic url
@@ -62,21 +66,53 @@ public class RegistrationsImpl implements Registrations{
 			lock.writeLock().unlock();
 		}
 	}
+	
+	/**
+	 * Remove topic (publisher unregisters a topic).
+	 * 
+	 * @param rssURL
+	 *            publisher rss topic url
+	 */
+	public void removeTopic(String rssUrl) {
+		Set<String> subscribers = new HashSet<String>();
+		lock.writeLock().lock();
+		for (Entry<EndpointDescription, String> endpoint : endpoints.entrySet()) {
+			// find all endpoints registered by publisher
+			if (endpoint.getValue().equals(publishers.get(rssUrl))) {
+				// get subscribers who use this endpoint
+				subscribers = this.getSubscribersByEndpoint(endpoint.getKey(),
+						false);
+				if (subscribers.size() != 0) {
+					sendSubscription.sendSubscriptions(subscribers,
+							endpoint.getKey(),
+							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
+				}
+				// remove registration of endpoint
+				endpoints.remove(endpoint.getKey());
+			}
+		}
+		lock.writeLock().lock();
+	}
 
 	/**
-	 * Add endpoint to topic.
+	 * Add endpoint to the topic.
 	 * 
 	 * @param rssUrl
 	 *            publisher rss topic url
 	 * @param endp
-	 * @EndpointDescription description to add
+	 * @param @EndpointDescription description to add
 	 */
 	public final void addEndpointByTopicRssUrl(final String rssUrl,
 			final EndpointDescription endp) {
+		Set<String> subscribers;
+
 		lock.writeLock().lock();
 		endpoints.put(endp, publishers.get(rssUrl));
-		// TODO remove
-		// topics.get(rssUrl).add(endp);
+		subscribers = getSubscribersByEndpoint(endp, true);
+		if (subscribers.size() != 0) {
+			sendSubscription.sendSubscriptions(subscribers, endp,
+					HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
+		}
 		lock.writeLock().unlock();
 	}
 
@@ -90,8 +126,15 @@ public class RegistrationsImpl implements Registrations{
 	 */
 	public final void addEndpointByMachineID(final String machineID,
 			final EndpointDescription endp) {
+		Set<String> subscribers;
+
 		lock.writeLock().lock();
 		endpoints.put(endp, machineID);
+		subscribers = getSubscribersByEndpoint(endp, true);
+		if (subscribers.size() != 0) {
+			sendSubscription.sendSubscriptions(subscribers, endp,
+					HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
+		}
 		lock.writeLock().unlock();
 	}
 
@@ -103,12 +146,17 @@ public class RegistrationsImpl implements Registrations{
 	 * @param endp
 	 * @EndpointDescription description to remove
 	 */
-	public final void removeEndpoint(final String rssUrl,
+	public final void removeEndpointByTopicRssUrl(final String rssUrl,
 			final EndpointDescription endp) {
+		Set<String> subscribers;
+
 		lock.writeLock().lock();
 		endpoints.remove(endp);
-		// TODO remove
-		// topics.get(rssUrl).remove(endp);
+		subscribers = getSubscribersByEndpoint(endp, false);
+		if (subscribers.size() != 0) {
+			sendSubscription.sendSubscriptions(subscribers, endp,
+					HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
+		}
 		lock.writeLock().unlock();
 	}
 
@@ -120,11 +168,21 @@ public class RegistrationsImpl implements Registrations{
 	 * @param endpointFilter
 	 *            filter to specify endpoints
 	 */
-	public final void addSubscription(final String callBackUrl,
+	public final void addSubscriber(final String callBackUrl,
 			final String endpointFilter) {
+		EndpointsByFilter endpointsByFiler = new EndpointsByFilter(
+				endpointFilter);
 		lock.writeLock().lock();
 		try {
-			subscribers.put(callBackUrl, new EndpointsByFilter(endpointFilter));
+			for (EndpointDescription endpoint : endpoints.keySet()) {
+				if (endpoint.matches(endpointFilter))
+					endpointsByFiler.addEndpoint(endpoint);
+				new HashSet<String>(Arrays.asList(callBackUrl));
+				sendSubscription.sendSubscriptions(
+						new HashSet<String>(Arrays.asList(callBackUrl)),
+						endpoint, HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
+			}
+			subscribers.put(callBackUrl, endpointsByFiler);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -136,120 +194,13 @@ public class RegistrationsImpl implements Registrations{
 	 * @param callBackUrl
 	 *            subscriber full url address to send notifications
 	 */
-	public final void removeSubscribtion(final String callBackUrl) {
+	public final void removeSubscriber(final String callBackUrl) {
 		lock.writeLock().lock();
 		try {
 			subscribers.remove(callBackUrl);
 		} finally {
 			lock.writeLock().unlock();
 		}
-	}
-
-	/**
-	 * Get all endpoints which match a filter. Does not unlock read lock. Call
-	 * {@link RegistrationsImpl#releaseReadLock()} after "consume" returned values}.
-	 * 
-	 * @param callBackUrl
-	 *            subscriber full url address to send notifications
-	 * @return set contains @EndpointDescription
-	 */
-	public final Set<EndpointDescription> getEndpointsForCallBackUrl(
-			final String callBackUrl) {
-		lock.readLock().lock();
-		Set<EndpointDescription> matchedEndpointDescriptions = new HashSet<EndpointDescription>();
-		String filter = subscribers.get(callBackUrl).getFilter();
-		for (EndpointDescription endpoint : getAllEndpoints().keySet()) {
-			if (endpoint.matches(filter)) {
-				matchedEndpointDescriptions.add(endpoint);
-				subscribers.get(callBackUrl).addEndpoint(endpoint);
-			}
-		}
-		return matchedEndpointDescriptions;
-	}
-
-	/**
-	 * Provides information about registered subscribers whose endpoints filters
-	 * matches given @EndpointDescription. Does not unlock read lock. Call
-	 * {@link RegistrationsImpl#releaseReadLock()} after "consume" returned values}.
-	 * 
-	 * @param endp
-	 * @EndpointDescription to search
-	 * @return subscribers with matching endpoint filter
-	 */
-	public final Set<String> getSubscribersByEndpoint(
-			final EndpointDescription endp) {
-		Set<String> matchedSubscribers = new HashSet<String>();
-		lock.readLock().lock();
-		for (String subscriber : subscribers.keySet()) {
-
-			if (endp.matches(subscribers.get(subscriber).getFilter())) {
-				matchedSubscribers.add(subscriber);
-				subscribers.get(subscriber).addEndpoint(endp);
-			}
-		}
-		return matchedSubscribers;
-	}
-
-	/**
-	 * Provides information about registered subscribers and their subscribed
-	 * endpoints by checking if given publisher provides interested
-	 * 
-	 * @EndpointDescription.Does not unlock read lock. Call
-	 *                           {@link RegistrationsImpl#releaseReadLock()} after
-	 *                           "consume" returned values.
-	 * 
-	 * @param rssUrl
-	 *            subscriber full RSS url address to send notifications
-	 * @return @Map containing subscriber full url address to send notifications
-	 *         and their @EndpointDescription
-	 */
-	public final Map<String, Set<EndpointDescription>> getSubscriberAndEndpointsByPublisherRssUrl(
-			final String rssUrl) {
-
-		Map<String, Set<EndpointDescription>> subscriberEndpoints = new ConcurrentHashMap<String, Set<EndpointDescription>>();
-		lock.readLock().lock();
-		for (String subscriber : subscribers.keySet()) {
-			subscriberEndpoints.put(subscriber,
-					new HashSet<EndpointDescription>());
-			for (EndpointDescription endpoint : getEndpointsByMachineId(getTopicRssUrlByMachineID(rssUrl))) {
-				if (subscribers.get(subscriber).getEndpoints()
-						.contains(endpoint)) {
-					subscriberEndpoints.get(subscriber).add(endpoint);
-				}
-			}
-		}
-		return subscriberEndpoints;
-	}
-
-	/**
-	 * Provides information about registered subscribers and their subscribed
-	 * endpoints by checking if given publisher provides interested
-	 * 
-	 * @EndpointDescription.Does not unlock read lock. Call
-	 *                           {@link RegistrationsImpl#releaseReadLock()} after
-	 *                           "consume" returned values.
-	 * 
-	 * @param machineID
-	 *            subscriber machine ID
-	 * @return @Map containing subscriber full url address to send notifications
-	 *         and their @EndpointDescription
-	 */
-	public final Map<String, Set<EndpointDescription>> getSubscriberAndEndpointsByPublisherMachineID(
-			final String machineID) {
-
-		Map<String, Set<EndpointDescription>> subscriberEndpoints = new ConcurrentHashMap<String, Set<EndpointDescription>>();
-		lock.readLock().lock();
-		for (String subscriber : subscribers.keySet()) {
-			subscriberEndpoints.put(subscriber,
-					new HashSet<EndpointDescription>());
-			for (EndpointDescription endpoint : getEndpointsByMachineId(machineID)) {
-				if (subscribers.get(subscriber).getEndpoints()
-						.contains(endpoint)) {
-					subscriberEndpoints.get(subscriber).add(endpoint);
-				}
-			}
-		}
-		return subscriberEndpoints;
 	}
 
 	/**
@@ -261,46 +212,6 @@ public class RegistrationsImpl implements Registrations{
 		return endpoints;
 	}
 
-	/**
-	 * Removes particular topic.
-	 * 
-	 * @param rssURL
-	 *            publisher rss topic url to delete
-	 */
-	public final void clearTopic(final String rssURL) {
-		lock.readLock().lock();
-		endpoints.get(publishers.get(rssURL));
-		for (Entry<EndpointDescription, String> entry : endpoints.entrySet()) {
-			if (entry.getValue().equals(rssURL)) {
-				for (String subscriber : subscribers.keySet()) {
-					subscribers.get(subscriber).getEndpoints()
-							.remove(entry.getKey());
-				}
-			}
-		}
-		publishers.remove(rssURL);
-		lock.readLock().unlock();
-	}
-
-	/**
-	 * Removes particular @EndpointDescription from subscriber registration.
-	 * 
-	 * @param callBackUrl
-	 *            subscriber full url address to send notifications
-	 * @param edp
-	 * @EndpointSescription to remove
-	 */
-	public final void removeInterestedEndpoint(final String callBackUrl,
-			final EndpointDescription edp) {
-		subscribers.get(callBackUrl).removeEndpoint(edp);
-	}
-
-	/**
-	 * Releases read lock for current thread
-	 */
-	public final void releaseReadLock() {
-		lock.readLock().unlock();
-	}
 
 	private final Set<EndpointDescription> getEndpointsByMachineId(
 			String machineID) {
@@ -327,6 +238,38 @@ public class RegistrationsImpl implements Registrations{
 	}
 
 	/**
+	 * Provides information about registered subscribers whose endpoints filters
+	 * matches given @EndpointDescription.
+	 * 
+	 * @param endp
+	 * @EndpointDescription to search
+	 * @param option
+	 *            true - matched @EndpointDescription to subscribers, false -
+	 *            add remove matched @EndpointDescription to subscribers
+	 * @return subscribers with matching endpoint filter
+	 */
+	private final Set<String> getSubscribersByEndpoint(
+			final EndpointDescription endp, boolean option) {
+		Set<String> matchedSubscribers = new HashSet<String>();
+		for (String subscriber : subscribers.keySet()) {
+
+			if (endp.matches(subscribers.get(subscriber).getFilter())) {
+				// check option
+				if (option) {
+					subscribers.get(subscriber).addEndpoint(endp);
+					matchedSubscribers.add(subscriber);
+					// check if subscriber still registers given endpoint
+				} else if (subscribers.get(subscriber).removeEndpoint(endp)) {
+					matchedSubscribers.add(subscriber);
+				}
+			}
+		}
+		return matchedSubscribers;
+	}
+
+
+
+	/**
 	 * Keeps connection between particular filter and @EndpointSescription which
 	 * satisfies it.
 	 * 
@@ -350,8 +293,8 @@ public class RegistrationsImpl implements Registrations{
 			matchedEndpoints.add(endp);
 		}
 
-		public void removeEndpoint(final EndpointDescription endp) {
-			matchedEndpoints.remove(endp);
+		public boolean removeEndpoint(final EndpointDescription endp) {
+			return matchedEndpoints.remove(endp);
 		}
 
 		public Set<EndpointDescription> getEndpoints() {
@@ -359,4 +302,5 @@ public class RegistrationsImpl implements Registrations{
 		}
 
 	}
+
 }

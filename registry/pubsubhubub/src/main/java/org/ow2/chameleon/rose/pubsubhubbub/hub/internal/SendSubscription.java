@@ -60,12 +60,21 @@ public class SendSubscription {
 		(new SendingUpdateThread(subscribers, endpoint, updateOption)).start();
 	}
 
+	/**Thread to send notifications to subscribers
+	 * @author Bartek
+	 *
+	 */
 	private class SendingUpdateThread extends Thread {
 
 		private String updateOption;
 		private Set<String> subcribers;
 		private EndpointDescription endpoint;
 
+		/**
+		 * @param pSubscribers publishers
+		 * @param pEndpoint {@link EndpointDescription} 
+		 * @param pUpdateOption new endpoint/remove endpoint
+		 */
 		public SendingUpdateThread(Set<String> pSubscribers,
 				EndpointDescription pEndpoint, String pUpdateOption) {
 			super();
@@ -78,7 +87,6 @@ public class SendSubscription {
 		public final void run() {
 
 			for (String subscriberUrl : subcribers) {
-
 				postMethod = new HttpPost(subscriberUrl);
 				postMethod.setHeader("Content-Type",
 						"application/x-www-form-urlencoded");

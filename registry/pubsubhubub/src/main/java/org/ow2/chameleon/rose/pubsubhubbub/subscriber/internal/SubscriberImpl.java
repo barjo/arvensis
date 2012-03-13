@@ -85,7 +85,7 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 			subscritpion = new HubSubscriber(hubUrl, callBackUrl,
 					endpointFilter, context, rose);
 		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
+			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
 

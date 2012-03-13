@@ -140,7 +140,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 					EndpointListener.class.getName(), this, props);
 			logger.log(LOG_INFO, "EndpointTrackerRSS successfully started");
 		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
+			throw new RuntimeException(e.getMessage(), e);
 		}
 
 	}
@@ -161,13 +161,6 @@ public class PublisherImpl implements Publisher, EndpointListener {
 		rssServletInstance.dispose();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org
-	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
-	 */
 	public final void endpointAdded(final EndpointDescription endp,
 			final String filter) {
 		if (writer == null) {
@@ -196,14 +189,6 @@ public class PublisherImpl implements Publisher, EndpointListener {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointRemoved(
-	 * org.osgi.service.remoteserviceadmin.EndpointDescription,
-	 * java.lang.String)
-	 */
 	public final void endpointRemoved(final EndpointDescription endp,
 			final String arg1) {
 		if (writer == null) {

@@ -15,12 +15,12 @@ public interface Subscriber {
 	String INSTANCE_PROPERTY_ENDPOINT_FILTER = "endpoint.filter";
 
 	/**
-	 * Start method
+	 * Validate method.
 	 */
 	void start();
 
 	/**
-	 * Stop method
+	 * Invalidate method.
 	 */
 	void stop();
 

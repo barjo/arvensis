@@ -17,7 +17,6 @@ import org.ow2.chameleon.rose.pubsubhubbub.hub.Registrations;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 
-
 public class RegistrationsImpl implements Registrations {
 
 	// publisher endpoint description with endpoint descriptions machine id
@@ -35,8 +34,10 @@ public class RegistrationsImpl implements Registrations {
 	/**
 	 * Main constructor.
 	 * 
-	 * @param json {@link JSONService}
-	 * @param logger {@link LogService}
+	 * @param json
+	 *            {@link JSONService}
+	 * @param logger
+	 *            {@link LogService}
 	 */
 	public RegistrationsImpl(final JSONService json, final LogService logger) {
 		endpoints = new HashMap<EndpointDescription, String>();
@@ -64,7 +65,7 @@ public class RegistrationsImpl implements Registrations {
 				// get subscribers who use this endpoint
 				matchedSubscribers = this.getSubscribersByEndpoint(
 						endpoint.getKey(), false);
-				if (matchedSubscribers.size() != 0) {
+				if (!(matchedSubscribers.isEmpty())) {
 					sendSubscription.sendSubscriptions(matchedSubscribers,
 							endpoint.getKey(),
 							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
@@ -76,7 +77,6 @@ public class RegistrationsImpl implements Registrations {
 		lock.writeLock().lock();
 	}
 
-
 	public final void addEndpointByTopicRssUrl(final String rssUrl,
 			final EndpointDescription endp) {
 		Set<String> matchedSubscribers;
@@ -84,28 +84,33 @@ public class RegistrationsImpl implements Registrations {
 		lock.writeLock().lock();
 		endpoints.put(endp, publishers.get(rssUrl));
 		matchedSubscribers = getSubscribersByEndpoint(endp, true);
-		if (matchedSubscribers.size() != 0) {
+		if (!(matchedSubscribers.isEmpty())) {
 			sendSubscription.sendSubscriptions(matchedSubscribers, endp,
 					HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
 		}
 		lock.writeLock().unlock();
 	}
 
-	public final void addEndpointByMachineID(final String machineID,
+	public final boolean addEndpointByMachineID(final String machineID,
 			final EndpointDescription endp) {
 		Set<String> matchedSubscribers;
 
 		lock.writeLock().lock();
 		try {
+			// check if endpoint already exists
+			if (endpoints.containsKey(endp)) {
+				return false;
+			}
 			endpoints.put(endp, machineID);
 			matchedSubscribers = getSubscribersByEndpoint(endp, true);
-			if (matchedSubscribers.size() != 0) {
+			if (!(matchedSubscribers.isEmpty())) {
 				sendSubscription.sendSubscriptions(matchedSubscribers, endp,
 						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
 			}
 		} finally {
 			lock.writeLock().unlock();
 		}
+		return true;
 	}
 
 	public final void removeEndpointByTopicRssUrl(final String rssUrl,
@@ -116,7 +121,7 @@ public class RegistrationsImpl implements Registrations {
 		try {
 			endpoints.remove(endp);
 			matchedSubscribers = getSubscribersByEndpoint(endp, false);
-			if (matchedSubscribers.size() != 0) {
+			if (!(matchedSubscribers.isEmpty())) {
 				sendSubscription.sendSubscriptions(matchedSubscribers, endp,
 						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
 			}
@@ -135,7 +140,6 @@ public class RegistrationsImpl implements Registrations {
 				if (endpoint.matches(endpointFilter)) {
 					endpointsByFiler.addEndpoint(endpoint);
 				}
-				new HashSet<String>(Arrays.asList(callBackUrl));
 				sendSubscription.sendSubscriptions(
 						new HashSet<String>(Arrays.asList(callBackUrl)),
 						endpoint, HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED);
@@ -157,6 +161,42 @@ public class RegistrationsImpl implements Registrations {
 
 	public final Map<EndpointDescription, String> getAllEndpoints() {
 		return endpoints;
+	}
+
+	public final boolean removeEndpoint(String machineID, long endpointId) {
+		// find endpoint by his endpointID and publisher
+		for (EndpointDescription endp : getEndpointsByMachineId(machineID)) {
+			if (endp.getServiceId() == endpointId) {
+				this.removeEndpointByMachineID(machineID, endp);
+				return true;
+			}
+
+		}
+		lock.writeLock().lock();
+		return false;
+
+	}
+
+	public final String getPublisherMachineIdByRssUrl(String machineID) {
+		return publishers.get(machineID);
+
+	}
+
+	private void removeEndpointByMachineID(String machineID,
+			EndpointDescription endp) {
+
+		Set<String> matchedSubscribers;
+		lock.writeLock().lock();
+		try {
+			endpoints.remove(endp);
+			matchedSubscribers = getSubscribersByEndpoint(endp, false);
+			if (!(matchedSubscribers.isEmpty())) {
+				sendSubscription.sendSubscriptions(matchedSubscribers, endp,
+						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED);
+			}
+		} finally {
+			lock.writeLock().unlock();
+		}
 	}
 
 	private Set<EndpointDescription> getEndpointsByMachineId(String machineID) {
@@ -216,10 +256,6 @@ public class RegistrationsImpl implements Registrations {
 
 		public boolean removeEndpoint(final EndpointDescription endp) {
 			return matchedEndpoints.remove(endp);
-		}
-
-		public Set<EndpointDescription> getEndpoints() {
-			return matchedEndpoints;
 		}
 
 	}

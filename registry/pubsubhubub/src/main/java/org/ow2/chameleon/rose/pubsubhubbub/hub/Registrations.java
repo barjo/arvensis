@@ -38,8 +38,9 @@ public interface Registrations {
 	 *            publisher machineID
 	 * @param endp
 	 *            the {@link EndpointDescription} description to add
+	 * @return true if new  {@link EndpointDescription} added; false otherwise 
 	 */
-	void addEndpointByMachineID(final String machineID,
+	boolean addEndpointByMachineID(final String machineID,
 			final EndpointDescription endp);
 
 	/**
@@ -78,5 +79,18 @@ public interface Registrations {
 	 * @return all @EndpointSescription as Map collection, key as index
 	 */
 	Map<EndpointDescription, String> getAllEndpoints();
+
+	/** Removes endpoint.
+	 * @param machineID publisher machineId
+	 * @param endpointId Endpoint id
+	 * @return if endpoints deleted
+	 */
+	boolean removeEndpoint(String machineID, long endpointId);
+	
+	/** Retrieves publishers machineID by rss url 
+	 * @param publisher publisher`s RSS url
+	 * @return publisher`s machineID
+	 */
+	String getPublisherMachineIdByRssUrl(String publisher);
 
 }

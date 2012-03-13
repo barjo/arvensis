@@ -1,6 +1,5 @@
 package org.ow2.chameleon.rose.pubsubhubbub.constants;
 
-
 public class PubsubhubbubConstants {
 
 	public static final String RSS_EVENT_TOPIC = "org/ow2/chameleon/syndication";

@@ -44,6 +44,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
+import org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
@@ -96,6 +97,8 @@ public class HubImpl extends HttpServlet implements Hub {
 	private Map<Object, ReaderWithFeedIndex> readers;
 	private Dictionary<String, Object> instanceDictionary;
 	private transient ServiceTracker feedReaderTracker;
+	private transient ServiceTracker distributedHubTracker;
+	private transient DistributedHub distributedHub;
 	private transient BundleContext context;
 	private transient RegistrationsImpl registrations;
 
@@ -114,6 +117,11 @@ public class HubImpl extends HttpServlet implements Hub {
 			feedReaderTracker = new ServiceTracker(context,
 					FeedReader.class.getName(), new FeedReaderTracker());
 			feedReaderTracker.open();
+
+			// star tracking distributed pubsubhubbub
+			distributedHubTracker = new ServiceTracker(context,
+					DistributedHub.class.getName(), new DistributedHubTracker());
+			distributedHubTracker.open();
 			logger.log(LOG_INFO, "Pubsubhubbub successfully starts");
 
 		} catch (Exception e) {
@@ -124,6 +132,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	@Invalidate
 	public final void stop() {
 		feedReaderTracker.close();
+		distributedHubTracker.close();
 		// unregister hubServlet (subscriber/publisher purpose)
 		httpService.unregister(hubServlet);
 
@@ -203,6 +212,7 @@ public class HubImpl extends HttpServlet implements Hub {
 			feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
 			while (readers.get(rssUrl).getFeedIndex() != feedIndex) {
 				try {
+					// wait 10 milliseconds until next read
 					Thread.sleep(10);
 					// try to get newest feed
 					feed = readers.get(rssUrl).getFeedReader().getLastEntry();
@@ -210,7 +220,7 @@ public class HubImpl extends HttpServlet implements Hub {
 					feedIndexDigit = getFeedIndexDigit(feed.content());
 					feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					logger.log(LOG_ERROR, e.getMessage(), e);
 				}
 			}
 			try {
@@ -222,8 +232,19 @@ public class HubImpl extends HttpServlet implements Hub {
 						+ feed.title() + " : " + edp);
 				if (feed.title().equals(FEED_TITLE_NEW)) {
 					registrations.addEndpointByTopicRssUrl(rssUrl, edp);
+					// send notification to distributedhubs
+					if (distributedHub != null) {
+						distributedHub.addEndpoint(edp, registrations
+								.getPublisherMachineIdByRssUrl(rssUrl));
+					}
 				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
 					registrations.removeEndpointByTopicRssUrl(rssUrl, edp);
+					// send notification to distributedhubs
+					if (distributedHub != null) {
+						distributedHub.removeEndpoint(edp.getServiceId(),
+								registrations
+										.getPublisherMachineIdByRssUrl(rssUrl));
+					}
 				}
 				readers.get(rssUrl).increaseIndex();
 				responseCode = HttpStatus.SC_ACCEPTED;
@@ -336,7 +357,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	 * @return proper endpoint description
 	 */
 	@SuppressWarnings("unchecked")
-	private EndpointDescription getEndpointDescriptionFromJSON(
+	public final EndpointDescription getEndpointDescriptionFromJSON(
 			final Map<String, Object> map) {
 
 		if (map.get(Constants.OBJECTCLASS) instanceof ArrayList<?>) {
@@ -402,7 +423,7 @@ public class HubImpl extends HttpServlet implements Hub {
 
 		public void modifiedService(final ServiceReference reference,
 				final Object service) {
-
+			return;
 		}
 
 		public void removedService(final ServiceReference reference,
@@ -438,5 +459,23 @@ public class HubImpl extends HttpServlet implements Hub {
 		public void increaseIndex() {
 			feedIndex++;
 		}
+	}
+
+	private class DistributedHubTracker implements ServiceTrackerCustomizer {
+
+		public Object addingService(ServiceReference reference) {
+			distributedHub = (DistributedHub) context.getService(reference);
+			return distributedHub;
+		}
+
+		public void modifiedService(ServiceReference reference, Object service) {
+			distributedHub = (DistributedHub) context.getService(reference);
+
+		}
+
+		public void removedService(ServiceReference reference, Object service) {
+			distributedHub = null;
+		}
+
 	}
 }

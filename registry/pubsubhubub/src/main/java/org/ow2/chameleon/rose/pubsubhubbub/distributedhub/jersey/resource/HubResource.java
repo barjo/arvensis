@@ -1,7 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.distributedhub.jersey.resource;
 
 import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_LINK_HUBURL;
-import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_PARAMETER_NEW_ENDPOINT;
+import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_PARAMETER_ENDPOINT;
 
 import java.text.ParseException;
 import java.util.HashMap;
@@ -82,7 +82,7 @@ public class HubResource {
 	@POST
 	@Path("endpoints/{publisher}")
 	public final Response newEndpoint(
-			@FormParam(JERSEY_POST_PARAMETER_NEW_ENDPOINT) String endp,
+			@FormParam(JERSEY_POST_PARAMETER_ENDPOINT) String endp,
 			@PathParam("publisher") String publisher) {
 		EndpointDescription endpoint;
 		try {

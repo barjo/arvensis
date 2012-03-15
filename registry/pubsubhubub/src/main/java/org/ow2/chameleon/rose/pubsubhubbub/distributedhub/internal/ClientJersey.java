@@ -3,7 +3,7 @@ package org.ow2.chameleon.rose.pubsubhubbub.distributedhub.internal;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
 import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_LINK_HUBURL;
-import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_PARAMETER_NEW_ENDPOINT;
+import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_PARAMETER_ENDPOINT;
 import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_SERVLET_ALIAS;
 
 import java.util.Set;
@@ -108,7 +108,7 @@ public class ClientJersey {
 				for (String hubUrl : connectedHubs) {
 					wr = client.resource(hubUrl + "/endpoints/" + machineID);
 					f.clear();
-					f.add(JERSEY_POST_PARAMETER_NEW_ENDPOINT, endpoint);
+					f.add(JERSEY_POST_PARAMETER_ENDPOINT, endpoint);
 					response = wr.type(
 							MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(
 							ClientResponse.class, f);

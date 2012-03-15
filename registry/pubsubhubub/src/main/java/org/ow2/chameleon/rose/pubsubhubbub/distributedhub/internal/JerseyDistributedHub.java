@@ -54,8 +54,11 @@ public class JerseyDistributedHub implements DistributedHub {
 	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
 	private transient LogService logger;
 
-	@Property(name = BOOTSTRAP_LINK, mandatory = false)
+	@Property(name = BOOTSTRAP_LINK_INSTANCE_PROPERTY, mandatory = false)
 	private String bootstrapHubLink;
+	
+	@Property(name = JERSEY_SERVLET_INSTANCE_PROPERTY, mandatory = false , value=JERSEY_SERVLET_ALIAS)
+	private String jerseyServletAlias;
 
 	private ServletContainer servletContainer;
 	private ClientJersey clientJersey;
@@ -72,6 +75,7 @@ public class JerseyDistributedHub implements DistributedHub {
 	private void start() {
 		String port = null; 
 		try {
+			System.out.println("alias: "+jerseyServletAlias);
 			// retrieve an ip address and port of gateway
 			final ServiceReference httpServiceRef = context
 					.getServiceReference(HttpService.class.getName());

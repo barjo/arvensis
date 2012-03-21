@@ -25,13 +25,13 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
- * A {@link DynamicImporter} allows to import all services matching a given filter with all available {@link ImporterService} dynamically.
+ * A {@link InConnection} allows to import all services matching a given filter with all available {@link ImporterService} dynamically.
  * Basically, a proxy is created for each EndpointDescription matching the given filter which are available through the RoseMachine for each {@link ImporterService} available.
  * If the EndpointDescription is no more available then its proxy is destroyed.
  *  
  * @author barjo
  */
-public class DynamicImporter {
+public final class InConnection {
 	private static final String DEFAULT_IMPORTER_FILTER = "(" + OBJECTCLASS
 			+ "=" + ImporterService.class.getName() + ")";
 
@@ -40,10 +40,10 @@ public class DynamicImporter {
 	private final Filter edfilter;
 	private final Filter ifilter;
 	private final Map<String, Object> extraProperties;
-	private final DynamicImporterCustomizer customizer;
+	private final InCustomizer customizer;
 
 
-	private DynamicImporter(Builder builder) {
+	private InConnection(InBuilder builder) {
 		extraProperties = builder.extraProperties;
 		context = builder.context;
 		edfilter = builder.dfilter;
@@ -68,7 +68,7 @@ public class DynamicImporter {
 	}
 	
 	/**
-	 * @return The {@link ImportReference} created through this {@link DynamicImporter}.
+	 * @return The {@link ImportReference} created through this {@link InConnection}.
 	 */
 	public ImportReference[] getImportReferences(){
 		return customizer.getImportReferences();
@@ -76,28 +76,33 @@ public class DynamicImporter {
 	
 
 	/**
-	 * Convenient Builder for the creation of a {@link DynamicImporter}.
+	 * Convenient Builder for the creation of a {@link InConnection}.
 	 * 
 	 * @author barjo
 	 */
-	public static class Builder {
+	public static class InBuilder {
 		// required
 		private final BundleContext context;
 		private final Filter dfilter;
 
 		// optional
 		private Filter imfilter = createFilter(DEFAULT_IMPORTER_FILTER);
-		private DynamicImporterCustomizer customizer = new DefautCustomizer();
+		private InCustomizer customizer = new DefautCustomizer();
 		private Map<String, Object> extraProperties = new HashMap<String, Object>();
 
 
-		public Builder(BundleContext pContext, String descriptionFilter)
+		private InBuilder(BundleContext pContext, String descriptionFilter)
 				throws InvalidSyntaxException {
 			dfilter = createFilter(descriptionFilter);
 			context = pContext;
 		}
 		
-		public Builder protocol(List<String> protocols) throws InvalidSyntaxException{
+		public static InBuilder in(BundleContext pContext, String descriptionFilter)
+				throws InvalidSyntaxException {
+			return new InBuilder(pContext, descriptionFilter);
+		}
+		
+		public InBuilder protocol(List<String> protocols) throws InvalidSyntaxException{
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(imfilter.toString());
 			sb.append("(|");
@@ -113,7 +118,7 @@ public class DynamicImporter {
 			return this;
 		}
 
-		public Builder importerFilter(String val) throws InvalidSyntaxException {
+		public InBuilder importerFilter(String val) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(imfilter.toString());
 			sb.append(val);
@@ -123,18 +128,18 @@ public class DynamicImporter {
 			return this;
 		}
 
-		public Builder extraProperties(Map<String, Object> val) {
+		public InBuilder extraProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);
 			return this;
 		}
 
-		public Builder customizer(DynamicImporterCustomizer val) {
+		public InBuilder customizer(InCustomizer val) {
 			customizer = val;
 			return this;
 		}
 
-		public DynamicImporter build() {
-			return new DynamicImporter(this);
+		public InConnection create() {
+			return new InConnection(this);
 		}
 	}
 
@@ -226,11 +231,11 @@ public class DynamicImporter {
 	}
 
 	/**
-	 * Default {@link DynamicExporterCustomizer}.
+	 * Default {@link OutCustomizer}.
 	 * 
 	 * @author barjo
 	 */
-	private static class DefautCustomizer implements DynamicImporterCustomizer {
+	private static class DefautCustomizer implements InCustomizer {
 		private final ConcurrentLinkedQueue<ImportReference> irefs = new ConcurrentLinkedQueue<ImportReference>();
 		
 

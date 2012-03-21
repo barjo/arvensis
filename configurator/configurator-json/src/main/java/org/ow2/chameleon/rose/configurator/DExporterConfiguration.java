@@ -1,10 +1,10 @@
 package org.ow2.chameleon.rose.configurator;
 
-import org.ow2.chameleon.rose.DynamicExporter;
+import org.ow2.chameleon.rose.OutConnection;
 
 public class DExporterConfiguration implements RoseConfiguration {
-	private final DynamicExporter dexp;
-	public DExporterConfiguration(DynamicExporter dexporter) {
+	private final OutConnection dexp;
+	public DExporterConfiguration(OutConnection dexporter) {
 		dexp=dexporter;
 	}
 

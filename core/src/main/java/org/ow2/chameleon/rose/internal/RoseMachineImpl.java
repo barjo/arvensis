@@ -93,7 +93,6 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		tracklistener = new EndpointListenerTracker(this);
 	}
 
-	@SuppressWarnings("unused")
 	@Validate
 	private void start(){
 		//Initialize the machine properties.
@@ -116,7 +115,6 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(ROSE_MACHINE_ID)+" has successfully started");
 	}
 	
-	@SuppressWarnings("unused")
 	@Invalidate
 	private void stop(){
 		//Unregister the services

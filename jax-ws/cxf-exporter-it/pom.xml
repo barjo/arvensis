@@ -64,6 +64,11 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
+		    <id>com.springsource.repository.bundles.release</id>
+		    <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
+			    <url>http://repository.springsource.com/maven/bundles/release</url>
+		</repository>
+		<repository>
 			<id>objectweb-release</id>
 
 			<name>ow2 Maven Repository</name>
@@ -271,8 +276,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${compiler.plugin.version}</version>
 				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 			

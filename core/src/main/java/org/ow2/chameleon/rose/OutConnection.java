@@ -21,7 +21,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
- * A {@link DynamicExporter} allows to export all services matching a given
+ * A {@link OutConnection} allows to export all services matching a given
  * filter with all available {@link ExporterService} dynamically. Basically, an
  * endpoint is created for each services matching the given filter which are
  * available on the gateway for each {@link ExporterService} available. If the
@@ -29,7 +29,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
  * 
  * @author barjo
  */
-public class DynamicExporter {
+public final class OutConnection {
 	private static final String DEFAULT_EXPORTER_FILTER = "(" + OBJECTCLASS
 			+ "=" + ExporterService.class.getName() + ")";
 
@@ -38,9 +38,9 @@ public class DynamicExporter {
 	private final Filter sfilter;
 	private final Filter xfilter;
 	private final Map<String, Object> extraProperties;
-	private final DynamicExporterCustomizer customizer;
+	private final OutCustomizer customizer;
 
-	private DynamicExporter(Builder builder) {
+	private OutConnection(OutBuilder builder) {
 		extraProperties = builder.extraProperties;
 		context = builder.context;
 		sfilter = builder.sfilter;
@@ -66,18 +66,18 @@ public class DynamicExporter {
 
 	/**
 	 * @return The {@link ExportReference} created through this
-	 *         {@link DynamicExporter}.
+	 *         {@link OutConnection}.
 	 */
 	public ExportReference[] getExportedReference() {
 		return customizer.getExportReferences();
 	}
 
 	/**
-	 * Convenient Builder for the creation of a {@link DynamicExporter}.
+	 * Convenient Builder for the creation of a {@link OutConnection}.
 	 * 
 	 * @author barjo
 	 */
-	public static class Builder {
+	public static class OutBuilder {
 		// required
 		private final BundleContext context;
 		private final Filter sfilter;
@@ -85,9 +85,9 @@ public class DynamicExporter {
 		// optional
 		private Filter xfilter = createFilter(DEFAULT_EXPORTER_FILTER);
 		private Map<String, Object> extraProperties = new HashMap<String, Object>();
-		private DynamicExporterCustomizer customizer = null;
+		private OutCustomizer customizer = null;
 
-		public Builder(BundleContext pContext, String serviceFilter)
+		private OutBuilder(BundleContext pContext, String serviceFilter)
 				throws InvalidSyntaxException {
 			sfilter = createFilter(serviceFilter);
 			context = pContext;
@@ -96,8 +96,12 @@ public class DynamicExporter {
 				customizer = new DefautCustomizer(context);
 			}
 		}
+		
+		public static OutBuilder out(BundleContext pContext, String serviceFilter) throws InvalidSyntaxException{
+			return new OutBuilder(pContext, serviceFilter);
+		}
 
-		public Builder protocol(List<String> protocols)
+		public OutBuilder protocol(List<String> protocols)
 				throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(xfilter.toString());
@@ -114,7 +118,7 @@ public class DynamicExporter {
 			return this;
 		}
 
-		public Builder exporterFilter(String val) throws InvalidSyntaxException {
+		public OutBuilder exporterFilter(String val) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(xfilter.toString());
 			sb.append(val);
@@ -123,18 +127,18 @@ public class DynamicExporter {
 			return this;
 		}
 
-		public Builder extraProperties(Map<String, Object> val) {
+		public OutBuilder extraProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);
 			return this;
 		}
 
-		public Builder customizer(DynamicExporterCustomizer val) {
+		public OutBuilder customizer(OutCustomizer val) {
 			customizer = val;
 			return this;
 		}
 
-		public DynamicExporter build() {
-			return new DynamicExporter(this);
+		public OutConnection create() {
+			return new OutConnection(this);
 		}
 	}
 
@@ -211,11 +215,11 @@ public class DynamicExporter {
 	}
 
 	/**
-	 * Default {@link DynamicExporterCustomizer}.
+	 * Default {@link OutCustomizer}.
 	 * 
 	 * @author barjo
 	 */
-	private static class DefautCustomizer implements DynamicExporterCustomizer {
+	private static class DefautCustomizer implements OutCustomizer {
 		private final ConcurrentLinkedQueue<ExportReference> xrefs;
 		private final BundleContext context;
 		

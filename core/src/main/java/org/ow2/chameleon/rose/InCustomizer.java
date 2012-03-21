@@ -5,7 +5,7 @@ import java.util.Map;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 
-public interface DynamicImporterCustomizer {
+public interface InCustomizer {
 	
 	/**
 	 * @return

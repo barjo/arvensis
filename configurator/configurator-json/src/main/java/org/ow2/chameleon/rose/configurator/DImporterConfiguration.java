@@ -1,10 +1,10 @@
 package org.ow2.chameleon.rose.configurator;
 
-import org.ow2.chameleon.rose.DynamicImporter;
+import org.ow2.chameleon.rose.InConnection;
 
 public class DImporterConfiguration implements RoseConfiguration {
-	private final DynamicImporter dimp;
-	public DImporterConfiguration(DynamicImporter dimporter) {
+	private final InConnection dimp;
+	public DImporterConfiguration(InConnection dimporter) {
 		dimp=dimporter;
 	}
 

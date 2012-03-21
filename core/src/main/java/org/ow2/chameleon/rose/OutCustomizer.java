@@ -5,7 +5,7 @@ import java.util.Map;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 
-public interface DynamicExporterCustomizer {
+public interface OutCustomizer {
 	
 	/**
 	 * @return All {@link ExportReference} of of services exported through this dynamic exporter.

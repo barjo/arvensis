@@ -1,6 +1,8 @@
 package org.ow2.chameleon.rose.configurator;
 
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
+import static org.ow2.chameleon.rose.InConnection.InBuilder.in;
+import static org.ow2.chameleon.rose.OutConnection.OutBuilder.out;
 import static org.ow2.chameleon.rose.RoseMachine.ROSE_MACHINE_HOST;
 import static org.ow2.chameleon.rose.RoseMachine.ROSE_MACHINE_ID;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ComponentToken.factory;
@@ -23,8 +25,8 @@ import java.util.UUID;
 import org.apache.felix.ipojo.parser.ParseException;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.ow2.chameleon.rose.DynamicExporter;
-import org.ow2.chameleon.rose.DynamicImporter;
+import org.ow2.chameleon.rose.InConnection.InBuilder;
+import org.ow2.chameleon.rose.OutConnection.OutBuilder;
 
 /**
  * Create a RoseConfiguration object for a given Map based configuration. 
@@ -204,7 +206,7 @@ public class ConfigurationParser {
 			
 				//Mandatory
 				String endpoint = (String) endpoint_filter.getValue(inmap);
-				DynamicImporter.Builder builder = new DynamicImporter.Builder(context, endpoint);
+				InBuilder builder = in(context, endpoint);
 			
 				//Optional protocols
 				if (InToken.protocol.isIn(inmap)){
@@ -221,7 +223,7 @@ public class ConfigurationParser {
 					builder.extraProperties((Map) InToken.properties.getValue(inmap));
 				}
 				
-				conf.add(new DImporterConfiguration(builder.build()));
+				conf.add(new DImporterConfiguration(builder.create()));
 			}
 		
 			if (out.isIn(json)){
@@ -229,20 +231,20 @@ public class ConfigurationParser {
 			
 				//Mandatory
 				String service = (String) service_filter.getValue(outmap);
-				DynamicExporter.Builder builder = new DynamicExporter.Builder(context, service);
+				OutBuilder out = out(context, service);
 			
 				if (OutToken.protocol.isIn(outmap)){
-					builder.protocol((List<String>) OutToken.protocol.getValue(outmap));
+					out.protocol((List<String>) OutToken.protocol.getValue(outmap));
 				}
 				
 				//Optional EXPORTER_FILTER
 				if (exporter_filter.isIn(outmap)){
-					builder.exporterFilter((String) exporter_filter.getValue(outmap));
+					out.exporterFilter((String) exporter_filter.getValue(outmap));
 				}
 			
 				//optional PROPERTIES
 				if(OutToken.properties.isIn(outmap)){
-					builder.extraProperties((Map) OutToken.properties.getValue(outmap));
+					out.extraProperties((Map) OutToken.properties.getValue(outmap));
 				}
 				
 				//optional Customizer
@@ -250,7 +252,7 @@ public class ConfigurationParser {
 					//TODO
 				}
 				
-				conf.add(new DExporterConfiguration(builder.build()));
+				conf.add(new DExporterConfiguration(out.create()));
 			}
 		}
 	}

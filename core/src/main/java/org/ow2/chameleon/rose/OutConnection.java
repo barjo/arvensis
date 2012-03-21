@@ -51,16 +51,16 @@ public final class OutConnection {
 	}
 
 	/**
-	 * Start the dynamic exporter.
+	 * Open the {@link OutConnection}.
 	 */
-	public void start() {
+	public void open() {
 		extracker.open();
 	}
 
 	/**
-	 * Stop the dynamic exporter.
+	 * Close the {@link OutConnection}.
 	 */
-	public void stop() {
+	public void close() {
 		extracker.close();
 	}
 

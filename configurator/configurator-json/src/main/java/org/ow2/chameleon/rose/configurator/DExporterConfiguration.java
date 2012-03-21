@@ -9,10 +9,10 @@ public class DExporterConfiguration implements RoseConfiguration {
 	}
 
 	public void start() {
-		dexp.start();
+		dexp.open();
 	}
 
 	public void stop() {
-		dexp.stop();
+		dexp.close();
 	}
 }

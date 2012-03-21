@@ -271,6 +271,12 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
+			<id>maven-barjo-snapshot-repository</id>
+			<name></name>
+			<url>http://repository-barjo.forge.cloudbees.com/snapshot</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
 			<id>objectweb-release</id>
 
 			<name>ow2 Maven Repository</name>

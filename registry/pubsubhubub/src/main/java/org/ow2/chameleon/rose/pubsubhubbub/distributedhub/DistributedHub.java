@@ -18,6 +18,7 @@ public interface DistributedHub {
 	String JERSEY_SERVLET_ALIAS = "/Pubsubhubbub";
 	String JERSEY_POST_LINK_HUBURL = "huburl";
 	String JERSEY_POST_PARAMETER_ENDPOINT = "endpoint";
+	String JERSEY_POST_LINK_ENDPOINTS = "endpoints";
 
 	/**
 	 * Adds new endpoint system.
@@ -64,13 +65,10 @@ public interface DistributedHub {
 	 * @return Gateway Hub URI
 	 */
 	String getHubUri();
-
+	
 	/**
-	 * @param endpoint
-	 *            {@link EndpointDescription} to add
-	 * @param publisher
-	 *            publisher machineID
+	 * @return Gateway Hub URI
 	 */
-	void addEndpointPropagate(EndpointDescription endpoint, String publisher);
+	void establishConnection(String uri);
 
 }

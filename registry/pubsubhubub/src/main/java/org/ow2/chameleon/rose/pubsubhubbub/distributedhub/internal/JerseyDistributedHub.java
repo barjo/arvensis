@@ -3,6 +3,8 @@ package org.ow2.chameleon.rose.pubsubhubbub.distributedhub.internal;
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.COMPONENT_NAME;
 
+import java.text.ParseException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,12 +40,12 @@ import com.sun.jersey.spi.inject.SingletonTypeInjectableProvider;
 public class JerseyDistributedHub implements DistributedHub {
 
 	@Requires
-	private HttpService httpService; 
+	private HttpService httpService;
 
 	@Requires
 	private JSONService json;
 
-	@Requires
+	@Requires(id = "hubID")
 	private Hub hub;
 
 	@Requires
@@ -52,12 +54,12 @@ public class JerseyDistributedHub implements DistributedHub {
 	private BundleContext context;
 
 	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
-	private transient LogService logger;
+	private LogService logger;
 
 	@Property(name = BOOTSTRAP_LINK_INSTANCE_PROPERTY, mandatory = false)
 	private String bootstrapHubLink;
-	
-	@Property(name = JERSEY_SERVLET_INSTANCE_PROPERTY, mandatory = false , value=JERSEY_SERVLET_ALIAS)
+
+	@Property(name = JERSEY_SERVLET_INSTANCE_PROPERTY, mandatory = false, value = JERSEY_SERVLET_ALIAS)
 	private String jerseyServletAlias;
 
 	private ServletContainer servletContainer;
@@ -70,12 +72,11 @@ public class JerseyDistributedHub implements DistributedHub {
 		this.context = pContext;
 	}
 
-	@SuppressWarnings({ "unused", "unchecked" })
+	@SuppressWarnings({ "unused" })
 	@Validate
 	private void start() {
-		String port = null; 
+		String port = null;
 		try {
-			System.out.println("alias: "+jerseyServletAlias);
 			// retrieve an ip address and port of gateway
 			final ServiceReference httpServiceRef = context
 					.getServiceReference(HttpService.class.getName());
@@ -88,28 +89,15 @@ public class JerseyDistributedHub implements DistributedHub {
 				port = context.getProperty("org.osgi.service.http.port");
 			}
 			jerseyHubUri = "http://" + rose.getHost() + ":" + port
-					+ JERSEY_SERVLET_ALIAS;
+					+ jerseyServletAlias;
 			connectedHubs = new HashSet<String>();
 			clientJersey = new ClientJersey(logger);
 
 			// deploy resources
 			deployRestResource();
-
 			// connect and retrieve endpoints from other hub
 			if (bootstrapHubLink != null) {
-				// save linked hub
-				this.addConnectedHub(bootstrapHubLink + JERSEY_SERVLET_ALIAS);
-				// iterate on endpoints received from link hub
-				for (Entry<String, String> entry : ((Map<String, String>) (json
-						.fromJSON(clientJersey.retrieveEndpoints(
-								bootstrapHubLink, this.jerseyHubUri))))
-						.entrySet()) {
-					hub.getRegistrations().addEndpointByMachineID(
-							entry.getValue(),
-							hub.getEndpointDescriptionFromJSON(json
-									.fromJSON(entry.getKey())));
-				}
-
+				this.establishConnection(bootstrapHubLink);
 			}
 			logger.log(LOG_INFO,
 					"Distributed Pubsubhubbub successfully started");
@@ -133,7 +121,7 @@ public class JerseyDistributedHub implements DistributedHub {
 	 */
 	private void deployRestResource() throws NamespaceException,
 			ServletException {
-		
+
 		PackagesResourceConfig pckgc = new PackagesResourceConfig(
 				"org.ow2.chameleon.rose.pubsubhubbub.distributedhub.jersey.resource");
 		// inject json and hub to resource
@@ -152,7 +140,8 @@ public class JerseyDistributedHub implements DistributedHub {
 				});
 		servletContainer = new ServletContainer(pckgc);
 		// register jersey resource as servlet
-		httpService.registerServlet(JERSEY_SERVLET_ALIAS, servletContainer, null, null);
+		httpService.registerServlet(jerseyServletAlias, servletContainer, null,
+				null);
 
 	}
 
@@ -185,9 +174,41 @@ public class JerseyDistributedHub implements DistributedHub {
 		return jerseyHubUri;
 	}
 
-	public void addEndpointPropagate(EndpointDescription endpoint,
-			String publisher) {
-		// TODO Auto-generated method stub
+	@SuppressWarnings("unchecked")
+	public void establishConnection(String uri) {
+		String jsonEndpoints = null;
+
+		// get all registers endpoints
+		Map<EndpointDescription, String> endpoints = hub.getRegistrations()
+				.getAllEndpoints();
+
+		// check if any registered
+		if (endpoints.size() != 0) {
+			// change every endpoint to JSON properties
+			Map<String, String> jsonMap = new HashMap<String, String>();
+			for (Entry<EndpointDescription, String> element : endpoints
+					.entrySet()) {
+				jsonMap.put(json.toJSON(element.getKey().getProperties()),
+						element.getValue());
+			}
+			jsonEndpoints = json.toJSON(jsonMap);
+		}
+		// save linked hub
+		this.addConnectedHub(uri);
+
+		// iterate on endpoints received from link hub
+		try {
+			for (Entry<String, String> entry : ((Map<String, String>) json
+					.fromJSON(clientJersey.retrieveEndpoints(uri,
+							this.jerseyHubUri, jsonEndpoints))).entrySet()) {
+				hub.getRegistrations().addEndpointByMachineID(
+						entry.getValue(),
+						hub.getEndpointDescriptionFromJSON(json.fromJSON(entry
+								.getKey())));
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 
 	}
 

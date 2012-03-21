@@ -19,6 +19,10 @@ This folder contains the code source of the OW2 Chameleon RoSe project.
 RoSe is licensed under the Apache License 2.0.
 
 
+## Infrastructure
+
+
+
 #Released Version semantic: 
 
  major.minor.revision 

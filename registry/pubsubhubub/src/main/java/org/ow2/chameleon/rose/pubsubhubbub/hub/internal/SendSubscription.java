@@ -2,11 +2,9 @@ package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_CONTENT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_UPDATE_TOPIC_DELETE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.HttpResponse;
@@ -15,200 +13,138 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HTTP;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.ow2.chameleon.json.JSONService;
 
 /**
- * Sending a notification to subscribers.
+ * Sending notifications to subscribers.
  * 
  * @author Bartek
  * 
  */
-public class SendSubscription extends Thread {
+public class SendSubscription {
 
-	private EndpointDescription edp;
-	private String callBackUrl;
 	private HttpPost postMethod;
-	private HubImpl server;
-	private String updateOption;
-	private String rssURL;
-	private HttpClient client;
+
+	private JSONService json;
+	private LogService logger;
 
 	/**
-	 * Prepare a thread to send an endpointDescriptions after subscriber
-	 * appears.
+	 * Main constructor.
 	 * 
-	 * @param pClient
-	 *            client to send data
-	 * @param pCallBackUrl
-	 *            full url address of subscriber
-	 * @param pUpdateOption
-	 *            update option: endpoint.add or endpoint.remove
-	 * @param pServer
-	 *            bridge to Hub
+	 * @param pJson
+	 *            {@link JSONService}
+	 * @param pLogger
+	 *            {@link LogService}
 	 */
-	public SendSubscription(final HttpClient pClient,
-			final String pCallBackUrl, final String pUpdateOption,
-			final HubImpl pServer) {
-		this.callBackUrl = pCallBackUrl;
-		this.client = pClient;
-		this.server = pServer;
-		this.updateOption = pUpdateOption;
+	public SendSubscription(LogService pLogger, JSONService pJson) {
+
+		this.logger = pLogger;
+		this.json = pJson;
+
+		ThreadSafeClientConnManager connManager = new ThreadSafeClientConnManager();
 	}
 
 	/**
-	 * Prepare a thread to send an endpointDescriptions after publisher update.
+	 * Send subscriptions to subscribers.
 	 * 
-	 * @param pClient
-	 *            to send data
-	 * @param pEdp
-	 *            notified @EndpointDescription
-	 * @param pUpdateOption
-	 *            update option: endpoint.add or endpoint.remove
-	 * @param pServer
-	 *            bridge to Hub
-	 */
-	public SendSubscription(final HttpClient pClient,
-			final EndpointDescription pEdp, final String pUpdateOption,
-			final HubImpl pServer) {
-		this.edp = pEdp;
-		this.client = pClient;
-		this.server = pServer;
-		this.updateOption = pUpdateOption;
-	}
-
-	/**
-	 * Prepare a thread to send a remove endpointDescription to all subscribers
-	 * when topic is deleted.
-	 * 
-	 * @param pClient
-	 *            to send data
-	 * @param pRssUrl
-	 *            url address to RSS
-	 * @param pTopicDelete
-	 *            topic.remove
-	 * @param pServer
-	 *            bridge to Hub
-	 * @param pUpdateOption
-	 *            update option: endpoint.add or endpoint.remove
-	 */
-	public SendSubscription(final HttpClient pClient, final String pRssUrl,
-			final String pUpdateOption, final HubImpl pServer,
-			final String pTopicDelete) {
-		if (pTopicDelete.equals(HUB_UPDATE_TOPIC_DELETE)) {
-			this.rssURL = pRssUrl;
-			this.client = pClient;
-			this.server = pServer;
-			this.updateOption = pUpdateOption;
-		}
-	}
-
-	/**
-	 * Send an endpointDescriptions after subscriber appears.
-	 */
-
-	private void sendAfterSubscribe() {
-		try {
-			for (EndpointDescription endp : server.registrations()
-					.getEndpointsForCallBackUrl(this.callBackUrl)) {
-				sendUpdate(endp, this.callBackUrl);
-			}
-		} finally {
-			server.registrations().releaseReadLock();
-		}
-
-	}
-
-	/**
-	 * Send an endpointDescriptions after publisher update.
-	 */
-	private void sendAfterPublisherUpdate() {
-		try {
-			for (String callBackURL : server.registrations()
-					.getSubscribersByEndpoint(this.edp)) {
-				sendUpdate(edp, callBackURL);
-				if (updateOption.equals("endpoint.remove")) {
-					server.registrations().removeInterestedEndpoint(
-							callBackURL, edp);
-				}
-			}
-		} finally {
-			server.registrations().releaseReadLock();
-		}
-
-	}
-
-	/**
-	 * Send a remove endpointDescription to subscribers when topic is deleted.
-	 */
-	private void sendAfterTopicDelete() {
-		try {
-			for (Map.Entry<String, Set<EndpointDescription>> entry : server
-					.registrations()
-					.getEndpointsAndSubscriberByPublisher(rssURL).entrySet()) {
-				for (EndpointDescription endpoint : entry.getValue()) {
-					sendUpdate(endpoint, entry.getKey());
-				}
-
-			}
-		} finally {
-			server.registrations().releaseReadLock();
-		}
-		server.registrations().clearTopic(this.rssURL);
-	}
-
-	/**
-	 * General method to send notification to subscribers.
-	 * 
+	 * @param subscribers
+	 *            subscribers url to send notification
 	 * @param endpoint
-	 *            endpointDescription which is notified
-	 * @param pCallBackUrl
-	 *            url address where to send a notification
-	 * @throws IOException
+	 *            the {@link EndpointDescription} @EndpointDescription
+	 * @param updateOption
+	 *            add/remove options
 	 */
-	private void sendUpdate(final EndpointDescription endpoint,
-			final String pCallBackUrl) {
+	public final void sendSubscriptions(final Set<String> subscribers,
+			final EndpointDescription endpoint, final String updateOption) {
+		// run thread to send subscriptions
+		(new SendingUpdateThread(subscribers, endpoint, updateOption)).start();
+	}
 
-		postMethod = new HttpPost(pCallBackUrl);
-		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
+	/**
+	 * Thread to send notifications to subscribers
+	 * 
+	 * @author Bartek
+	 * 
+	 */
+	private class SendingUpdateThread extends Thread {
 
-		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION,
-				updateOption));
-		nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, server.json()
-				.toJSON(endpoint.getProperties())));
-		try {
-			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+		private String updateOption;
+		private Set<String> subcribers;
+		private EndpointDescription endpoint;
 
-			final HttpResponse response = client.execute(postMethod);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				server.logger().log(
-						LogService.LOG_ERROR,
-						"Error in sending an update to subscriber: "
-								+ callBackUrl + ", got response "
-								+ response.getStatusLine().getStatusCode());
-				response.getEntity().getContent().close();
+		// client to send notification to subscribers;
+		private HttpClient client;
+		private ThreadSafeClientConnManager connManager;
+
+		/**
+		 * @param pSubscribers
+		 *            publishers
+		 * @param pEndpoint
+		 *            {@link EndpointDescription}
+		 * @param pUpdateOption
+		 *            new endpoint/remove endpoint
+		 */
+		public SendingUpdateThread(Set<String> pSubscribers,
+				EndpointDescription pEndpoint, String pUpdateOption) {
+			super();
+			this.subcribers = pSubscribers;
+			this.endpoint = pEndpoint;
+			this.updateOption = pUpdateOption;
+
+			connManager = new ThreadSafeClientConnManager();
+			connManager.setDefaultMaxPerRoute(20);
+			connManager.setMaxTotal(200);
+
+			this.client = new DefaultHttpClient(connManager);
+		}
+
+		@Override
+		public final void run() {
+
+			for (String subscriberUrl : subcribers) {
+				postMethod = new HttpPost(subscriberUrl);
+				postMethod.setHeader("Content-Type",
+						"application/x-www-form-urlencoded");
+
+				final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+				nvps.add(new BasicNameValuePair(
+						HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION, updateOption));
+				nvps.add(new BasicNameValuePair(HTTP_POST_UPDATE_CONTENT, json
+						.toJSON(this.endpoint.getProperties())));
+				try {
+					postMethod.setEntity(new UrlEncodedFormEntity(nvps,
+							HTTP.UTF_8));
+					final HttpResponse response = this.client
+							.execute(postMethod);
+					if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+						logger.log(LogService.LOG_ERROR,
+								"Error in sending an update to subscriber: "
+										+ subscriberUrl
+										+ ", got response "
+										+ response.getStatusLine()
+												.getStatusCode());
+						response.getEntity().getContent().close();
+					}
+					// read an empty entity and close a connection
+					response.getEntity().getContent().close();
+
+				} catch (Exception e) {
+					logger.log(LogService.LOG_ERROR,
+							"Error in sending an update to subscriber", e);
+				}
+				connManager.shutdown();
 			}
-			// read an empty entity and close a connection
-			response.getEntity().getContent().close();
-		} catch (Exception e) {
-			server.logger().log(LogService.LOG_ERROR,
-					"Error in sending an update to subscriber", e);
+
 		}
 	}
-
-	@Override
-	public final void run() {
-		if (callBackUrl != null) {
-			sendAfterSubscribe();
-		} else if (edp != null) {
-			sendAfterPublisherUpdate();
-		} else if (rssURL != null) {
-			sendAfterTopicDelete();
-		}
-	}
-
 }

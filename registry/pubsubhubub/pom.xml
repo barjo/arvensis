@@ -10,17 +10,17 @@
 		<artifactId>parent-pom</artifactId>
 		<version>0.3.2</version>
 	</parent>
-	
+
 	<groupId>org.ow2.chameleon.rose.registry</groupId>
 	<artifactId>pubsubhubbub</artifactId>
 	<name>OW2 Chameleon - RoSe Pubsubhubub Registry</name>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.2.0-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
+		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<json-service.version>0.4.0</json-service.version>
@@ -29,7 +29,7 @@
 		<!-- Plugins version -->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
 		<compiler.plugin.version>2.1</compiler.plugin.version>
-		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+		<ipojo.plugin.version>1.6.0</ipojo.plugin.version>
 
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -97,6 +97,26 @@
 			<artifactId>json-service</artifactId>
 			<version>${json-service.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<version>1.6.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>1.12</version>
+		</dependency>
 	</dependencies>
 
 	<!-- Project repositories -->
@@ -135,7 +155,10 @@
 							org.ow2.chameleon.rose.pubsubhubbub.hub,
 							org.ow2.chameleon.rose.pubsubhubbub.publisher,
 							org.ow2.chameleon.rose.pubsubhubbub.subscriber,
-							org.ow2.chameleon.rose.pubsubhubbub.constants
+							org.ow2.chameleon.rose.pubsubhubbub.constants,
+							org.ow2.chameleon.rose.pubsubhubbub.distributedhub,
+							org.ow2.chameleon.rose.pubsubhubbub.distributedhub.jersey.resource,
+							org.ow2.chameleon.rose.pubsubhubbub.distributedhub.internal
 						</Export-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.pubsubhubbub.hub.internal,

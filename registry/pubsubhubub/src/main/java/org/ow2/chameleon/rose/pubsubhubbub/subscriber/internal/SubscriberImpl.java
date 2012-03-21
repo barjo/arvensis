@@ -25,7 +25,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
@@ -79,12 +78,15 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	}
 
 	@Validate
-	public final void start() throws ServletException, NamespaceException,
-			IOException {
+	public final void start() {
 		endpointRegistrations = new ArrayList<String>();
-		httpService.registerServlet(callBackUrl, this, null, null);
-		subscritpion = new HubSubscriber(hubUrl, callBackUrl, endpointFilter,
-				context, rose);
+		try {
+			httpService.registerServlet(callBackUrl, this, null, null);
+			subscritpion = new HubSubscriber(hubUrl, callBackUrl,
+					endpointFilter, context, rose);
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
 	}
 
 	@Invalidate

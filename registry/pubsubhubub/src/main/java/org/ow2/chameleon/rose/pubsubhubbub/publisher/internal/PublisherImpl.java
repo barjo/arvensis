@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -92,6 +93,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	private HubPublisher hubPublisher;
 	private int feedNumber;
 	private StringBuilder feedContent;
+	private ComponentInstance rssServletInstance;
 
 	public PublisherImpl(final BundleContext pContext) {
 		super();
@@ -99,37 +101,47 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	}
 
 	@Validate
-	public final void start() throws Exception {
+	public final void start() {
 
 		feedContent = new StringBuilder();
 		feedNumber = 0;
-		
-		// prepare RSS servlet instance properties
-		instanceServletDictionary = new Hashtable<String, Object>();
-		instanceServletDictionary
-				.put(FeedReader.FEED_TITLE_PROPERTY, "RoseRss");
-		instanceServletDictionary.put(
-				"org.ow2.chameleon.syndication.feed.servlet.alias", rssUrl);
-
-		// create an RSS servlet instance
-		factoryRssServlet.createComponentInstance(instanceServletDictionary);
 
 		// tracking an FeedWriter
-		new FeedWriterTracker();
+		try {
+			new FeedWriterTracker();
 
-		// Configure an event properties
-		eventProperties = new HashMap<String, Object>();
-		eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
-		eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
+			if (writer == null) {
+				// prepare RSS servlet instance properties
+				instanceServletDictionary = new Hashtable<String, Object>();
+				instanceServletDictionary.put(FeedReader.FEED_TITLE_PROPERTY,
+						"RoseRss");
+				instanceServletDictionary.put(
+						"org.ow2.chameleon.syndication.feed.servlet.alias",
+						rssUrl);
 
-		hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose, logger);
+				// create an RSS servlet instance
+				rssServletInstance = factoryRssServlet
+						.createComponentInstance(instanceServletDictionary);
+			}
 
-		final Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
-		// Register an EndpointListener
-		endpointListener = context.registerService(
-				EndpointListener.class.getName(), this, props);
-		logger.log(LOG_INFO, "EndpointTrackerRSS successfully started");
+			// Configure an event properties
+			eventProperties = new HashMap<String, Object>();
+			eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
+			eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
+
+			// register publisher
+			hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose,
+					logger);
+
+			final Dictionary<String, Object> props = new Hashtable<String, Object>();
+			props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
+			// Register an EndpointListener
+			endpointListener = context.registerService(
+					EndpointListener.class.getName(), this, props);
+			logger.log(LOG_INFO, "EndpointTrackerRSS successfully started");
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
 
 	}
 
@@ -146,19 +158,11 @@ public class PublisherImpl implements Publisher, EndpointListener {
 		if (hubPublisher != null) {
 			hubPublisher.unregister();
 		}
+		rssServletInstance.dispose();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointAdded(org
-	 * .osgi.service.remoteserviceadmin.EndpointDescription, java.lang.String)
-	 */
 	public final void endpointAdded(final EndpointDescription endp,
 			final String filter) {
-		//TODO remove logging
-		System.out.println("Demo service available at: "+ System.nanoTime());
 		if (writer == null) {
 			logger.log(LOG_WARNING,
 					"Rss feed not published, Rss writer not found");
@@ -166,8 +170,8 @@ public class PublisherImpl implements Publisher, EndpointListener {
 		}
 		final FeedEntry feed = writer.createFeedEntry();
 		feedNumber++;
-		//number of digits in feed number,feed number,endpoint description
-		feedContent.append((int)(Math.log10(feedNumber)+1));
+		// number of digits in feed number,feed number,endpoint description
+		feedContent.append((int) (Math.log10(feedNumber) + 1));
 		feedContent.append(feedNumber);
 		feedContent.append(json.toJSON(endp.getProperties()));
 		feed.title(FEED_TITLE_NEW);
@@ -180,21 +184,11 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			// sending an event
 			sendEndpointEvent(FEED_TITLE_NEW, json.toJSON(endp.getProperties()));
 			hubPublisher.update();
-		} catch (IOException e) {
-			logger.log(LOG_WARNING, "Error in updating a feed", e);
 		} catch (Exception e) {
 			logger.log(LOG_WARNING, "Error in sending a feed", e);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.service.remoteserviceadmin.EndpointListener#endpointRemoved(
-	 * org.osgi.service.remoteserviceadmin.EndpointDescription,
-	 * java.lang.String)
-	 */
 	public final void endpointRemoved(final EndpointDescription endp,
 			final String arg1) {
 		if (writer == null) {
@@ -202,8 +196,8 @@ public class PublisherImpl implements Publisher, EndpointListener {
 		}
 		final FeedEntry feed = writer.createFeedEntry();
 		feedNumber++;
-		//number of digits in feed number,feed number,endpoint description
-		feedContent.append((int)(Math.log10(feedNumber)+1));
+		// number of digits in feed number,feed number,endpoint description
+		feedContent.append((int) (Math.log10(feedNumber) + 1));
 		feedContent.append(feedNumber);
 		feedContent.append(json.toJSON(endp.getProperties()));
 		feed.title(FEED_TITLE_REMOVE);
@@ -215,7 +209,6 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			// sending an event
 			sendEndpointEvent(FEED_TITLE_REMOVE,
 					json.toJSON(endp.getProperties()));
-
 			hubPublisher.update();
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updating a feed", e);

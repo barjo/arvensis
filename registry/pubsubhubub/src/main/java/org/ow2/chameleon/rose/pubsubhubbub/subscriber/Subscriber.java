@@ -1,10 +1,5 @@
 package org.ow2.chameleon.rose.pubsubhubbub.subscriber;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-
-import org.osgi.service.http.NamespaceException;
 
 /**
  * Subscriber interface with all constants.
@@ -19,8 +14,14 @@ public interface Subscriber {
 	String INSTANCE_PROPERTY_HUB_URL = "hub.url";
 	String INSTANCE_PROPERTY_ENDPOINT_FILTER = "endpoint.filter";
 
-	void start() throws ServletException, NamespaceException, IOException;
+	/**
+	 * Validate method.
+	 */
+	void start();
 
+	/**
+	 * Invalidate method.
+	 */
 	void stop();
 
 }

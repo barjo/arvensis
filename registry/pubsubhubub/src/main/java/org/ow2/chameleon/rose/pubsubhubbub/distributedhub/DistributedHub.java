@@ -65,12 +65,4 @@ public interface DistributedHub {
 	 */
 	String getHubUri();
 
-	/**
-	 * @param endpoint
-	 *            {@link EndpointDescription} to add
-	 * @param publisher
-	 *            publisher machineID
-	 */
-	void addEndpointPropagate(EndpointDescription endpoint, String publisher);
-
 }

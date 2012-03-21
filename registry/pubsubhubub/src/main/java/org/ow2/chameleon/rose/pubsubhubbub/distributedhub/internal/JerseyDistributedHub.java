@@ -43,7 +43,7 @@ public class JerseyDistributedHub implements DistributedHub {
 	@Requires
 	private JSONService json;
 
-	@Requires
+	@Requires(id="hubID")
 	private Hub hub;
 
 	@Requires
@@ -52,7 +52,7 @@ public class JerseyDistributedHub implements DistributedHub {
 	private BundleContext context;
 
 	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
-	private transient LogService logger;
+	private  LogService logger;
 
 	@Property(name = BOOTSTRAP_LINK_INSTANCE_PROPERTY, mandatory = false)
 	private String bootstrapHubLink;
@@ -75,7 +75,6 @@ public class JerseyDistributedHub implements DistributedHub {
 	private void start() {
 		String port = null; 
 		try {
-			System.out.println("alias: "+jerseyServletAlias);
 			// retrieve an ip address and port of gateway
 			final ServiceReference httpServiceRef = context
 					.getServiceReference(HttpService.class.getName());
@@ -88,17 +87,16 @@ public class JerseyDistributedHub implements DistributedHub {
 				port = context.getProperty("org.osgi.service.http.port");
 			}
 			jerseyHubUri = "http://" + rose.getHost() + ":" + port
-					+ JERSEY_SERVLET_ALIAS;
+					+ jerseyServletAlias;
 			connectedHubs = new HashSet<String>();
 			clientJersey = new ClientJersey(logger);
 
 			// deploy resources
 			deployRestResource();
-
 			// connect and retrieve endpoints from other hub
 			if (bootstrapHubLink != null) {
 				// save linked hub
-				this.addConnectedHub(bootstrapHubLink + JERSEY_SERVLET_ALIAS);
+				this.addConnectedHub(bootstrapHubLink);
 				// iterate on endpoints received from link hub
 				for (Entry<String, String> entry : ((Map<String, String>) (json
 						.fromJSON(clientJersey.retrieveEndpoints(
@@ -152,11 +150,13 @@ public class JerseyDistributedHub implements DistributedHub {
 				});
 		servletContainer = new ServletContainer(pckgc);
 		// register jersey resource as servlet
-		httpService.registerServlet(JERSEY_SERVLET_ALIAS, servletContainer, null, null);
+		httpService.registerServlet(jerseyServletAlias, servletContainer, null, null);
 
 	}
 
 	public final void addEndpoint(EndpointDescription endpoint, String machineID) {
+		//TODO remove
+		System.out.println(jerseyHubUri+" called add endpoint, sending to "+connectedHubs);
 		clientJersey.addEndpoint(json.toJSON(endpoint.getProperties()),
 				machineID, connectedHubs);
 
@@ -183,12 +183,6 @@ public class JerseyDistributedHub implements DistributedHub {
 
 	public final String getHubUri() {
 		return jerseyHubUri;
-	}
-
-	public void addEndpointPropagate(EndpointDescription endpoint,
-			String publisher) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

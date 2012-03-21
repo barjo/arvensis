@@ -1,5 +1,6 @@
 package org.ow2.chameleon.rose.pubsubhubbub.distributedhub.jersey.resource;
 
+import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_LINK_ENDPOINTS;
 import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_LINK_HUBURL;
 import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.JERSEY_POST_PARAMETER_ENDPOINT;
 
@@ -43,17 +44,47 @@ public class HubResource {
 		return json.toJSON(hub.getRegistrations().getAllEndpoints());
 	}
 
+	/**
+	 * Save connection to given hub
+	 * 
+	 * @param hubLink
+	 *            Distributed Hub URI
+	 * @param endpoints
+	 *            list of endpoints to add
+	 * @return endpoints registered on this machine
+	 */
+	@SuppressWarnings("unchecked")
 	@POST
 	@Path("link")
 	@Produces(MediaType.APPLICATION_JSON)
 	public final String linkToHub(
-			@FormParam(JERSEY_POST_LINK_HUBURL) String hubLink) {
-
+			@FormParam(JERSEY_POST_LINK_HUBURL) String hubLink,
+			@FormParam(JERSEY_POST_LINK_ENDPOINTS) String jsonEndpoints) {
 		if (hubLink == null) {
 			return null;
 		}
+
+		// register new endpoints
+		if (jsonEndpoints != null) {
+			try {
+				for (Entry<String, String> entry : ((Map<String, String>) json
+						.fromJSON(jsonEndpoints)).entrySet()) {
+					System.out.println("key: " + entry.getKey());
+					System.out.println("value: " + entry.getValue());
+					hub.getRegistrations().addEndpointByMachineID(
+							entry.getValue(),
+							hub.getEndpointDescriptionFromJSON(json
+									.fromJSON(entry.getKey())));
+				}
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+
+		}
+		//add connection to hub
 		distributedHub.addConnectedHub(hubLink);
 		Map<String, String> allEndpoinsJSON = new HashMap<String, String>();
+		//send registered endpoints in JSON
 		for (Entry<EndpointDescription, String> entry : hub.getRegistrations()
 				.getAllEndpoints().entrySet()) {
 			allEndpoinsJSON.put(json.toJSON(entry.getKey().getProperties()),
@@ -77,7 +108,6 @@ public class HubResource {
 		return json.toJSON(endpointPublisher);
 	}
 
-	// TODO not checked
 	@SuppressWarnings("unchecked")
 	@POST
 	@Path("endpoints/{publisher}")
@@ -87,10 +117,10 @@ public class HubResource {
 		EndpointDescription endpoint;
 		try {
 			endpoint = hub.getEndpointDescriptionFromJSON(json.fromJSON(endp));
-			// if endpoints already registered, don`t notify other hubs (prevents looping)
+			// if endpoints already registered, don`t notify other hubs
+			// (prevents looping)
 			if (hub.getRegistrations().addEndpointByMachineID(publisher,
 					endpoint)) {
-				distributedHub.addEndpoint(endpoint, publisher);
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -102,8 +132,9 @@ public class HubResource {
 	@Path("endpoints/{publisher}/{id}")
 	public final Response removeEndpoint(@PathParam("id") long endpointId,
 			@PathParam("publisher") String publisher) {
-		// if endpoints already registered, don`t notify other hubs (prevents looping)
-		if (hub.getRegistrations().removeEndpoint(publisher, endpointId)){
+		// if endpoints already registered, don`t notify other hubs (prevents
+		// looping)
+		if (hub.getRegistrations().removeEndpoint(publisher, endpointId)) {
 			distributedHub.removeEndpoint(endpointId, publisher);
 		}
 		return Response.ok().build();

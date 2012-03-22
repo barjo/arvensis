@@ -18,6 +18,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.Machine;
 
 /**
  * 
@@ -30,7 +31,7 @@ public class Configurator implements ArtifactInstaller{
 
 	private static final String ROSE_CONF_REGX = "^rose-conf(-[a-zA-Z_0-9]+|).json$";
 	
-	private Map<String,RoseConfiguration> confs = new HashMap<String, RoseConfiguration>();
+	private Map<String,Machine> machines = new HashMap<String, Machine>();
 	
 	
 	@Requires(optional=true)
@@ -52,16 +53,14 @@ public class Configurator implements ArtifactInstaller{
 	}
 	
 	@Validate
-	@SuppressWarnings("unused")
 	private void start(){
 		logger.log(LogService.LOG_INFO, THIS_COMPONENT+" is starting");
 	}
 
 	@Invalidate
-	@SuppressWarnings("unused")
 	private void stop(){
-		for (RoseConfiguration conf : confs.values()) {
-			conf.stop();
+		for (Machine machine : machines.values()) {
+			machine.stop();
 		}
 		logger.log(LogService.LOG_INFO, THIS_COMPONENT+" is stopping");
 	}
@@ -79,11 +78,12 @@ public class Configurator implements ArtifactInstaller{
 		return file.getName().matches(ROSE_CONF_REGX);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void install(File file) throws Exception {
 		String name = file.getName();
 
 		//GUARD - If the configuration already exists update
-		if (confs.containsKey(name)){
+		if (machines.containsKey(name)){
 			update(file);
 			return;
 		}
@@ -101,9 +101,9 @@ public class Configurator implements ArtifactInstaller{
 		
 		
 		try{
-			RoseConfiguration conf = parser.parse(json,null);
-			conf.start();
-			confs.put(name, conf);
+			Machine machine = parser.parse(json);
+			machine.start();
+			machines.put(name, machine);
 			logger.log(LOG_INFO, "Configuration "+name+" successfully handled");
 		}
 		catch(Exception e){
@@ -117,19 +117,20 @@ public class Configurator implements ArtifactInstaller{
 		String name = file.getName();
 		logger.log(LOG_INFO, "Configuration file: "+name +" removed");
 		
-		if (confs.containsKey(name)){
-			confs.remove(name).stop();
+		if (machines.containsKey(name)){
+			machines.remove(name).stop();
 			logger.log(LOG_INFO, "The file: "+name+" as been removed. The corresonding Rose configuration has been destroyed.");
 		}
 		
 	}
 	
 
+	@SuppressWarnings("unchecked")
 	public void update(File file) throws Exception {
 		String name = file.getName();
 		logger.log(LOG_INFO, "Start to reload configuration file: "+name);
 		
-		if (confs.containsKey(name)) {
+		if (machines.containsKey(name)) {
 			Map<String, Object> json;
 
 			try {
@@ -140,10 +141,10 @@ public class Configurator implements ArtifactInstaller{
 			}
 
 			try { //stop and remove oldconf, then start newconf
-				RoseConfiguration newconf = parser.parse(json,null);
-				confs.remove(name).stop();
-				newconf.start();
-				confs.put(name, newconf);
+				Machine machine = parser.parse(json);
+				machines.remove(name).stop();
+				machine.start();
+				machines.put(name, machine);
 			} catch (Exception e) {
 				logger.log(LOG_WARNING, "Cannot parse updated rose configuration file:" + name
 						+ " an exception occured", e);

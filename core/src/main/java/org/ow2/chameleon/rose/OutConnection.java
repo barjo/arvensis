@@ -34,7 +34,7 @@ public final class OutConnection {
 			+ "=" + ExporterService.class.getName() + ")";
 
 	private final ExporterTracker extracker;
-	private final BundleContext context;
+	private final Machine machine;
 	private final Filter sfilter;
 	private final Filter xfilter;
 	private final Map<String, Object> extraProperties;
@@ -42,12 +42,12 @@ public final class OutConnection {
 
 	private OutConnection(OutBuilder builder) {
 		extraProperties = builder.extraProperties;
-		context = builder.context;
+		machine = builder.machine;
 		sfilter = builder.sfilter;
 		xfilter = builder.xfilter;
 		customizer = builder.customizer;
-
 		extracker = new ExporterTracker();
+		machine.add(this);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public final class OutConnection {
 	 */
 	public static class OutBuilder {
 		// required
-		private final BundleContext context;
+		private final Machine machine;
 		private final Filter sfilter;
 
 		// optional
@@ -87,18 +87,18 @@ public final class OutConnection {
 		private Map<String, Object> extraProperties = new HashMap<String, Object>();
 		private OutCustomizer customizer = null;
 
-		private OutBuilder(BundleContext pContext, String serviceFilter)
+		private OutBuilder(Machine pMachine, String serviceFilter)
 				throws InvalidSyntaxException {
 			sfilter = createFilter(serviceFilter);
-			context = pContext;
+			machine = pMachine;
 			
 			if (customizer == null){ //Set default customizer
-				customizer = new DefautCustomizer(context);
+				customizer = new DefautCustomizer(machine.getContext());
 			}
 		}
 		
-		public static OutBuilder out(BundleContext pContext, String serviceFilter) throws InvalidSyntaxException{
-			return new OutBuilder(pContext, serviceFilter);
+		public static OutBuilder out(Machine pMachine, String serviceFilter) throws InvalidSyntaxException{
+			return new OutBuilder(pMachine, serviceFilter);
 		}
 
 		public OutBuilder protocol(List<String> protocols)
@@ -152,7 +152,7 @@ public final class OutConnection {
 		private final ServiceTracker tracker;
 
 		private ExporterTracker() {
-			tracker = new ServiceTracker(context, xfilter, this);
+			tracker = new ServiceTracker(machine.getContext(), xfilter, this);
 		}
 
 		private void open() {
@@ -164,7 +164,7 @@ public final class OutConnection {
 		}
 
 		public Object addingService(ServiceReference reference) {
-			ExporterService exporter = (ExporterService) context
+			ExporterService exporter = (ExporterService) machine.getContext()
 					.getService(reference);
 			return new ServiceToBeExportedTracker(exporter);
 		}
@@ -193,7 +193,7 @@ public final class OutConnection {
 
 		private ServiceToBeExportedTracker(ExporterService pExporter) {
 			exporter = pExporter;
-			tracker = new ServiceTracker(context, sfilter, this);
+			tracker = new ServiceTracker(machine.getContext(), sfilter, this);
 			tracker.open();
 		}
 

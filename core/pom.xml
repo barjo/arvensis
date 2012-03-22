@@ -90,6 +90,7 @@
 						</Bundle-SymbolicName>
 						<Export-Package>
 							org.ow2.chameleon.rose;version=${project.version},
+							org.ow2.chameleon.rose.api;version=${project.version},
 							org.ow2.chameleon.rose.introspect;version=${project.version},
 							org.ow2.chameleon.rose.registry;version=${project.version},
 							org.ow2.chameleon.rose.util;version=${project.version},

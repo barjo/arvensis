@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose;
+package org.ow2.chameleon.rose.api;
 
 import static java.util.Collections.unmodifiableList;
 import static org.apache.felix.ipojo.Factory.VALID;

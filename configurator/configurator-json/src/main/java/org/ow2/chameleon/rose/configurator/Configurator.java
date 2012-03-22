@@ -18,7 +18,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.Machine;
+import org.ow2.chameleon.rose.api.Machine;
 
 /**
  * 

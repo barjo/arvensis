@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose;
+package org.ow2.chameleon.rose.api;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.Constants.SERVICE_ID;
@@ -19,6 +19,7 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.ExporterService;
 
 /**
  * A {@link OutConnection} allows to export all services matching a given

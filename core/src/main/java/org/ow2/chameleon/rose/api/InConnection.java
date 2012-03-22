@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose;
+package org.ow2.chameleon.rose.api;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
@@ -22,6 +22,8 @@ import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.ImporterService;
 
 /**
  * A {@link InConnection} allows to import all services matching a given filter with all available {@link ImporterService} dynamically.

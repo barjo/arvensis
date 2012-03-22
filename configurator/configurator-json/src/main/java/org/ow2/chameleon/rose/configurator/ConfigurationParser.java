@@ -1,9 +1,9 @@
 package org.ow2.chameleon.rose.configurator;
 
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
-import static org.ow2.chameleon.rose.InConnection.InBuilder.in;
-import static org.ow2.chameleon.rose.OutConnection.OutBuilder.out;
 import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
+import static org.ow2.chameleon.rose.api.InConnection.InBuilder.in;
+import static org.ow2.chameleon.rose.api.OutConnection.OutBuilder.out;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.MACHINE;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.component;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.connection;
@@ -25,10 +25,10 @@ import java.util.UUID;
 import org.apache.felix.ipojo.parser.ParseException;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.ow2.chameleon.rose.InConnection.InBuilder;
-import org.ow2.chameleon.rose.Machine;
-import org.ow2.chameleon.rose.Machine.MachineBuilder;
-import org.ow2.chameleon.rose.OutConnection.OutBuilder;
+import org.ow2.chameleon.rose.api.Machine;
+import org.ow2.chameleon.rose.api.InConnection.InBuilder;
+import org.ow2.chameleon.rose.api.Machine.MachineBuilder;
+import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
 
 /**
  * Create a RoseConfiguration object for a given Map based configuration. 

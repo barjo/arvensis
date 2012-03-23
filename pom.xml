@@ -3,7 +3,7 @@
 
 	<groupId>org.ow2.chameleon.rose</groupId>
 	<artifactId>rose-parent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<name>Rose Parent</name>
 	<packaging>pom</packaging>
 

@@ -48,6 +48,14 @@
 		<developerConnection>scm:git:git@github.com:barjo/arvensis.git</developerConnection>
 	</scm>
 
+	<distributionManagement>
+		<repository>
+			<id>cloudbees-release</id>
+			<name>Cloudbees Private Repository</name>
+			<url>dav:https://repository-barjo.forge.cloudbees.com/release</url>
+		</repository>
+	</distributionManagement>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -56,6 +64,14 @@
 				<version>2.2.2</version>
 			</plugin>
 		</plugins>
+	
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-webdav-jackrabbit</artifactId>
+				<version>2.2</version>
+			</extension>
+		</extensions>
 	</build>
 
 </project>

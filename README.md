@@ -1,4 +1,3 @@
-
 #RoSe Readme 
 
 
@@ -25,8 +24,14 @@ RoSe is licensed under the Apache License 2.0.
 		
 ```xml
 <repository>
+	<id>maven-barjo-repository-release</id>
+	<name>RoSe - Release</name>
+	<url>http://repository-barjo.forge.cloudbees.com/release</url>
+	<layout>default</layout>
+</repository>
+<repository>
 	<id>maven-barjo-repository-snapshot</id>
-	<name></name>
+	<name>RoSe - Snapshot</name>
 	<url>http://repository-barjo.forge.cloudbees.com/snapshot</url>
 	<layout>default</layout>
 </repository>

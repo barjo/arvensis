@@ -6,6 +6,8 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
+
 
 import java.net.UnknownHostException;
 import java.util.Dictionary;
@@ -129,11 +131,12 @@ public class SubscriberTest extends AbstractTestConfiguration {
 
 		// check POST parameters
 		parameters = hub.getReqParams();
+		
+		//check number of parameters
+		Assert.assertTrue(parameters.size()==4);
+		
 		for (String parameter : parameters.keySet()) {
-			if (parameter.equals("Content-Type")) {
-				Assert.assertTrue(parameters.get("Content-Type").equals(
-						"application/x-www-form-urlencoded"));
-			} else if (parameter
+			if (parameter
 					.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
 						.get(HTTP_POST_PARAMETER_HUB_MODE))[0]
@@ -148,6 +151,11 @@ public class SubscriberTest extends AbstractTestConfiguration {
 				Assert.assertTrue(((String[]) parameters
 						.get(HTTP_POST_PARAMETER_URL_CALLBACK))[0]
 						.equals(publisherCallBackUrl));
+			}
+			else if (parameter
+					.equals(HTTP_POST_PARAMETER_MACHINEID)) {
+				Assert.assertNotNull(((String[]) parameters
+						.get(HTTP_POST_PARAMETER_MACHINEID))[0]);
 			}
 
 		}
@@ -187,7 +195,7 @@ public class SubscriberTest extends AbstractTestConfiguration {
 	 * Check POST request parameters after stop subscribing.
 	 */
 	@Test
-	public final void testUnpublish() {
+	public final void testUnsubscribe() {
 		// stop susbcriber
 		ipojo.getInstanceByName(SUBSCRIBER_INSTANCE_NAME).stop();
 
@@ -208,6 +216,12 @@ public class SubscriberTest extends AbstractTestConfiguration {
 					.equals(HTTP_POST_PARAMETER_URL_CALLBACK)) {
 				Assert.assertTrue(((String[]) parameters
 						.get(HTTP_POST_PARAMETER_URL_CALLBACK))[0]
+						.equals(publisherCallBackUrl));
+			}
+			else if (parameter
+					.equals(HTTP_POST_PARAMETER_MACHINEID)) {
+				Assert.assertNotNull(((String[]) parameters
+						.get(HTTP_POST_PARAMETER_MACHINEID))[0]
 						.equals(publisherCallBackUrl));
 			}
 

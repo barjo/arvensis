@@ -5,6 +5,7 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.DEFAULT_HTTP_PORT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
 
 import static org.osgi.service.log.LogService.LOG_INFO;
 
@@ -44,6 +45,8 @@ public class HubPublisher {
 	private final HttpClient client;
 	private final String host;
 	private final LogService logger;
+	private final RoseMachine rose;
+	private final String callbackUrl;
 
 	/**
 	 * Register a topic in hub.
@@ -54,20 +57,21 @@ public class HubPublisher {
 	 *            RSS topic url
 	 * @param context
 	 *            BundleContext
-	 * @param rose
+	 * @param pRose
 	 *            Rose service
 	 * @param pLogger
 	 *            Log service
 	 * @throws IOException
 	 *             exception
 	 */
-	public HubPublisher(final String pUrlHub, final String pRssUrl,
-			final BundleContext context, final RoseMachine rose,
+	public HubPublisher(final String pUrlHub, final String pRssUrl, final String pCallbackUrl,
+			final BundleContext context, final RoseMachine pRose,
 			final LogService pLogger) throws IOException {
 		String port = null;
 
 		this.urlHub = pUrlHub;
 		this.logger = pLogger;
+		this.rose = pRose;
 		final ServiceReference httpServiceRef = context
 				.getServiceReference(HttpService.class.getName());
 		if (httpServiceRef != null) {
@@ -87,6 +91,7 @@ public class HubPublisher {
 		this.host = rose.getHost();
 
 		this.rssUrl = "http://" + this.host + ":" + port + pRssUrl + "/";
+		callbackUrl = "http://" + this.host + ":" + port + pCallbackUrl;
 		client = new DefaultHttpClient();
 
 		// prepare post method
@@ -100,6 +105,8 @@ public class HubPublisher {
 				this.rssUrl));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
 				rose.getId()));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
+				this.callbackUrl));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		final HttpResponse response = client.execute(postMethod);
@@ -159,6 +166,8 @@ public class HubPublisher {
 					HubMode.unpublish.toString()));
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 					this.rssUrl));
+			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
+					rose.getId()));
 			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 			HttpResponse response = client.execute(postMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {

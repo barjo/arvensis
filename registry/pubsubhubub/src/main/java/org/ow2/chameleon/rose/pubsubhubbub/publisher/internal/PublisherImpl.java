@@ -64,8 +64,11 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	@Property(mandatory = true, name = INSTANCE_PROPERTY_RSS_URL)
 	private String rssUrl;
 
-	@Property(name = INSTANCE_PROPERTY_HUB_URL)
+	@Property(mandatory = true, name = INSTANCE_PROPERTY_HUB_URL)
 	private String hubUrl;
+
+	@Property(name = INSTANCE_PROPERTY_CALLBACK_URL, value = "/subscriber")
+	private String callBackUrl;
 
 	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
 	private LogService logger;
@@ -130,8 +133,8 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			eventProperties.put(FeedReader.ENTRY_URL_KEY, rssUrl);
 
 			// register publisher
-			hubPublisher = new HubPublisher(hubUrl, rssUrl, context, rose,
-					logger);
+			hubPublisher = new HubPublisher(hubUrl, rssUrl, callBackUrl,
+					context, rose, logger);
 
 			final Dictionary<String, Object> props = new Hashtable<String, Object>();
 			props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);

@@ -17,7 +17,7 @@
 		<chameleon.version>0.4.1-SNAPSHOT</chameleon.version>
 		<rose.version>0.2.4-SNAPSHOT</rose.version>
 		<jabsorb-exporter.version>0.1.4-SNAPSHOT</jabsorb-exporter.version>
-		<cxf-exporter.version>0.1.2-SNAPSHOT</cxf-exporter.version>
+		<cxf-exporter.version>0.1.4-SNAPSHOT</cxf-exporter.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<machine.dir>${project.build.directory}/machine-server</machine.dir>
 		<runtime.dir>${machine.dir}/runtime</runtime.dir>
@@ -126,9 +126,9 @@
 								</artifactItem>
 
 								<artifactItem>
-									<groupId>org.apache.cxf</groupId>
-									<artifactId>org.ow2.chameleon.commons.cxf-minimal</artifactId>
-									<version>2.3.2-0001-SNAPSHOT</version>
+									<groupId>org.ow2.chameleon.commons.cxf</groupId>
+									<artifactId>cxf-bundle-minimal</artifactId>
+									<version>2.5.2-0001-SNAPSHOT</version>
 									<overWrite>false</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>
@@ -142,17 +142,17 @@
 								</artifactItem>
 
 								<artifactItem>
-									<groupId>org.apache.servicemix.bundles</groupId>
-									<artifactId>org.apache.servicemix.bundles.neethi</artifactId>
-									<version>2.0.4_3</version>
+									<groupId>org.apache.neethi</groupId>
+									<artifactId>neethi</artifactId>
+									<version>3.0.1</version>
 									<overWrite>false</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>
 
 								<artifactItem>
-									<groupId>org.apache.servicemix.bundles</groupId>
-									<artifactId>org.apache.servicemix.bundles.xmlschema</artifactId>
-									<version>1.4.2_1</version>
+									<groupId>org.apache.ws.xmlschema</groupId>
+									<artifactId>xmlschema-core</artifactId>
+									<version>2.0.1</version>
 									<overWrite>false</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>

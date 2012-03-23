@@ -5,6 +5,7 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class HubSubscriber {
 	private final String callBackUrl;
 	private String port;
 	private final String host;
+	private RoseMachine rose;
 
 	/**
 	 * Register a subscription.
@@ -52,16 +54,17 @@ public class HubSubscriber {
 	 *            endpoint filter
 	 * @param context
 	 *            BundleContext
-	 * @param rose
+	 * @param pRose
 	 *            RoseService
 	 * @throws IOException
 	 *             exception
 	 */
 	public HubSubscriber(final String pUrlHub, final String pCallBackUrl,
 			final String endpointFilter, final BundleContext context,
-			final RoseMachine rose) throws IOException {
+			final RoseMachine pRose) throws IOException {
 		this.urlHub = pUrlHub;
-
+		this.rose=pRose;
+		
 		final ServiceReference httpServiceRef = context
 				.getServiceReference(HttpService.class.getName());
 		if (httpServiceRef != null) {
@@ -77,7 +80,7 @@ public class HubSubscriber {
 			port = DEFAULT_HTTP_PORT;
 		}
 
-		this.host = rose.getHost();
+		this.host = pRose.getHost();
 
 		this.callBackUrl = "http://" + this.host + ":" + port + pCallBackUrl;
 		client = new DefaultHttpClient();
@@ -92,6 +95,8 @@ public class HubSubscriber {
 				endpointFilter));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
+				pRose.getId()));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		final HttpResponse response = client.execute(postMethod);
@@ -121,6 +126,8 @@ public class HubSubscriber {
 				HubMode.unsubscribe.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
+				rose.getId()));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		final HttpResponse response = client.execute(postMethod);

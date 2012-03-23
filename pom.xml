@@ -1,27 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
-	<!-- Project's parent -->
-	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
-	</parent>
-	
+
 	<groupId>org.ow2.chameleon.rose</groupId>
-	<artifactId>rose-reactor</artifactId>
+	<artifactId>rose-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Rose Reactor</name>
-	<packaging>pom</packaging>	
-	<modules>
-		<module>core</module>
-		<module>configurator/configurator-json</module>
-		<module>jax-rs/jersey-exporter</module>
-		<module>jax-ws/cxf-exporter</module>
-		<module>jax-ws/cxf-importer</module>
-		<module>json-rpc/jabsorb-exporter</module>
-		<module>json-rpc/jabsorb-importer</module>
-	</modules>
+	<name>Rose Parent</name>
+	<packaging>pom</packaging>
 
 	<profiles>
 
@@ -43,7 +27,6 @@
 				<module>jax-ws/cxf-importer</module>
 				<module>json-rpc/jabsorb-exporter</module>
 				<module>json-rpc/jabsorb-importer</module>
-				<module>registry/zookeeper-registry</module>
 			</modules>
 		</profile>
 
@@ -58,5 +41,22 @@
 			</modules>
 		</profile>
 	</profiles>
+
+	<scm>
+		<connection>scm:git:git@github.com:barjo/arvensis.git</connection>
+		<url>scm:git:git@github.com:barjo/arvensis.git</url>
+		<developerConnection>scm:git:git@github.com:barjo/arvensis.git</developerConnection>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.2.2</version>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>
 

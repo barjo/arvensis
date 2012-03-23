@@ -6,7 +6,7 @@
 
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
-		<artifactId>parent-pom</artifactId>
+		<artifactId>rose-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 

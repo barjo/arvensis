@@ -146,7 +146,6 @@ public abstract class AbstractTestConfiguration {
 		));
 
 		Option[] r = OptionUtils.combine(platform, bundles);
-
 		return r;
 	}
 

@@ -14,25 +14,32 @@ import java.util.List;
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 
 public final class Machine {
-	private static final String RoSe_FACTORY_FILTER="(& ("+OBJECTCLASS+"="+Factory.class.getName()+")(factory.state="+VALID+")(factory.name="+RoSe_MACHINE_COMPONENT_NAME+"))";
+	private static final String RoSe_FACTORY_FILTER="(&("+OBJECTCLASS+"="+Factory.class.getName()+")(factory.state="+VALID+")(factory.name="+RoSe_MACHINE_COMPONENT_NAME+"))";
 
 	private volatile Boolean started = false;
 	private final BundleContext context;
 	private final ServiceTracker tracker;
 	private final List<InConnection> ins = new ArrayList<InConnection>();
 	private final List<OutConnection> outs = new ArrayList<OutConnection>();
+	private final List<Instance> instances = new ArrayList<Instance>();
 
 	private Hashtable<String, Object> conf = new Hashtable<String, Object>();
 
 	private Machine(MachineBuilder builder) {	
 		context = builder.context;
-		tracker = new ServiceTracker(context, RoSe_FACTORY_FILTER, new RoSeMachineCreator());
+		
+		try {
+			tracker = new ServiceTracker(context, context.createFilter(RoSe_FACTORY_FILTER), new RoSeMachineCreator());
+		} catch (InvalidSyntaxException e) {
+			throw new IllegalArgumentException("Bad filter", e); //impossible
+		}
 		conf.put(RoSe_MACHINE_ID, builder.id);
 		conf.put("instance.name", RoSe_MACHINE_COMPONENT_NAME+"_"+builder.id);
 		conf.put(RoSe_MACHINE_HOST, builder.host);
@@ -50,6 +57,9 @@ public final class Machine {
 		for (OutConnection out : outs) {
 			out.open();
 		}
+		for (Instance in : instances) {
+			in.start();
+		}
 		
 		started = true;
 	}
@@ -65,6 +75,9 @@ public final class Machine {
 		}
 		for (OutConnection out : outs) {
 			out.close();
+		}
+		for (Instance in : instances) {
+			in.stop();
 		}
 		
 		started = false;
@@ -129,11 +142,49 @@ public final class Machine {
 	}
 	
 	/**
+	 * add a Component instance
+	 * @param in
+	 */
+	protected void add(Instance in){
+		instances.add(in);
+		
+		if (started){
+			in.start();
+		}
+	}
+	
+	/**
+	 * Remove and close the component instance.
+	 * @param in
+	 */
+	public void remove(Instance in){
+		instances.remove(in);
+		in.stop();
+	}
+	
+	/**
+	 * Get the Component Instances.
+	 * @return
+	 */
+	public List<Instance> getInstances(){
+		return unmodifiableList(instances);
+	}
+	
+	
+	/**
 	 * Get the bundleContext associated with this RoSeMachine.
 	 * @return
 	 */
 	public BundleContext getContext(){
 		return context;
+	}
+	
+	
+	/**
+	 * @return The RoSeMachine id.
+	 */
+	public String getId() {
+		return (String) conf.get(RoSe_MACHINE_ID);
 	}
 	
 	
@@ -190,5 +241,4 @@ public final class Machine {
 		}
 		
 	}
-	
 }

@@ -127,6 +127,11 @@ public final class OutConnection {
 			xfilter = createFilter(sb.toString());
 			return this;
 		}
+		
+		public OutBuilder property(String key, Object value){
+			extraProperties.put(key, value);
+			return this;
+		}
 
 		public OutBuilder extraProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);

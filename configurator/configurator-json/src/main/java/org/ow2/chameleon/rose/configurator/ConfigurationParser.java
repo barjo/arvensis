@@ -1,10 +1,10 @@
 package org.ow2.chameleon.rose.configurator;
 
+import static org.osgi.service.log.LogService.LOG_DEBUG;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
 import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
 import static org.ow2.chameleon.rose.api.InConnection.InBuilder.in;
 import static org.ow2.chameleon.rose.api.OutConnection.OutBuilder.out;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.MACHINE;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.component;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.connection;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.exporter_filter;
@@ -12,12 +12,12 @@ import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.f
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.host;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.importer_filter;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.in;
+import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.machine;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.out;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.properties;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.protocol;
 import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.service_filter;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,8 +25,10 @@ import java.util.UUID;
 import org.apache.felix.ipojo.parser.ParseException;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.ow2.chameleon.rose.api.Machine;
+import org.osgi.service.log.LogService;
 import org.ow2.chameleon.rose.api.InConnection.InBuilder;
+import org.ow2.chameleon.rose.api.Instance.InstanceBuilder;
+import org.ow2.chameleon.rose.api.Machine;
 import org.ow2.chameleon.rose.api.Machine.MachineBuilder;
 import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
 
@@ -34,17 +36,17 @@ import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
  * Create a RoseConfiguration object for a given Map based configuration. 
  **/
 public class ConfigurationParser {	
-	private static final String MACHINE_COMPONENT = "RoSe_machine";
-	
 	private final BundleContext context;
+	private final LogService logger;
 	
-	public ConfigurationParser(BundleContext pContext) {
+	public ConfigurationParser(BundleContext pContext,LogService pLogger) {
 		context = pContext;
+		logger = pLogger;
 	}
 	
 	
 	public enum ConfType{
-		MACHINE,
+		machine,
 		component,
 		connection,
 		id,
@@ -61,7 +63,7 @@ public class ConfigurationParser {
 		customizer;
 		
 		public Object getValue(Map<String,Object> values){
-			return (String) values.remove(this.toString());
+			return values.remove(this.toString());
 		}
 
 		public boolean isIn(Map<String, Object> json) {
@@ -72,12 +74,12 @@ public class ConfigurationParser {
 	private Machine parseMachine(Object obj) throws InvalidSyntaxException, ParseException {
 		Machine rosemachine;
 		if ( !(obj instanceof Map)){
-			throw new ParseException(MACHINE+" must contains a valid machine description: "+obj+" is not a valid jsonobject");
+			throw new ParseException(machine+" must contains a valid machine description: "+obj+" is not a valid jsonobject");
 		}
 		
+		@SuppressWarnings("unchecked")
 		Map<String,Object> json = (Map<String,Object>) obj;
 		
-		Hashtable<String, Object> properties = new Hashtable<String, Object>();
 		String id = (String) ConfType.id.getValue(json);
 		
 		//Get & Set id
@@ -95,9 +97,6 @@ public class ConfigurationParser {
 		
 		MachineBuilder mbuilder = MachineBuilder.machine(context, id);
 		
-		properties.put(RoSe_MACHINE_ID, id);
-		properties.put("instance.name", MACHINE_COMPONENT+"_"+id);
-		
 		//Get & Set host
 		if (host.isIn(json)){
 			mbuilder.host((String) host.getValue(json));
@@ -105,8 +104,12 @@ public class ConfigurationParser {
 		rosemachine = mbuilder.create();
 		
 		//Parse, the connections
-		if (json.containsKey(connection)){
+		if (connection.isIn(json)){
 			parseConnection(connection.getValue(json), rosemachine);
+		}
+		
+		if (component.isIn(json)){
+			parseComponent(component.getValue(json), rosemachine);
 		}
 		
 		//TODO parse components
@@ -117,38 +120,44 @@ public class ConfigurationParser {
 	/**
 	 * FIXME
 	 */
-	private void parseComponent(Object obj, Machine machine) throws InvalidSyntaxException, ParseException {
-		if ( !(obj instanceof List)){
-			throw new ParseException(component+" must contains a valid component description: "+obj+" is not a valid jsonobject");
+	@SuppressWarnings({ "unchecked" })
+	private void parseComponent(Object list, Machine machine) throws InvalidSyntaxException, ParseException {
+		if ( !(list instanceof List)){
+			throw new ParseException(component+" must contains a valid component description: "+list+" is not a valid jsonobject");
 		}
 		
-		List<Map> jsons = (List) obj;
+		logger.log(LOG_DEBUG, "Parse component instances of machine: " +machine.getId());
+
 		
-		for (Map json : jsons) {
-			Hashtable<String, Object> props = new Hashtable<String, Object>();
+		InstanceBuilder ibuilder;
 		
+		List<Map<String,Object>> jsons = (List<Map<String, Object>>) list;
+		
+		for (Map<String, Object> json : jsons) {
 			//mandatory
 			String component = (String) factory.getValue(json);
 			
-			//Set a machine related instance name if in a machine
-			//props.put("instance.name", component+"_"+machineId);
-		
+			ibuilder = InstanceBuilder.instance(machine, component).name(component+"_"+machine.getId());
+			
 			//Optional
 			if (ConfType.properties.isIn(json)){
-				props.putAll((Map) properties.getValue(json));
+				ibuilder.properties((Map<String, Object>)properties.getValue(json));
 			}
 		
-			//conf.add(new FactoryTrackerConfiguration(context,component,props,machineId));
+			ibuilder.create();
 		}
 	}
 
-	private void parseConnection(Object obj, Machine machine) throws InvalidSyntaxException, ParseException {
-		if ( !(obj instanceof List)){
-			throw new ParseException(connection+" must contains a valid connection description: "+obj+" is not a valid jsonarray ");
+	@SuppressWarnings("unchecked")
+	private void parseConnection(Object list, Machine machine) throws InvalidSyntaxException, ParseException {
+		if ( !(list instanceof List)){
+			throw new ParseException(connection+" must contains a valid connection description: "+list+" is not a valid jsonarray ");
 		}
 		
-		List<Map> jsons = (List) obj;
-		for (Map json : jsons) {
+		logger.log(LOG_DEBUG, "Parse connections of machine: " +machine.getId());
+		
+		List<Map<String,Object>> jsons = (List<Map<String, Object>>) list;
+		for (Map<String, Object> json : jsons) {
 		
 			if (in.isIn(json)){
 				Map<String,Object> inmap = (Map<String, Object>) in.getValue(json);
@@ -169,7 +178,7 @@ public class ConfigurationParser {
 			
 				//optional PROPERTIES
 				if(properties.isIn(inmap)){
-					inBuilder.extraProperties((Map) properties.getValue(inmap));
+					inBuilder.extraProperties((Map<String,Object>) properties.getValue(inmap));
 				}
 				
 				inBuilder.create(); //create the connection
@@ -193,7 +202,7 @@ public class ConfigurationParser {
 			
 				//optional PROPERTIES
 				if(properties.isIn(outmap)){
-					out.extraProperties((Map) properties.getValue(outmap));
+					out.extraProperties((Map<String, Object>) properties.getValue(outmap));
 				}
 				
 				//optional Customizer
@@ -209,8 +218,8 @@ public class ConfigurationParser {
 
 	public Machine parse(Map<String, Object> json) throws InvalidSyntaxException, ParseException {
 		
-		if (MACHINE.isIn(json)){
-			return parseMachine(MACHINE.getValue(json));
+		if (machine.isIn(json)){
+			return parseMachine(machine.getValue(json));
 		}
 		else {
 			throw new ParseException("The configuration does not contains a valid rose machine configuration");

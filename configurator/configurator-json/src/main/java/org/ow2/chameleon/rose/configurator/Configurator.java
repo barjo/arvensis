@@ -49,7 +49,7 @@ public class Configurator implements ArtifactInstaller{
 	 */
 	public Configurator(BundleContext pContext) {
 		context=pContext;
-		parser = new ConfigurationParser(context);
+		parser = new ConfigurationParser(context,logger);
 	}
 	
 	@Validate

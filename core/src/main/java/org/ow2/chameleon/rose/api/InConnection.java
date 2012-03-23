@@ -128,6 +128,11 @@ public final class InConnection {
 			
 			return this;
 		}
+		
+		public InBuilder property(String key, Object value){
+			extraProperties.put(key, value);
+			return this;
+		}
 
 		public InBuilder extraProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);

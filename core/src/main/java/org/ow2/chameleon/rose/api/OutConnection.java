@@ -143,7 +143,7 @@ public final class OutConnection {
 			return this;
 		}
 
-		public OutConnection create() {
+		public OutConnection add() {
 			return new OutConnection(this);
 		}
 	}

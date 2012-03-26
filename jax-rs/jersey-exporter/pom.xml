@@ -16,9 +16,9 @@
 
 	<!-- Project's parent -->
 	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
+		<groupId>org.ow2.chameleon.rose</groupId>
+		<artifactId>rose-parent</artifactId>
+		<version>0.0.7-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.ow2.chameleon.rose.rest</groupId>
@@ -34,7 +34,7 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
+		<rose.core.version>0.3.1-SNAPSHOT</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		
 		<!-- Plugins version-->

@@ -18,6 +18,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.api.InConnection.InBuilder;
+import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
 
 
 public final class Machine {
@@ -81,6 +83,22 @@ public final class Machine {
 		}
 		
 		started = false;
+	}
+	
+	/**
+	 * Create an {@link InConnection} for this machine.
+	 * @throws InvalidSyntaxException
+	 */
+	public InBuilder in(String descriptionFilter) throws InvalidSyntaxException{
+		return InBuilder.in(this, descriptionFilter);
+	}
+	
+	/**
+	 * Create an {@link OutConnection} for this machine.
+	 * @throws InvalidSyntaxException
+	 */
+	public OutBuilder out(String serviceFilter) throws InvalidSyntaxException{
+		return OutBuilder.out(this, serviceFilter);
 	}
 	
 	/**

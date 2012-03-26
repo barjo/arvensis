@@ -144,7 +144,11 @@ public final class InConnection {
 			return this;
 		}
 
-		public InConnection create() {
+		/**
+		 * Create and add the connection to the machine.
+		 * @return
+		 */
+		public InConnection add() {
 			return new InConnection(this);
 		}
 	}

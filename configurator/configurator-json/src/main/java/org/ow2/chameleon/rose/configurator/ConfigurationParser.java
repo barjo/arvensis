@@ -181,7 +181,7 @@ public class ConfigurationParser {
 					inBuilder.extraProperties((Map<String,Object>) properties.getValue(inmap));
 				}
 				
-				inBuilder.create(); //create the connection
+				inBuilder.add(); //create the connection
 			}
 		
 			if (out.isIn(json)){
@@ -210,7 +210,7 @@ public class ConfigurationParser {
 					//TODO
 				}
 				
-				out.create(); //Create the connection
+				out.add(); //Create the connection
 			}
 		}
 	}

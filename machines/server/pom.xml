@@ -85,7 +85,7 @@
 								<artifactItem>
 									<groupId>org.ow2.chameleon.rose</groupId>
 									<artifactId>json-configurator</artifactId>
-									<version>0.1.0-SNAPSHOT</version>
+									<version>0.1.3-SNAPSHOT</version>
 									<overWrite>false</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>

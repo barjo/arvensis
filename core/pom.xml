@@ -10,7 +10,6 @@
 	</parent>
 
 	<!-- Description of the project -->
-	<groupId>org.ow2.chameleon.rose</groupId>
 	<artifactId>rose-core</artifactId>
 	<name>OW2 Chameleon - RoSe Core</name>
 	<version>0.3.1-SNAPSHOT</version>

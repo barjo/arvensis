@@ -18,7 +18,10 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.api.InConnection.InBuilder;
+import org.ow2.chameleon.rose.api.Instance.InstanceBuilder;
 import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
 
 
@@ -99,6 +102,24 @@ public final class Machine {
 	 */
 	public OutBuilder out(String serviceFilter) throws InvalidSyntaxException{
 		return OutBuilder.out(this, serviceFilter);
+	}
+	
+	/**
+	 * Add an {@link ExporterService}
+	 * @param name, the exporter component name.
+	 * @return
+	 */
+	public InstanceBuilder exporter(String factory){
+		return InstanceBuilder.instance(this, factory);
+	}
+	
+	/**
+	 * Add an {@link ImporterService}
+	 * @param name, The importer component name.
+	 * @return
+	 */
+	public InstanceBuilder importer(String factory){
+		return InstanceBuilder.instance(this, factory);
 	}
 	
 	/**

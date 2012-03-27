@@ -172,12 +172,17 @@ public class HubImpl extends HttpServlet implements Hub {
 		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
 		case publish:
 
-			if ((rssUrl != null) && (machineID != null)
+			if ((rssUrl != null) && (machineID != null  &&(callBackUrl != null))
 					&& (createReader(rssUrl))) {
-				registrations.addTopic(rssUrl, machineID);
+				registrations.addTopic(rssUrl, machineID,callBackUrl);
 				responseCode = HttpStatus.SC_CREATED;
 				logger.log(LOG_INFO, "Successfully register publisher from: "
 						+ rssUrl);
+				
+				// send notification to distributedhubs
+				if (distributedHub != null) {
+					distributedHub.addBackupPublisher(machineID, callBackUrl);
+				}
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			}
@@ -185,13 +190,18 @@ public class HubImpl extends HttpServlet implements Hub {
 
 		case unpublish:
 
-			if (rssUrl != null) {
+			if (rssUrl != null && machineID != null) {
 				// remove a topic
 				registrations.removeTopic(rssUrl);
 				readers.remove(rssUrl);
 				responseCode = HttpStatus.SC_ACCEPTED;
 				logger.log(LOG_INFO, "Successfully removed publisher from: "
 						+ rssUrl);
+
+				// send notification to distributedhubs
+				if (distributedHub != null) {
+					distributedHub.removeBackupPublisher(machineID);
+				}
 			} else {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			}
@@ -255,11 +265,18 @@ public class HubImpl extends HttpServlet implements Hub {
 			break;
 
 		case subscribe:
-			if ((endpointFilter == null) || (callBackUrl == null)) {
+			if ((endpointFilter == null) || (callBackUrl == null)
+					|| (machineID == null)) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 			} else {
-				registrations.addSubscriber(callBackUrl, endpointFilter);
+				registrations.addSubscriber(callBackUrl, endpointFilter,
+						machineID);
 				responseCode = HttpStatus.SC_CREATED;
+
+				// send notification to distributedhubs
+				if (distributedHub != null) {
+					distributedHub.addBackupSubscriber(machineID, callBackUrl);
+				}
 				logger.log(LOG_INFO, "Successfully register subscriber from  "
 						+ callBackUrl + "with filer: " + endpointFilter);
 			}
@@ -267,12 +284,18 @@ public class HubImpl extends HttpServlet implements Hub {
 			break;
 
 		case unsubscribe:
-			if (callBackUrl == null) {
+			if (callBackUrl == null || (machineID == null)) {
 				responseCode = HttpStatus.SC_BAD_REQUEST;
 				break;
 			}
 			registrations.removeSubscriber(callBackUrl);
 			responseCode = HttpStatus.SC_ACCEPTED;
+
+			// send notification to distributedhubs
+			if (distributedHub != null) {
+				distributedHub.removeBackupSubscriber(machineID);
+			}
+
 			logger.log(LOG_INFO, "Successfully removed subscriber from  "
 					+ callBackUrl);
 

@@ -22,11 +22,11 @@ public class RegistrationsImpl implements Registrations {
 	// publisher endpoint description with endpoint descriptions machine id
 	private Map<EndpointDescription, String> endpoints;
 
-	// connected publishers (topic rss url with machine id))
-	private Map<String, String> publishers;
+	// connected publishers (topic rss url with machine id/callBackurl))
+	private Map<String,PublisherInfo> publishers;
 
 	// connected subscribers with subscribed endpoints
-	private Map<String, EndpointsByFilter> subscribers;
+	private Map<String, SubscriberInfo> subscribers;
 	private ReentrantReadWriteLock lock;
 
 	private SendSubscription sendSubscription;
@@ -41,16 +41,17 @@ public class RegistrationsImpl implements Registrations {
 	 */
 	public RegistrationsImpl(final JSONService json, final LogService logger) {
 		endpoints = new HashMap<EndpointDescription, String>();
-		publishers = new HashMap<String, String>();
-		subscribers = new ConcurrentHashMap<String, EndpointsByFilter>();
+		publishers = new HashMap<String, RegistrationsImpl.PublisherInfo>();
+		subscribers = new ConcurrentHashMap<String, SubscriberInfo>();
 		lock = new ReentrantReadWriteLock();
 		sendSubscription = new SendSubscription(logger, json);
 	}
 
-	public final void addTopic(final String rssURL, final String machineID) {
+	public final void addTopic(final String rssURL, final String machineID,final String callbackUrl) {
 		lock.writeLock().lock();
 		try {
-			publishers.put(rssURL, machineID);
+			publishers.put(rssURL, new PublisherInfo(callbackUrl, machineID));
+//			publishers2.put(rssURL, machineID);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -62,8 +63,8 @@ public class RegistrationsImpl implements Registrations {
 		lock.writeLock().lock();
 		for (Entry<EndpointDescription, String> endpoint : endpoints.entrySet()) {
 			// find all endpoints registered by publisher
-			if (endpoint.getValue().equals(publishers.get(rssUrl))) {
-				//store endpoint to remove
+			if (endpoint.getValue().equals(publishers.get(rssUrl).getMachineID())) {
+				// store endpoint to remove
 				endpointsToRemove.add(endpoint.getKey());
 				// get subscribers who use this endpoint
 				matchedSubscribers = this.getSubscribersByEndpoint(
@@ -85,7 +86,7 @@ public class RegistrationsImpl implements Registrations {
 			final EndpointDescription endp) {
 		Set<String> matchedSubscribers;
 		lock.writeLock().lock();
-		endpoints.put(endp, publishers.get(rssUrl));
+		endpoints.put(endp, publishers.get(rssUrl).getMachineID());
 		matchedSubscribers = getSubscribersByEndpoint(endp, true);
 		if (!(matchedSubscribers.isEmpty())) {
 			sendSubscription.sendSubscriptions(matchedSubscribers, endp,
@@ -132,9 +133,9 @@ public class RegistrationsImpl implements Registrations {
 	}
 
 	public final void addSubscriber(final String callBackUrl,
-			final String endpointFilter) {
-		EndpointsByFilter endpointsByFiler = new EndpointsByFilter(
-				endpointFilter);
+			final String endpointFilter, final String machineID) {
+		SubscriberInfo endpointsByFiler = new SubscriberInfo(endpointFilter,
+				machineID);
 		lock.writeLock().lock();
 		try {
 			for (EndpointDescription endpoint : endpoints.keySet()) {
@@ -181,9 +182,22 @@ public class RegistrationsImpl implements Registrations {
 
 	}
 
-	public final String getPublisherMachineIdByRssUrl(String machineID) {
-		return publishers.get(machineID);
+	public final String getPublisherMachineIdByRssUrl(String rssUrl) {
+		return publishers.get(rssUrl).getMachineID();
 
+	}
+
+	public final Map<String, String> getSubscribers() {
+		Map<String,String> subscribersMap = new HashMap<String, String>();
+		for (Entry<String, SubscriberInfo> subscriber : subscribers.entrySet()) {
+			subscribersMap.put(subscriber.getKey(), subscriber.getValue().getMachineID());
+		}
+	return subscribersMap;
+	}
+
+	public final Map<String, String> getPublishers() {
+		// TODO doesnt work!! stores only rss url not url to manipualte!!!
+		return null;
 	}
 
 	private void removeEndpointByMachineID(String machineID,
@@ -243,22 +257,28 @@ public class RegistrationsImpl implements Registrations {
 
 	/**
 	 * Keeps connection between particular filter and @EndpointSescription which
-	 * satisfies it.
+	 * satisfies it. Stores machineID
 	 * 
 	 * @author Bartek
 	 * 
 	 */
-	private static class EndpointsByFilter {
+	private static class SubscriberInfo {
 		private String filter;
+		private String machineID;
 		private Set<EndpointDescription> matchedEndpoints;
 
-		public EndpointsByFilter(final String pFilter) {
+		public SubscriberInfo(final String pFilter, final String pMachineID) {
 			this.filter = pFilter;
+			this.machineID = pMachineID;
 			matchedEndpoints = new HashSet<EndpointDescription>();
 		}
 
 		public String getFilter() {
 			return filter;
+		}
+
+		public String getMachineID() {
+			return machineID;
 		}
 
 		public void addEndpoint(final EndpointDescription endp) {
@@ -270,5 +290,26 @@ public class RegistrationsImpl implements Registrations {
 		}
 
 	}
+	
+	/**Keeps Publisher informations: machineID, callBack, rssUrl
+	 * @author Bartek
+	 *
+	 */
+	private class PublisherInfo{
+		private String machineID;
+		private String callBackUrl;
+		public PublisherInfo(String pCallBackUrl, String pMachineID) {
+			this.machineID=pMachineID;
+			this.callBackUrl=pCallBackUrl;
+		}
+		public String getMachineID() {
+			return machineID;
+		}
+		public String getCallBackUrl() {
+			return callBackUrl;
+		}
+		
 
+		
+	}
 }

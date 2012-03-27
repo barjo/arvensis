@@ -50,8 +50,6 @@ public class SendSubscription {
 
 		this.logger = pLogger;
 		this.json = pJson;
-
-		ThreadSafeClientConnManager connManager = new ThreadSafeClientConnManager();
 	}
 
 	/**

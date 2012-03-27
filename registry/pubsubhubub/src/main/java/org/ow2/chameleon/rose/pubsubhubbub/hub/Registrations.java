@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
-
 /**
  * Keep all informations about registered rss topics with related endpoints and
  * subscribers with related endpoints filters.
@@ -14,11 +13,18 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
  */
 public interface Registrations {
 
-	/**Add new topic (publisher registers topic).
-	 * @param rssURL publisher rss topic url
-	 * @param machineID ID of given machine
+	/**
+	 * Add new topic (publisher registers topic).
+	 * 
+	 * @param rssURL
+	 *            publisher rss topic url
+	 * @param machineID
+	 *            ID of given machine
+	 * @param callbackUrl
+	 *            publisher full url address to send notifications
 	 */
-	void addTopic(final String rssURL, final String machineID);
+	void addTopic(final String rssURL, final String machineID,
+			final String callbackUrl);
 
 	/**
 	 * Add endpoint to topic.
@@ -26,7 +32,7 @@ public interface Registrations {
 	 * @param rssUrl
 	 *            publisher rss topic url
 	 * @param endp
-	 * {@link EndpointDescription} description to add
+	 *            {@link EndpointDescription} description to add
 	 */
 	void addEndpointByTopicRssUrl(final String rssUrl,
 			final EndpointDescription endp);
@@ -38,7 +44,7 @@ public interface Registrations {
 	 *            publisher machineID
 	 * @param endp
 	 *            the {@link EndpointDescription} description to add
-	 * @return true if new  {@link EndpointDescription} added; false otherwise 
+	 * @return true if new {@link EndpointDescription} added; false otherwise
 	 */
 	boolean addEndpointByMachineID(final String machineID,
 			final EndpointDescription endp);
@@ -61,9 +67,11 @@ public interface Registrations {
 	 *            subscriber full url address to send notifications
 	 * @param endpointFilter
 	 *            filter to specify endpoints
+	 * @param machineID
+	 *            subscriber machineID
 	 */
-	void addSubscriber(final String callBackUrl,
-			final String endpointFilter);
+	void addSubscriber(final String callBackUrl, final String endpointFilter,
+			final String machineID);
 
 	/**
 	 * Remove subscription.
@@ -80,17 +88,34 @@ public interface Registrations {
 	 */
 	Map<EndpointDescription, String> getAllEndpoints();
 
-	/** Removes endpoint.
-	 * @param machineID publisher machineId
-	 * @param endpointId Endpoint id
+	/**
+	 * Removes endpoint.
+	 * 
+	 * @param machineID
+	 *            publisher machineId
+	 * @param endpointId
+	 *            Endpoint id
 	 * @return if endpoints deleted
 	 */
 	boolean removeEndpoint(String machineID, long endpointId);
-	
-	/** Retrieves publishers machineID by rss url 
-	 * @param publisher publisher`s RSS url
+
+	/**
+	 * Retrieves publishers machineID by rss url
+	 * 
+	 * @param publisher
+	 *            publisher`s RSS url
 	 * @return publisher`s machineID
 	 */
 	String getPublisherMachineIdByRssUrl(String publisher);
+
+	/**
+	 * @return registered subscribers, connection url and machineID
+	 */
+	Map<String, String> getSubscribers();
+
+	/**
+	 * @return registered publishers, connection url and machineID
+	 */
+	Map<String, String> getPublishers();
 
 }

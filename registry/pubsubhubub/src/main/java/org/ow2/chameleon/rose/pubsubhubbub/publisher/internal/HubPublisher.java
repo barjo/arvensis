@@ -12,6 +12,7 @@ import static org.osgi.service.log.LogService.LOG_INFO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -39,7 +40,6 @@ import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMo
  */
 public class HubPublisher {
 
-	private final String urlHub;
 	private final String rssUrl;
 	private HttpPost postMethod;
 	private final HttpClient client;
@@ -64,12 +64,12 @@ public class HubPublisher {
 	 * @throws IOException
 	 *             exception
 	 */
-	public HubPublisher(final String pUrlHub, final String pRssUrl, final String pCallbackUrl,
-			final BundleContext context, final RoseMachine pRose,
-			final LogService pLogger) throws IOException {
+	public HubPublisher(final String urlHub, final String pRssUrl,
+			final String pCallbackUrl, final BundleContext context,
+			final RoseMachine pRose, final LogService pLogger)
+			throws IOException {
 		String port = null;
 
-		this.urlHub = pUrlHub;
 		this.logger = pLogger;
 		this.rose = pRose;
 		final ServiceReference httpServiceRef = context
@@ -77,7 +77,7 @@ public class HubPublisher {
 		if (httpServiceRef != null) {
 			port = (String) httpServiceRef
 					.getProperty("org.osgi.service.http.port");
-			
+
 		}
 		if (port == null) {
 			port = context.getProperty("org.osgi.service.http.port");
@@ -95,7 +95,7 @@ public class HubPublisher {
 		client = new DefaultHttpClient();
 
 		// prepare post method
-		postMethod = new HttpPost(this.urlHub);
+		postMethod = new HttpPost(urlHub);
 		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
 		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
@@ -103,8 +103,8 @@ public class HubPublisher {
 				HubMode.publish.toString()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
 				this.rssUrl));
-		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
-				rose.getId()));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID, rose
+				.getId()));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callbackUrl));
 
@@ -124,63 +124,75 @@ public class HubPublisher {
 	/**
 	 * Send an update to hub.
 	 * 
+	 * @param connectedHubs
+	 * 
 	 */
-	public final void update() {
-		// prepare post method
-		postMethod = new HttpPost(this.urlHub);
-		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
-		try {
-			final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-					HubMode.update.toString()));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
-					this.rssUrl));
-			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-			final HttpResponse response = client.execute(postMethod);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+	public final void update(Set<String> connectedHubs) {
+
+		for (String hubUrl : connectedHubs) {
+
+			// prepare post method
+			postMethod = new HttpPost(hubUrl);
+			postMethod.setHeader("Content-Type",
+					"application/x-www-form-urlencoded");
+			try {
+				final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+				nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
+						HubMode.update.toString()));
+				nvps.add(new BasicNameValuePair(
+						HTTP_POST_PARAMETER_RSS_TOPIC_URL, this.rssUrl));
+				postMethod
+						.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+				final HttpResponse response = client.execute(postMethod);
+				if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+					response.getEntity().getContent().close();
+					throw new ClientProtocolException(
+							"Server didnt update, received status from hub: "
+									+ response.getStatusLine().getStatusCode());
+				}
+				// read an empty entity and close a connection
 				response.getEntity().getContent().close();
-				throw new ClientProtocolException(
-						"Server didnt update, received status from hub: "
-								+ response.getStatusLine().getStatusCode());
+			} catch (Exception e) {
+				logger.log(LogService.LOG_ERROR, "Error in update", e);
 			}
-			// read an empty entity and close a connection
-			response.getEntity().getContent().close();
-		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Error in update", e);
 		}
 
 	}
 
 	/**
 	 * Send an unregister to hub.
+	 * 
+	 * @param connectedHubs
 	 */
-	public final void unregister() {
-		// prepare post method
-		postMethod = new HttpPost(this.urlHub);
-		postMethod.setHeader("Content-Type",
-				"application/x-www-form-urlencoded");
-		try {
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-					HubMode.unpublish.toString()));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
-					this.rssUrl));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
-					rose.getId()));
-			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-			HttpResponse response = client.execute(postMethod);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
-				response.getEntity().getContent().close();
-				throw new ClientProtocolException(
-						"Server didnt unregister, received status from hub: "
-								+ response.getStatusLine().getStatusCode());
-			}
-			// read an empty entity and close a connection
-			response.getEntity().getContent().close();
-		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Error in unregister", e);
-		}
+	public final void unregister(Set<String> connectedHubs) {
 
+		for (String hubUrl : connectedHubs) {
+			// prepare post method
+			postMethod = new HttpPost(hubUrl);
+			postMethod.setHeader("Content-Type",
+					"application/x-www-form-urlencoded");
+			try {
+				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+				nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
+						HubMode.unpublish.toString()));
+				nvps.add(new BasicNameValuePair(
+						HTTP_POST_PARAMETER_RSS_TOPIC_URL, this.rssUrl));
+				nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID,
+						rose.getId()));
+				postMethod
+						.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+				HttpResponse response = client.execute(postMethod);
+				if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+					response.getEntity().getContent().close();
+					throw new ClientProtocolException(
+							"Server didnt unregister, received status from hub: "
+									+ response.getStatusLine().getStatusCode());
+				}
+				// read an empty entity and close a connection
+				response.getEntity().getContent().close();
+			} catch (Exception e) {
+				logger.log(LogService.LOG_ERROR, "Error in unregister", e);
+			}
+		}
 	}
 }

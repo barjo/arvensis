@@ -10,12 +10,20 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.RSS_EVENT_TOPIC;
 import static org.ow2.chameleon.rose.pubsubhubbub.publisher.Publisher.COMPONENT_NAME;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RECONNECT;
 
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
@@ -24,6 +32,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -32,6 +41,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
+import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -53,8 +63,13 @@ import org.ow2.chameleon.syndication.FeedWriter;
  * 
  */
 @Component(name = COMPONENT_NAME)
-public class PublisherImpl implements Publisher, EndpointListener {
+public class PublisherImpl extends HttpServlet implements Publisher,
+		EndpointListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final String SERVLET_FACTORY_FILTER = "(&("
 			+ Constants.OBJECTCLASS
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.servlet))";
@@ -79,6 +94,9 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	@Requires(optional = true)
 	private EventAdmin eventAdmin;
 
+	@Requires
+	private transient HttpService httpService;
+
 	@Requires(filter = SERVLET_FACTORY_FILTER)
 	private Factory factoryRssServlet;
 
@@ -97,6 +115,9 @@ public class PublisherImpl implements Publisher, EndpointListener {
 	private int feedNumber;
 	private StringBuilder feedContent;
 	private ComponentInstance rssServletInstance;
+	
+	//Uri to connected pubsubhubbubs
+	private Set<String> connectedHubs;
 
 	public PublisherImpl(final BundleContext pContext) {
 		super();
@@ -108,6 +129,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 
 		feedContent = new StringBuilder();
 		feedNumber = 0;
+		connectedHubs= new HashSet<String>();
 
 		// tracking an FeedWriter
 		try {
@@ -127,6 +149,9 @@ public class PublisherImpl implements Publisher, EndpointListener {
 						.createComponentInstance(instanceServletDictionary);
 			}
 
+			// register a servlet
+			httpService.registerServlet(callBackUrl, this, null, null);
+
 			// Configure an event properties
 			eventProperties = new HashMap<String, Object>();
 			eventProperties.put(FeedReader.ENTRY_AUTHOR_KEY, FEED_AUTHOR);
@@ -135,6 +160,8 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			// register publisher
 			hubPublisher = new HubPublisher(hubUrl, rssUrl, callBackUrl,
 					context, rose, logger);
+			
+			connectedHubs.add(hubUrl);
 
 			final Dictionary<String, Object> props = new Hashtable<String, Object>();
 			props.put(ENDPOINT_LISTENER_INTEREST, LOCAL);
@@ -159,9 +186,12 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			feedWriterTracker.close();
 		}
 		if (hubPublisher != null) {
-			hubPublisher.unregister();
+			hubPublisher.unregister(connectedHubs);
 		}
 		rssServletInstance.dispose();
+		
+		//unregister servlet
+		httpService.unregister(callBackUrl);
 	}
 
 	public final void endpointAdded(final EndpointDescription endp,
@@ -186,7 +216,7 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			writer.addEntry(feed);
 			// sending an event
 			sendEndpointEvent(FEED_TITLE_NEW, json.toJSON(endp.getProperties()));
-			hubPublisher.update();
+			hubPublisher.update(connectedHubs);
 		} catch (Exception e) {
 			logger.log(LOG_WARNING, "Error in sending a feed", e);
 		}
@@ -212,13 +242,27 @@ public class PublisherImpl implements Publisher, EndpointListener {
 			// sending an event
 			sendEndpointEvent(FEED_TITLE_REMOVE,
 					json.toJSON(endp.getProperties()));
-			hubPublisher.update();
+			hubPublisher.update(connectedHubs);
 		} catch (IOException e) {
 			logger.log(LOG_WARNING, "Error in updating a feed", e);
 		} catch (Exception e) {
 			logger.log(LOG_WARNING, "Error in sending a feed", e);
 		}
 
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+
+		// reconnect; connect to different pubsubhubbub;
+		if (req.getParameter(HTTP_POST_PARAMETER_RECONNECT) != null) {
+			connectedHubs.add(req.getParameter(HTTP_POST_PARAMETER_RECONNECT));
+			resp.getWriter().append(rssUrl);
+			resp.setStatus(HttpStatus.SC_OK);
+		} else {
+			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
+		}
 	}
 
 	/**

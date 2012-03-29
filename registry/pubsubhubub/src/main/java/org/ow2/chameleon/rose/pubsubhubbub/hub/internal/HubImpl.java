@@ -10,6 +10,7 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.DEFAULT_HTTP_PORT;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
 
 import java.io.IOException;
@@ -43,6 +44,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
@@ -71,12 +73,16 @@ public class HubImpl extends HttpServlet implements Hub {
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
 
+	@SuppressWarnings("unused")
 	private static final int FEED_PERIOD = 10;
 
 	private static final boolean FEED_POLLING = false;
 
 	@Requires
 	private transient HttpService httpService;
+	
+	@Requires
+	private transient RoseMachine rose;
 
 	@Requires
 	private transient JSONService json;
@@ -101,6 +107,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	private transient DistributedHub distributedHub;
 	private transient BundleContext context;
 	private transient RegistrationsImpl registrations;
+	private transient String hubURI;
 
 	public HubImpl(final BundleContext pContext) {
 		this.context = pContext;
@@ -108,6 +115,9 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	@Validate
 	public final void start() {
+		String port = null;
+		ServiceReference httpServiceRef;
+		
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
 			readers = new HashMap<Object, ReaderWithFeedIndex>();
@@ -122,6 +132,26 @@ public class HubImpl extends HttpServlet implements Hub {
 			distributedHubTracker = new ServiceTracker(context,
 					DistributedHub.class.getName(), new DistributedHubTracker());
 			distributedHubTracker.open();
+
+			// get Pubsubhubbub full URI
+			httpServiceRef = context
+					.getServiceReference(HttpService.class.getName());
+			if (httpServiceRef != null) {
+				port = (String) httpServiceRef
+						.getProperty("org.osgi.service.http.port");
+			}
+			if (port == null) {
+				port = context.getProperty("org.osgi.service.http.port");
+			}
+
+			// set default port number
+			if (port == null) {
+				port = DEFAULT_HTTP_PORT;
+			}
+
+			hubURI = "http://" + rose.getHost() + ":" + port
+					+ hubServlet;
+
 			logger.log(LOG_INFO, "Pubsubhubbub successfully starts");
 
 		} catch (Exception e) {
@@ -172,13 +202,14 @@ public class HubImpl extends HttpServlet implements Hub {
 		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
 		case publish:
 
-			if ((rssUrl != null) && (machineID != null  &&(callBackUrl != null))
+			if ((rssUrl != null)
+					&& (machineID != null && (callBackUrl != null))
 					&& (createReader(rssUrl))) {
-				registrations.addTopic(rssUrl, machineID,callBackUrl);
+				registrations.addTopic(rssUrl, machineID, callBackUrl);
 				responseCode = HttpStatus.SC_CREATED;
 				logger.log(LOG_INFO, "Successfully register publisher from: "
 						+ rssUrl);
-				
+
 				// send notification to distributedhubs
 				if (distributedHub != null) {
 					distributedHub.addBackupPublisher(machineID, callBackUrl);
@@ -423,6 +454,11 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	public final RegistrationsImpl getRegistrations() {
 		return registrations;
+	}
+
+	public String getUrl() {
+
+		return hubURI;
 	}
 
 	/**

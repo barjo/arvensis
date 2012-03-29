@@ -38,4 +38,9 @@ public interface Hub {
 	EndpointDescription getEndpointDescriptionFromJSON(
 			final Map<String, Object> map);
 
+	/**
+	 * @return Pubsubhubbub URI
+	 */
+	String getUrl();
+
 }

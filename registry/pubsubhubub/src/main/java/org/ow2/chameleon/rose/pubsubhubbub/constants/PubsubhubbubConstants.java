@@ -12,6 +12,7 @@ public class PubsubhubbubConstants {
 	public static final String HTTP_POST_PARAMETER_RSS_TOPIC_URL = "hub.topic";
 	public static final String HTTP_POST_PARAMETER_MACHINEID = "machine.id";
 	public static final String HTTP_POST_PARAMETER_ENDPOINT_FILTER = "hub.endp.filter";
+	public static final String HTTP_POST_PARAMETER_RECONNECT = "reconnect";
 	public static final String HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION = "hub.subscription";
 	public static final String HTTP_POST_UPDATE_CONTENT = "hub.content";
 	public static final String HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED = "endpoint.add";

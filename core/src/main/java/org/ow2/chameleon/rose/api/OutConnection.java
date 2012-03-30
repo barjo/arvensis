@@ -119,26 +119,26 @@ public final class OutConnection {
 			return this;
 		}
 
-		public OutBuilder exporterFilter(String val) throws InvalidSyntaxException {
+		public OutBuilder withExporter(String filter) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(xfilter.toString());
-			sb.append(val);
+			sb.append(filter);
 			sb.append(")");
 			xfilter = createFilter(sb.toString());
 			return this;
 		}
 		
-		public OutBuilder property(String key, Object value){
+		public OutBuilder withProperty(String key, Object value){
 			extraProperties.put(key, value);
 			return this;
 		}
 
-		public OutBuilder extraProperties(Map<String, Object> val) {
+		public OutBuilder withProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);
 			return this;
 		}
 
-		public OutBuilder customizer(OutCustomizer val) {
+		public OutBuilder withCustomizer(OutCustomizer val) {
 			customizer = val;
 			return this;
 		}

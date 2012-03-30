@@ -119,27 +119,27 @@ public final class InConnection {
 			return this;
 		}
 
-		public InBuilder importerFilter(String val) throws InvalidSyntaxException {
+		public InBuilder withImporter(String filter) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(imfilter.toString());
-			sb.append(val);
+			sb.append(filter);
 			sb.append(")");
 			imfilter = createFilter(sb.toString());
 			
 			return this;
 		}
 		
-		public InBuilder property(String key, Object value){
+		public InBuilder withProperty(String key, Object value){
 			extraProperties.put(key, value);
 			return this;
 		}
 
-		public InBuilder extraProperties(Map<String, Object> val) {
+		public InBuilder withProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);
 			return this;
 		}
 
-		public InBuilder customizer(InCustomizer val) {
+		public InBuilder withCustomizer(InCustomizer val) {
 			customizer = val;
 			return this;
 		}

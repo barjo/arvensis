@@ -78,12 +78,12 @@ public final class Instance {
 			return this;
 		}
 		
-		public InstanceBuilder properties(Map<String, Object> props){
+		public InstanceBuilder withProperties(Map<String, Object> props){
 			properties.putAll(props);
 			return this;
 		}
 		
-		public InstanceBuilder property(String key, Object value){
+		public InstanceBuilder withProperty(String key, Object value){
 			properties.put(key, value);
 			return this;
 		}

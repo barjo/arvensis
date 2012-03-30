@@ -141,7 +141,7 @@ public class ConfigurationParser {
 			
 			//Optional
 			if (ConfType.properties.isIn(json)){
-				ibuilder.properties((Map<String, Object>)properties.getValue(json));
+				ibuilder.withProperties((Map<String, Object>)properties.getValue(json));
 			}
 		
 			ibuilder.create();
@@ -173,12 +173,12 @@ public class ConfigurationParser {
 				
 				//Optional IMPORTER_FILTER
 				if (importer_filter.isIn(inmap)){
-				inBuilder.importerFilter((String) importer_filter.getValue(inmap));
+				inBuilder.withImporter((String) importer_filter.getValue(inmap));
 				}
 			
 				//optional PROPERTIES
 				if(properties.isIn(inmap)){
-					inBuilder.extraProperties((Map<String,Object>) properties.getValue(inmap));
+					inBuilder.withProperties((Map<String,Object>) properties.getValue(inmap));
 				}
 				
 				inBuilder.add(); //create the connection
@@ -197,12 +197,12 @@ public class ConfigurationParser {
 				
 				//Optional EXPORTER_FILTER
 				if (exporter_filter.isIn(outmap)){
-					out.exporterFilter((String) exporter_filter.getValue(outmap));
+					out.withExporter((String) exporter_filter.getValue(outmap));
 				}
 			
 				//optional PROPERTIES
 				if(properties.isIn(outmap)){
-					out.extraProperties((Map<String, Object>) properties.getValue(outmap));
+					out.withProperties((Map<String, Object>) properties.getValue(outmap));
 				}
 				
 				//optional Customizer

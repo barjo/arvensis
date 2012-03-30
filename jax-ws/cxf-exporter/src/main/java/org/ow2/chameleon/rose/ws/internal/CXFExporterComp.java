@@ -169,7 +169,6 @@ public class CXFExporterComp extends AbstractExporterComponent implements Export
 	 * @param service the {@link HttpService}
 	 * @param ref the {@link HttpService} {@link ServiceReference}.
 	 */
-	@SuppressWarnings("unused")
 	@Bind(aggregate=false,optional=false)
 	private void bindHttpService(HttpService service,ServiceReference ref){
 		httpservice = service;

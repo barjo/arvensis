@@ -23,7 +23,7 @@ public class RegistrationsImpl implements Registrations {
 	private Map<EndpointDescription, String> endpoints;
 
 	// connected publishers (topic rss url with machine id/callBackurl))
-	private Map<String,PublisherInfo> publishers;
+	private Map<String, PublisherInfo> publishers;
 
 	// connected subscribers with subscribed endpoints
 	private Map<String, SubscriberInfo> subscribers;
@@ -47,11 +47,12 @@ public class RegistrationsImpl implements Registrations {
 		sendSubscription = new SendSubscription(logger, json);
 	}
 
-	public final void addTopic(final String rssURL, final String machineID,final String callbackUrl) {
+	public final void addTopic(final String rssURL, final String machineID,
+			final String callbackUrl) {
 		lock.writeLock().lock();
 		try {
 			publishers.put(rssURL, new PublisherInfo(callbackUrl, machineID));
-//			publishers2.put(rssURL, machineID);
+			// publishers2.put(rssURL, machineID);
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -63,7 +64,8 @@ public class RegistrationsImpl implements Registrations {
 		lock.writeLock().lock();
 		for (Entry<EndpointDescription, String> endpoint : endpoints.entrySet()) {
 			// find all endpoints registered by publisher
-			if (endpoint.getValue().equals(publishers.get(rssUrl).getMachineID())) {
+			if (endpoint.getValue().equals(
+					publishers.get(rssUrl).getMachineID())) {
 				// store endpoint to remove
 				endpointsToRemove.add(endpoint.getKey());
 				// get subscribers who use this endpoint
@@ -188,16 +190,21 @@ public class RegistrationsImpl implements Registrations {
 	}
 
 	public final Map<String, String> getSubscribers() {
-		Map<String,String> subscribersMap = new HashMap<String, String>();
+		Map<String, String> subscribersMap = new HashMap<String, String>();
 		for (Entry<String, SubscriberInfo> subscriber : subscribers.entrySet()) {
-			subscribersMap.put(subscriber.getKey(), subscriber.getValue().getMachineID());
+			subscribersMap.put(subscriber.getKey(), subscriber.getValue()
+					.getMachineID());
 		}
-	return subscribersMap;
+		return subscribersMap;
 	}
 
 	public final Map<String, String> getPublishers() {
-		// TODO doesnt work!! stores only rss url not url to manipualte!!!
-		return null;
+		Map<String, String> publishersMap = new HashMap<String, String>();
+		for (Entry<String, PublisherInfo> publisher : publishers.entrySet()) {
+			publishersMap.put(publisher.getValue().getCallBackUrl(), publisher
+					.getValue().getMachineID());
+		}
+		return publishersMap;
 	}
 
 	private void removeEndpointByMachineID(String machineID,
@@ -290,26 +297,29 @@ public class RegistrationsImpl implements Registrations {
 		}
 
 	}
-	
-	/**Keeps Publisher informations: machineID, callBack, rssUrl
+
+	/**
+	 * Keeps Publisher informations: machineID, callBack, rssUrl
+	 * 
 	 * @author Bartek
-	 *
+	 * 
 	 */
-	private class PublisherInfo{
+	private static class PublisherInfo {
 		private String machineID;
 		private String callBackUrl;
+
 		public PublisherInfo(String pCallBackUrl, String pMachineID) {
-			this.machineID=pMachineID;
-			this.callBackUrl=pCallBackUrl;
+			this.machineID = pMachineID;
+			this.callBackUrl = pCallBackUrl;
 		}
+
 		public String getMachineID() {
 			return machineID;
 		}
+
 		public String getCallBackUrl() {
 			return callBackUrl;
 		}
-		
 
-		
 	}
 }

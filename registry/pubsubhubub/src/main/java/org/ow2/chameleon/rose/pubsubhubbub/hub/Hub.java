@@ -3,7 +3,6 @@ package org.ow2.chameleon.rose.pubsubhubbub.hub;
 import java.util.Map;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.ow2.chameleon.json.JSONService;
 
 /**
  * HUB interface with all constants.

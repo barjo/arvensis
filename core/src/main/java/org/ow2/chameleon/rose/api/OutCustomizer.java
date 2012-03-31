@@ -1,9 +1,10 @@
-package org.ow2.chameleon.rose;
+package org.ow2.chameleon.rose.api;
 
 import java.util.Map;
 
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportReference;
+import org.ow2.chameleon.rose.ExporterService;
 
 public interface OutCustomizer {
 	

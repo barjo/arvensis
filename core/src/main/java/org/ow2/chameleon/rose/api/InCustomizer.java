@@ -1,9 +1,10 @@
-package org.ow2.chameleon.rose;
+package org.ow2.chameleon.rose.api;
 
 import java.util.Map;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ImportReference;
+import org.ow2.chameleon.rose.ImporterService;
 
 public interface InCustomizer {
 	

@@ -100,11 +100,11 @@ public class ExporterTest extends ExporterComponentAbstractTest {
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple").versionAsInProject(),
                 mavenBundle().groupId("javax.wsdl").artifactId("com.springsource.javax.wsdl").versionAsInProject(),
                 mavenBundle().groupId("javax.mail").artifactId("com.springsource.javax.mail").versionAsInProject(),
-                mavenBundle().groupId("org.apache.servicemix.bundles").artifactId("org.apache.servicemix.bundles.neethi").versionAsInProject(),
-                mavenBundle().groupId("org.apache.servicemix.bundles").artifactId("org.apache.servicemix.bundles.xmlschema").versionAsInProject(),
+                mavenBundle().groupId("org.apache.neethi").artifactId("neethi").versionAsInProject(),
+                mavenBundle().groupId("org.apache.ws.xmlschema").artifactId("xmlschema-core").versionAsInProject(),
                 mavenBundle().groupId("org.apache.servicemix.bundles").artifactId("org.apache.servicemix.bundles.xmlresolver").versionAsInProject(),
                 mavenBundle().groupId("commons-logging").artifactId("org.ow2.chameleon.commons.logging").versionAsInProject(),
-                mavenBundle().groupId("org.apache.cxf").artifactId("org.ow2.chameleon.commons.cxf-minimal").versionAsInProject(),
+                mavenBundle().groupId("org.ow2.chameleon.commons.cxf").artifactId("cxf-bundle-minimal").versionAsInProject(),
                 mavenBundle().groupId("com.sun.grizzly.osgi").artifactId("grizzly-httpservice-bundle").versionAsInProject(), 
                 mavenBundle().groupId("org.ow2.chameleon.rose.ws").artifactId("cxf-exporter").versionAsInProject()
 		));

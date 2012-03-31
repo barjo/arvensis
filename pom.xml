@@ -1,27 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
-	<!-- Project's parent -->
-	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
-	</parent>
-	
+
 	<groupId>org.ow2.chameleon.rose</groupId>
-	<artifactId>rose-reactor</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>Rose Reactor</name>
-	<packaging>pom</packaging>	
-	<modules>
-		<module>core</module>
-		<module>configurator/configurator-json</module>
-		<module>jax-rs/jersey-exporter</module>
-		<module>jax-ws/cxf-exporter</module>
-		<module>jax-ws/cxf-importer</module>
-		<module>json-rpc/jabsorb-exporter</module>
-		<module>json-rpc/jabsorb-importer</module>
-	</modules>
+	<artifactId>rose-parent</artifactId>
+	<version>0.0.7-SNAPSHOT</version>
+	<name>Rose Parent</name>
+	<packaging>pom</packaging>
 
 	<profiles>
 
@@ -43,7 +27,6 @@
 				<module>jax-ws/cxf-importer</module>
 				<module>json-rpc/jabsorb-exporter</module>
 				<module>json-rpc/jabsorb-importer</module>
-				<module>registry/zookeeper-registry</module>
 			</modules>
 		</profile>
 
@@ -58,5 +41,78 @@
 			</modules>
 		</profile>
 	</profiles>
+
+	<scm>
+		<connection>scm:git:git@github.com:barjo/arvensis.git</connection>
+		<url>scm:git:git@github.com:barjo/arvensis.git</url>
+		<developerConnection>scm:git:git@github.com:barjo/arvensis.git</developerConnection>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>cloudbees-release</id>
+			<name>Cloudbees Private Repository</name>
+			<url>dav:https://repository-barjo.forge.cloudbees.com/release</url>
+		</repository>
+	</distributionManagement>
+
+	<!-- Maven Repo -->
+	<repositories>
+		<!-- OW2 Repo -->
+		<repository>
+			<id>objectweb-public</id>
+			<name>ow2 Maven Repository</name>
+			<url>http://repository.ow2.org/nexus/content/repositories/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>objectweb-old-release</id>
+			<name>ow2 Maven Repository [OLD]</name>
+			<url>http://maven.ow2.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<!-- Java.net repo -->
+		<repository>
+			<id>maven2-repository.dev.java.net</id>
+			<name>Java.net Repository for Maven</name>
+			<url>http://download.java.net/maven/2/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>maven-glassfish-repository.dev.java.net</id>
+			<name>Java.net Repository for Maven</name>
+			<url>http://download.java.net/maven/glassfish/</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.2.2</version>
+			</plugin>
+		</plugins>
+	
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-webdav-jackrabbit</artifactId>
+				<version>2.2</version>
+			</extension>
+		</extensions>
+	</build>
+
 </project>
 

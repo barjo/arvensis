@@ -1,4 +1,4 @@
-package org.ow2.chameleon.rose;
+package org.ow2.chameleon.rose.api;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -23,6 +22,8 @@ import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.ImporterService;
 
 /**
  * A {@link InConnection} allows to import all services matching a given filter with all available {@link ImporterService} dynamically.
@@ -36,7 +37,7 @@ public final class InConnection {
 			+ "=" + ImporterService.class.getName() + ")";
 
 	private final ImporterTracker imptracker;
-	private final BundleContext context;
+	private final Machine machine;
 	private final Filter edfilter;
 	private final Filter ifilter;
 	private final Map<String, Object> extraProperties;
@@ -45,25 +46,25 @@ public final class InConnection {
 
 	private InConnection(InBuilder builder) {
 		extraProperties = builder.extraProperties;
-		context = builder.context;
+		machine = builder.machine;
 		edfilter = builder.dfilter;
 		ifilter = builder.imfilter;
 		customizer = builder.customizer;
-		
+		machine.add(this);
 		imptracker = new ImporterTracker();
 	}
 
 	/**
 	 * Start the dynamic exporter.
 	 */
-	public void start() {
+	public void open() {
 		imptracker.open();
 	}
 
 	/**
 	 * Stop the dynamic exporter.
 	 */
-	public void stop() {
+	public void close() {
 		imptracker.close();
 	}
 	
@@ -82,7 +83,7 @@ public final class InConnection {
 	 */
 	public static class InBuilder {
 		// required
-		private final BundleContext context;
+		private final Machine machine;
 		private final Filter dfilter;
 
 		// optional
@@ -91,15 +92,15 @@ public final class InConnection {
 		private Map<String, Object> extraProperties = new HashMap<String, Object>();
 
 
-		private InBuilder(BundleContext pContext, String descriptionFilter)
+		private InBuilder(Machine pMachine, String descriptionFilter)
 				throws InvalidSyntaxException {
 			dfilter = createFilter(descriptionFilter);
-			context = pContext;
+			machine = pMachine;
 		}
 		
-		public static InBuilder in(BundleContext pContext, String descriptionFilter)
+		public static InBuilder in(Machine pMachine, String descriptionFilter)
 				throws InvalidSyntaxException {
-			return new InBuilder(pContext, descriptionFilter);
+			return new InBuilder(pMachine, descriptionFilter);
 		}
 		
 		public InBuilder protocol(List<String> protocols) throws InvalidSyntaxException{
@@ -118,27 +119,36 @@ public final class InConnection {
 			return this;
 		}
 
-		public InBuilder importerFilter(String val) throws InvalidSyntaxException {
+		public InBuilder withImporter(String filter) throws InvalidSyntaxException {
 			StringBuilder sb = new StringBuilder("(&");
 			sb.append(imfilter.toString());
-			sb.append(val);
+			sb.append(filter);
 			sb.append(")");
 			imfilter = createFilter(sb.toString());
 			
 			return this;
 		}
+		
+		public InBuilder withProperty(String key, Object value){
+			extraProperties.put(key, value);
+			return this;
+		}
 
-		public InBuilder extraProperties(Map<String, Object> val) {
+		public InBuilder withProperties(Map<String, Object> val) {
 			extraProperties.putAll(val);
 			return this;
 		}
 
-		public InBuilder customizer(InCustomizer val) {
+		public InBuilder withCustomizer(InCustomizer val) {
 			customizer = val;
 			return this;
 		}
 
-		public InConnection create() {
+		/**
+		 * Create and add the connection to the machine.
+		 * @return
+		 */
+		public InConnection add() {
 			return new InConnection(this);
 		}
 	}
@@ -153,7 +163,7 @@ public final class InConnection {
 		private final ServiceTracker tracker;
 
 		private ImporterTracker() {
-			tracker = new ServiceTracker(context, ifilter, this);
+			tracker = new ServiceTracker(machine.getContext(), ifilter, this);
 		}
 
 		private void open() {
@@ -165,7 +175,7 @@ public final class InConnection {
 		}
 		
 		public Object addingService(ServiceReference reference) {
-			ImporterService exporter = (ImporterService) context
+			ImporterService exporter = (ImporterService) machine.getContext()
 					.getService(reference);
 			return new ServiceToBeImporterTracker(exporter);
 		}
@@ -204,7 +214,7 @@ public final class InConnection {
 			tracked = new HashMap<EndpointDescription, Object>();
 			
 			importer = pImporter;
-			sreg = context.registerService(EndpointListener.class.getName(), this, props);
+			sreg = machine.getContext().registerService(EndpointListener.class.getName(), this, props);
 		}
 
 		private void close() {

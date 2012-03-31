@@ -6,6 +6,7 @@ import static org.osgi.framework.Constants.SERVICE_RANKING;
 import static org.osgi.framework.Constants.SERVICE_VENDOR;
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
 import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.RoSe_MACHINE_COMPONENT_NAME;
 import static org.ow2.chameleon.rose.util.RoseTools.getAllExporter;
 import static org.ow2.chameleon.rose.util.RoseTools.getAllImporter;
 
@@ -43,7 +44,7 @@ import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.rose.util.RoseTools;
 
 
-@Component(name="RoSe_machine", immediate=true)
+@Component(name=RoSe_MACHINE_COMPONENT_NAME, immediate=true)
 public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 
 	/**
@@ -112,7 +113,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		//Open the EndpointListener tracker
 		tracklistener.open();
 		
-		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(ROSE_MACHINE_ID)+" has successfully started");
+		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(RoSe_MACHINE_ID)+" has successfully started");
 	}
 	
 	@Invalidate
@@ -132,7 +133,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		importReg.stop();
 		exportReg.stop();
 		
-		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(ROSE_MACHINE_ID)+" has been stoped");
+		log(LogService.LOG_INFO,"The RoseMachine "+properties.get(RoSe_MACHINE_ID)+" has been stoped");
 	}
 	
 
@@ -284,10 +285,10 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 */
 	private static final String DEFAULT_HOST = "localhost";
 	
-	@Property(name=ROSE_MACHINE_HOST)
+	@Property(name=RoSe_MACHINE_HOST)
 	private String myhost;
 	
-	@Property(name=ROSE_MACHINE_ID)
+	@Property(name=RoSe_MACHINE_ID)
 	private String myid;
 	
 	
@@ -298,8 +299,8 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		
 		// Initialize machineID
 		if (myid==null){
-			if (context.getProperty(ROSE_MACHINE_ID) != null) {
-				myid = context.getProperty(ROSE_MACHINE_ID);
+			if (context.getProperty(RoSe_MACHINE_ID) != null) {
+				myid = context.getProperty(RoSe_MACHINE_ID);
 			} else if (context.getProperty(ENDPOINT_FRAMEWORK_UUID) != null) {
 				myid = context.getProperty(ENDPOINT_FRAMEWORK_UUID);
 			} else {
@@ -310,32 +311,32 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		
 		// Initialize machineHost
 		if (myhost==null){
-			if (context.getProperty(ROSE_MACHINE_HOST) != null) {
-				myhost = context.getProperty(ROSE_MACHINE_HOST);
+			if (context.getProperty(RoSe_MACHINE_HOST) != null) {
+				myhost = context.getProperty(RoSe_MACHINE_HOST);
 			} else {
 				myhost = DEFAULT_HOST;
 			}
 		}
 
-		properties.put(ROSE_MACHINE_ID, myid);
+		properties.put(RoSe_MACHINE_ID, myid);
 		properties.put(SERVICE_PID, myhost+"-"+myid);
 		properties.put(SERVICE_VENDOR, "org.ow2.chameleon");
 		properties.put(SERVICE_RANKING, MAX_VALUE);
-		properties.put(ROSE_MACHINE_HOST, myhost);
+		properties.put(RoSe_MACHINE_HOST, myhost);
 	}
 	
 	/**
 	 * @return This rose machine id.
 	 */
 	public final String getId() {
-		return (String) properties.get(ROSE_MACHINE_ID);
+		return (String) properties.get(RoSe_MACHINE_ID);
 	}
 
 	/**
 	 * @return This rose machine host.
 	 */
 	public final String getHost() {
-		return (String) properties.get(ROSE_MACHINE_HOST);
+		return (String) properties.get(RoSe_MACHINE_HOST);
 	}
 
 	/**

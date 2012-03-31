@@ -1,4 +1,3 @@
-
 #RoSe Readme 
 
 
@@ -18,6 +17,25 @@ This folder contains the code source of the OW2 Chameleon RoSe project.
 
 RoSe is licensed under the Apache License 2.0.
 
+
+## Infrastructure
+
+### Repository 
+		
+```xml
+<repository>
+	<id>maven-barjo-repository-release</id>
+	<name>RoSe - Release</name>
+	<url>http://repository-barjo.forge.cloudbees.com/release</url>
+	<layout>default</layout>
+</repository>
+<repository>
+	<id>maven-barjo-repository-snapshot</id>
+	<name>RoSe - Snapshot</name>
+	<url>http://repository-barjo.forge.cloudbees.com/snapshot</url>
+	<layout>default</layout>
+</repository>
+```
 
 #Released Version semantic: 
 

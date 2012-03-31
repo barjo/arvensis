@@ -75,8 +75,8 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	private transient BundleContext context;
 	private int responseCode;
 	private List<String> endpointRegistrations;
-	
-	//Uri to connected pubsubhubbubs
+
+	// Uri to connected pubsubhubbubs
 	private Set<String> connectedHubs;
 
 	public SubscriberImpl(final BundleContext pContext) {
@@ -116,16 +116,16 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	protected final void doPost(final HttpServletRequest req,
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
-		
-		//reconnect; connect to different pubsubhubbub;
-		if(req.getParameter(HTTP_POST_PARAMETER_RECONNECT) !=null){
+
+		// reconnect; connect to different pubsubhubbub;
+		if (req.getParameter(HTTP_POST_PARAMETER_RECONNECT) != null) {
 			connectedHubs.add(req.getParameter(HTTP_POST_PARAMETER_RECONNECT));
-			//send filer as a response
+			// send filer as a response
 			resp.getWriter().append(endpointFilter);
 			this.responseCode = HttpStatus.SC_OK;
 		}
-		
-		//pubsubhubbub notification
+
+		// pubsubhubbub notification
 		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
 				|| (req.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION) == null)
 				|| (req.getParameter(HTTP_POST_UPDATE_CONTENT) == null)) {

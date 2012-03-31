@@ -51,8 +51,8 @@ public class HubPublisher {
 	/**
 	 * Register a topic in hub.
 	 * 
-	 * @param pUrlHub
-	 *            Pubsubhubub url
+	 * @param urlHub
+	 *            Pubsubhubbub url
 	 * @param pRssUrl
 	 *            RSS topic url
 	 * @param context

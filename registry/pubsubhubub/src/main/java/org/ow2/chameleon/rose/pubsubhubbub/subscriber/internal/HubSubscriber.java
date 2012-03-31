@@ -46,7 +46,7 @@ public class HubSubscriber {
 	/**
 	 * Register a subscription.
 	 * 
-	 * @param pUrlHub
+	 * @param urlHub
 	 *            url address to Rose Hub, full path
 	 * @param pCallBackUrl
 	 *            servlet relative path

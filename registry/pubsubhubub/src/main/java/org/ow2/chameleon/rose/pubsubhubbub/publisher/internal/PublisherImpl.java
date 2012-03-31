@@ -86,37 +86,37 @@ public class PublisherImpl extends HttpServlet implements Publisher,
 	private String callBackUrl;
 
 	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
-	private LogService logger;
+	private transient LogService logger;
 
 	@Requires
-	private JSONService json;
+	private transient JSONService json;
 
 	@Requires(optional = true)
-	private EventAdmin eventAdmin;
+	private transient EventAdmin eventAdmin;
 
 	@Requires
 	private transient HttpService httpService;
 
 	@Requires(filter = SERVLET_FACTORY_FILTER)
-	private Factory factoryRssServlet;
+	private transient Factory factoryRssServlet;
 
 	@Requires
-	private RoseMachine rose;
+	private transient RoseMachine rose;
 
-	private FeedWriter writer;
-	private final BundleContext context;
-	private ServiceRegistration endpointListener;
-	private ServiceTracker factoryTracker;
-	private ServiceTracker feedWriterTracker;
+	private transient FeedWriter writer;
+	private final transient BundleContext context;
+	private transient ServiceRegistration endpointListener;
+	private transient ServiceTracker factoryTracker;
+	private transient ServiceTracker feedWriterTracker;
 	private Dictionary<String, Object> instanceServletDictionary;
 	private Map<String, Object> eventProperties;
-	private Event event;
-	private HubPublisher hubPublisher;
+	private transient Event event;
+	private transient HubPublisher hubPublisher;
 	private int feedNumber;
 	private StringBuilder feedContent;
-	private ComponentInstance rssServletInstance;
-	
-	//Uri to connected pubsubhubbubs
+	private transient ComponentInstance rssServletInstance;
+
+	// Uri to connected pubsubhubbubs
 	private Set<String> connectedHubs;
 
 	public PublisherImpl(final BundleContext pContext) {
@@ -129,7 +129,7 @@ public class PublisherImpl extends HttpServlet implements Publisher,
 
 		feedContent = new StringBuilder();
 		feedNumber = 0;
-		connectedHubs= new HashSet<String>();
+		connectedHubs = new HashSet<String>();
 
 		// tracking an FeedWriter
 		try {
@@ -160,7 +160,7 @@ public class PublisherImpl extends HttpServlet implements Publisher,
 			// register publisher
 			hubPublisher = new HubPublisher(hubUrl, rssUrl, callBackUrl,
 					context, rose, logger);
-			
+
 			connectedHubs.add(hubUrl);
 
 			final Dictionary<String, Object> props = new Hashtable<String, Object>();
@@ -189,8 +189,8 @@ public class PublisherImpl extends HttpServlet implements Publisher,
 			hubPublisher.unregister(connectedHubs);
 		}
 		rssServletInstance.dispose();
-		
-		//unregister servlet
+
+		// unregister servlet
 		httpService.unregister(callBackUrl);
 	}
 

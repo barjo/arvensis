@@ -218,6 +218,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 		EndpointListener endpLis;
 		EndpointDescription feedEndp;
+		String jsonEndpoint;
 
 		FeedEntry feed;
 
@@ -228,15 +229,18 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 		feed = reader.getLastEntry();
 		Assert.assertTrue(feed.title().equals(FEED_TITLE_NEW));
+		// remove logical clock from feed content
+		jsonEndpoint = feed.content().substring(2);
 
 		try {
 			// get endpoint description feed RSS)
 			feedEndp = RoseEndpointDescription.getEndpointDescription(json
-					.fromJSON(feed.content()));
+					.fromJSON(jsonEndpoint));
 			// check discovered endpoint and published in RSS
 			Assert.assertTrue(endp.equals(feedEndp));
 		} catch (ParseException e) {
 			e.printStackTrace();
+			Assert.fail();
 		}
 
 	}
@@ -289,6 +293,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 		FeedEntry feed;
 		EndpointListener endpLis;
 		EndpointDescription feedEndp;
+		String jsonEndpoint;
 
 		feed = reader.getLastEntry();
 
@@ -303,14 +308,18 @@ public class PublisherTest extends AbstractTestConfiguration {
 		feed = reader.getLastEntry();
 		Assert.assertTrue(feed.title().equals(FEED_TITLE_REMOVE));
 
+		// remove logical clock from feed content
+		jsonEndpoint = feed.content().substring(2);
+
 		try {
 			// get endpoint description feed RSS
 			feedEndp = RoseEndpointDescription.getEndpointDescription(json
-					.fromJSON(feed.content()));
+					.fromJSON(jsonEndpoint));
 			// check discovered endpoint and published in RSS
 			Assert.assertTrue(endp.equals(feedEndp));
 		} catch (ParseException e) {
 			e.printStackTrace();
+			Assert.fail();
 		}
 
 	}

@@ -10,7 +10,7 @@
 		<artifactId>parent-pom</artifactId>
 		<version>0.3.2</version>
 	</parent>
-	
+
 	<groupId>org.ow2.chameleon.rose.registry</groupId>
 	<artifactId>pubsubhubbub-it</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
@@ -24,7 +24,6 @@
 		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<json-service.version>0.4.0</json-service.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
-		<jabsorb-exporter.version>0.1.4-SNAPSHOT</jabsorb-exporter.version>
 
 		<!-- Plugins version -->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
@@ -39,7 +38,7 @@
 		<junit.version>4.8.2</junit.version>
 
 		<!-- Tested version -->
-		<pubsubhubbub.version>0.1.0-SNAPSHOT</pubsubhubbub.version>
+		<pubsubhubbub.version>0.2.0-SNAPSHOT</pubsubhubbub.version>
 	</properties>
 
 	<!-- Project dependencies -->
@@ -80,11 +79,6 @@
 			<version>${json-service.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jabsorb</groupId>
-			<artifactId>org.ow2.chameleon.commons.jabsorb</artifactId>
-			<version>1.3.1-0003-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.eventadmin</artifactId>
 			<version>1.2.14</version>
@@ -108,13 +102,7 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.syndication</groupId>
 			<artifactId>rome</artifactId>
-			<version>0.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
-			<artifactId>jabsorb-exporter</artifactId>
-			<version>${jabsorb-exporter.version}</version>
-			<scope>test</scope>
+			<version>0.3.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.registry</groupId>
@@ -141,6 +129,21 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore-osgi</artifactId>
 			<version>4.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>1.12</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-core</artifactId>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.testing</groupId>
@@ -210,7 +213,7 @@
 		<repository>
 			<id>objectweb-public</id>
 			<name>ow2 Maven Repository</name>
-			<url>http://repository.ow2.org/nexus/content/repositories/public</url>
+			<url>http://maven.ow2.org/maven2</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>

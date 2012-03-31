@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
+import org.ops4j.pax.exam.container.def.options.VMOption;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnitOptions;
 import org.osgi.framework.BundleContext;
@@ -146,6 +147,8 @@ public abstract class AbstractTestConfiguration {
 		));
 
 		Option[] r = OptionUtils.combine(platform, bundles);
+		//for debugging purpose
+		Option[] r2  = OptionUtils.combine(r, new VMOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006")); 
 		return r;
 	}
 

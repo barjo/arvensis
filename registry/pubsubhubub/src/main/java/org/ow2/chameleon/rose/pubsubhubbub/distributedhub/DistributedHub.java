@@ -1,6 +1,6 @@
 package org.ow2.chameleon.rose.pubsubhubbub.distributedhub;
 
-import java.util.Set;
+import java.text.ParseException;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
@@ -14,61 +14,123 @@ public interface DistributedHub {
 
 	String COMPONENT_NAME = "Rose_Pubsubhubbub.hub.distributed";
 	String BOOTSTRAP_LINK_INSTANCE_PROPERTY = "bootstrap.link";
-	String JERSEY_SERVLET_INSTANCE_PROPERTY = "alias";
-	String JERSEY_SERVLET_ALIAS = "/Pubsubhubbub";
+	String JERSEY_ALIAS_INSTANCE_PROPERTY = "alias";
+	String JERSEY_DEFAULT_SERVLET_ALIAS = "/Pubsubhubbub";
 	String JERSEY_POST_LINK_HUBURL = "huburl";
+	String JERSEY_POST_PARAMETER_SUBSCRIBER = "subscriber";
+	String JERSEY_POST_PARAMETER_PUBLISHER = "publisher";
+	String JERSEY_POST_PARAMETER_CALLBACKURL = "callbackurl";
 	String JERSEY_POST_PARAMETER_ENDPOINT = "endpoint";
-	String JERSEY_POST_LINK_ENDPOINTS = "endpoints";
 
 	/**
-	 * Adds new endpoint system.
+	 * Adds new endpoint to distributed system. Send to all connected hubs
 	 * 
 	 * @param endpoint
 	 *            {@link EndpointDescription} to add
-	 * @param machineID
+	 * @param publisherMachineID
 	 *            source machineID
 	 */
-	void addEndpoint(EndpointDescription endpoint, String machineID);
+	void addEndpoint(EndpointDescription endpoint, String publisherMachineID);
 
 	/**
-	 * Removes endpoint from system.
+	 * Adds new endpoint to distributed system. Send to all connected hubs
+	 * excluding one from parameter
+	 * 
+	 * @param endpoint
+	 *            {@link EndpointDescription} to add
+	 * @param publisherMachineID
+	 *            source machineID
+	 * @param excludeMachineID
+	 *            machineID to exclude
+	 */
+	void addEndpoint(EndpointDescription endpoint, String publisherMachineID,
+			String excludeMachineID);
+
+	/**
+	 * Removes endpoint from system. Send to all connected hubs
 	 * 
 	 * @param endpointID
 	 *            {@link EndpointDescription} serviceID
-	 * @param machineID
+	 * @param publisherMachineID
 	 *            source machineID
 	 */
-	void removeEndpoint(long endpointID, String machineID);
+	void removeEndpoint(long endpointID, String publisherMachineID);
 
 	/**
-	 * Add new connection to Distributed Hub.
+	 * Removes endpoint from system.Send to all connected hubs excluding one
+	 * from parameter
 	 * 
-	 * @param link
-	 *            new Distributed HUB url
+	 * @param endpointID
+	 *            {@link EndpointDescription} serviceID
+	 * @param publisherMachineID
+	 *            source machineID
+	 * @param excludeMachineID
+	 *            machineID to exclude
 	 */
-	void addConnectedHub(String link);
-
-	/**
-	 * Removes connection from Distributed HUB.
-	 * 
-	 * @param link
-	 *            Distributed HUB url to remove
-	 */
-	void removeConnectedHub(String link);
-
-	/**
-	 * @return all connected hubs
-	 */
-	Set<String> getConnectedHubs();
+	void removeEndpoint(long endpointID, String publisherMachineID,
+			String excludeMachineID);
 
 	/**
 	 * @return Gateway Hub URI
 	 */
 	String getHubUri();
-	
+
+
 	/**
-	 * @return Gateway Hub URI
+	 * @param uri Distributed Hub URI
+	 * @throws ParseException
 	 */
-	void establishConnection(String uri);
+	void establishConnection(String uri) throws ParseException;
+
+	/**
+	 * @return machineID from Rose
+	 */
+	String getMachineID();
+
+	/**
+	 * Send informations about connection between Pubsubhubbub and new
+	 * subscriber.
+	 * 
+	 * @param subscriberMachineID
+	 *            subscriber machineID
+	 * @param callBackUrl
+	 *            subscriber callBackUrl
+	 */
+	void addBackupSubscriber(String subscriberMachineID, String callBackUrl);
+
+	/**
+	 * Send informations about closed connection between Pubsubhubbub and
+	 * subscriber.
+	 * 
+	 * @param subscriberMachineID
+	 *            subscriber machineID
+	 */
+	void removeBackupSubscriber(String subscriberMachineID);
+
+	/**
+	 * Send informations about connection between Pubsubhubbub and new
+	 * subscriber.
+	 * 
+	 * @param publisherMachineID
+	 *            publisher machineID
+	 * @param callBackUrl
+	 *            publisher callBackUrl
+	 */
+	void addBackupPublisher(String publisherMachineID, String callBackUrl);
+
+	/**
+	 * Send informations about closed connection between Pubsubhubbub and new
+	 * publisher.
+	 * 
+	 * @param publisherMachineID
+	 *            publisher machineID
+	 */
+	void removeBackupPublisher(String publisherMachineID);
+
+	/**
+	 * @return all backup subscribers(machineID, callBackUrl) on every connected
+	 *         machine
+	 */
+	HubBackups getHubBackups();
 
 }

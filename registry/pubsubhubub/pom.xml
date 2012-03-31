@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<version>${ipojo.version}</version>
+			<version>1.6.4</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -83,11 +83,6 @@
 			<version>0.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>${javax.servlet.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient-osgi</artifactId>
 			<version>4.1.1</version>
@@ -98,24 +93,19 @@
 			<version>${json-service.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<version>1.6.4</version>
-		</dependency>
-		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-server</artifactId>
 			<version>1.9</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-		</dependency>
-		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-client</artifactId>
 			<version>1.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.log</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
 
@@ -149,6 +139,7 @@
 						</Bundle-SymbolicName>
 						<Import-Package>
 							org.ow2.chameleon.rose.util,
+							org.osgi.service.log,
 							*
 						</Import-Package>
 						<Export-Package>

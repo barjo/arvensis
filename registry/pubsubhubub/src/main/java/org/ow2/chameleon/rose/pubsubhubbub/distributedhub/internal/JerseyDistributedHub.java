@@ -5,10 +5,8 @@ import static org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub.
 
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.ws.rs.core.Context;
@@ -28,6 +26,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub;
+import org.ow2.chameleon.rose.pubsubhubbub.distributedhub.HubBackups;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 
@@ -48,35 +47,41 @@ public class JerseyDistributedHub implements DistributedHub {
 	@Requires(id = "hubID")
 	private Hub hub;
 
-	@Requires
+	@Requires(id = "roseID")
 	private RoseMachine rose;
 
 	private BundleContext context;
 
-	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
-	private LogService logger;
+//	@Requires(optional = true, defaultimplementation = DefaultLogService.class)
+	private LogService logger = new DefaultLogService();
 
 	@Property(name = BOOTSTRAP_LINK_INSTANCE_PROPERTY, mandatory = false)
 	private String bootstrapHubLink;
 
-	@Property(name = JERSEY_SERVLET_INSTANCE_PROPERTY, mandatory = false, value = JERSEY_SERVLET_ALIAS)
+	@Property(name = JERSEY_ALIAS_INSTANCE_PROPERTY, mandatory = false, value = JERSEY_DEFAULT_SERVLET_ALIAS)
 	private String jerseyServletAlias;
 
 	private ServletContainer servletContainer;
 	private ClientJersey clientJersey;
-	// stores links to other hubs
-	private Set<String> connectedHubs;
+
+	// connected hubs with info of their subscribers and publishers
+	private HubBackups connectedHubs;
+
 	private String jerseyHubUri;
+	
+	protected static volatile Boolean running = false; //running flag
 
 	public JerseyDistributedHub(BundleContext pContext) {
 		this.context = pContext;
 	}
 
-	@SuppressWarnings({ "unused" })
+	@SuppressWarnings("unused")
 	@Validate
 	private void start() {
 		String port = null;
 		try {
+			connectedHubs = new HubBackupsImpl();
+
 			// retrieve an ip address and port of gateway
 			final ServiceReference httpServiceRef = context
 					.getServiceReference(HttpService.class.getName());
@@ -90,17 +95,20 @@ public class JerseyDistributedHub implements DistributedHub {
 			}
 			jerseyHubUri = "http://" + rose.getHost() + ":" + port
 					+ jerseyServletAlias;
-			connectedHubs = new HashSet<String>();
-			clientJersey = new ClientJersey(logger);
+
+			clientJersey = new ClientJersey(logger, this.getMachineID(),
+					connectedHubs, hub, this);
 
 			// deploy resources
 			deployRestResource();
+
 			// connect and retrieve endpoints from other hub
 			if (bootstrapHubLink != null) {
 				this.establishConnection(bootstrapHubLink);
 			}
 			logger.log(LOG_INFO,
 					"Distributed Pubsubhubbub successfully started");
+			running = true; 
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
@@ -109,8 +117,12 @@ public class JerseyDistributedHub implements DistributedHub {
 	@SuppressWarnings("unused")
 	@Invalidate
 	private void stop() {
-		httpService.unregister(JERSEY_SERVLET_ALIAS);
+		running = false;
+		logger.log(LOG_INFO, "Distributed Pubsubhubbub stopping");
+		httpService.unregister(jerseyServletAlias);
 		servletContainer.destroy();
+		clientJersey.unlink(connectedHubs.getAllHubsLink());
+
 	}
 
 	/**
@@ -145,29 +157,33 @@ public class JerseyDistributedHub implements DistributedHub {
 
 	}
 
-	public final void addEndpoint(EndpointDescription endpoint, String machineID) {
+	public final void addEndpoint(EndpointDescription endpoint,
+			String publisherMachineID) {
 		clientJersey.addEndpoint(json.toJSON(endpoint.getProperties()),
-				machineID, connectedHubs);
+				publisherMachineID, connectedHubs.getAllHubsLink());
+
+	}
+
+	public final void addEndpoint(EndpointDescription endpoint,
+			String publisherMachineID, String excludeMachineID) {
+
+		clientJersey.addEndpoint(json.toJSON(endpoint.getProperties()),
+				publisherMachineID,
+				connectedHubs.getAllHubsLink(excludeMachineID));
 
 	}
 
 	public final void removeEndpoint(long endpointID, String machineID) {
-		clientJersey.removeEndpoint(endpointID, machineID, connectedHubs);
+		clientJersey.removeEndpoint(endpointID, machineID,
+				connectedHubs.getAllHubsLink());
 
 	}
 
-	public final void addConnectedHub(String link) {
-		connectedHubs.add(link);
+	public final void removeEndpoint(long endpointID, String machineID,
+			String excludeMachineID) {
+		clientJersey.removeEndpoint(endpointID, machineID,
+				connectedHubs.getAllHubsLink(excludeMachineID));
 
-	}
-
-	public final void removeConnectedHub(String link) {
-		connectedHubs.remove(link);
-
-	}
-
-	public final Set<String> getConnectedHubs() {
-		return connectedHubs;
 	}
 
 	public final String getHubUri() {
@@ -175,8 +191,11 @@ public class JerseyDistributedHub implements DistributedHub {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void establishConnection(String uri) {
+	public void establishConnection(String linkURI) throws ParseException {
 		String jsonEndpoints = null;
+		String jsonSubscribers = null;
+		String jsonPublishers = null;
+		String machineID;
 
 		// get all registers endpoints
 		Map<EndpointDescription, String> endpoints = hub.getRegistrations()
@@ -193,22 +212,95 @@ public class JerseyDistributedHub implements DistributedHub {
 			}
 			jsonEndpoints = json.toJSON(jsonMap);
 		}
-		// save linked hub
-		this.addConnectedHub(uri);
 
-		// iterate on endpoints received from link hub
-		try {
-			for (Entry<String, String> entry : ((Map<String, String>) json
-					.fromJSON(clientJersey.retrieveEndpoints(uri,
-							this.jerseyHubUri, jsonEndpoints))).entrySet()) {
-				hub.getRegistrations().addEndpointByMachineID(
-						entry.getValue(),
-						hub.getEndpointDescriptionFromJSON(json.fromJSON(entry
-								.getKey())));
-			}
-		} catch (ParseException e) {
-			e.printStackTrace();
+		// check if already registered subscribers
+		if (!hub.getRegistrations().getSubscribers().isEmpty()) {
+			jsonSubscribers = json.toJSON(hub.getRegistrations()
+					.getSubscribers());
 		}
+
+		// check if already registered publishers
+		if (!hub.getRegistrations().getPublishers().isEmpty()) {
+			jsonPublishers = json
+					.toJSON(hub.getRegistrations().getPublishers());
+		}
+
+		machineID = clientJersey.retrieveMachineID(linkURI);
+
+		// save linked hub
+		connectedHubs.addConnectedHub(machineID, linkURI);
+
+		// parse a response, iterate on endpoints/subscribers received from link
+		// hub
+		for (Entry<String, String> rootEntry : ((Map<String, String>) json
+				.fromJSON(clientJersey.linkToHub(linkURI, this.jerseyHubUri,
+						jsonEndpoints, jsonSubscribers, jsonPublishers)))
+				.entrySet()) {
+
+			// endpoints
+			if (rootEntry.getKey().equals(JERSEY_POST_PARAMETER_ENDPOINT)) {
+
+				for (Entry<String, String> endpointEntry : ((Map<String, String>) json
+						.fromJSON(rootEntry.getValue())).entrySet()) {
+					hub.getRegistrations().addEndpointByMachineID(
+							endpointEntry.getValue(),
+							hub.getEndpointDescriptionFromJSON(json
+									.fromJSON(endpointEntry.getKey())));
+				}
+			}
+			// susbcribers
+			else if (rootEntry.getKey()
+					.equals(JERSEY_POST_PARAMETER_SUBSCRIBER)) {
+				for (Entry<String, String> subscriberEntry : ((Map<String, String>) json
+						.fromJSON(rootEntry.getValue())).entrySet()) {
+					connectedHubs.addSubscriber(machineID,
+							subscriberEntry.getValue(),
+							subscriberEntry.getKey());
+				}
+			}
+
+			else if (rootEntry.getKey().equals(JERSEY_POST_PARAMETER_PUBLISHER)) {
+				for (Entry<String, String> publisherEntry : ((Map<String, String>) json
+						.fromJSON(rootEntry.getValue())).entrySet()) {
+					connectedHubs.addPublisher(machineID,
+							publisherEntry.getValue(), publisherEntry.getKey());
+				}
+
+			}
+		}
+
+	}
+
+	public String getMachineID() {
+		return rose.getId();
+	}
+
+	public void addBackupSubscriber(String subscriberMachineID,
+			String callBackUrl) {
+
+		clientJersey.addSubscriber(subscriberMachineID, callBackUrl,
+				connectedHubs.getAllHubsLink());
+
+	}
+
+	public void removeBackupSubscriber(String subscriberMachineID) {
+		clientJersey.removeSubscriber(subscriberMachineID,
+				connectedHubs.getAllHubsLink());
+	}
+
+	public HubBackups getHubBackups() {
+		return connectedHubs;
+	}
+
+	public void addBackupPublisher(String publisherMachineID, String callBackUrl) {
+		clientJersey.addPublisher(publisherMachineID, callBackUrl,
+				connectedHubs.getAllHubsLink());
+
+	}
+
+	public void removeBackupPublisher(String publisherMachineID) {
+		clientJersey.removePublisher(publisherMachineID,
+				connectedHubs.getAllHubsLink());
 
 	}
 

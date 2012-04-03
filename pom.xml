@@ -29,6 +29,14 @@
 				<module>json-rpc/jabsorb-importer</module>
 			</modules>
 		</profile>
+		
+		<!-- Profile used to build commons bundles-->
+		<profile>
+			<id>commons</id>
+			<modules>
+				<module>commons/cxf-minimal</module>
+			</modules>
+		</profile>
 
 		<!-- Profile used in order to run the integration tests -->
 		<profile>

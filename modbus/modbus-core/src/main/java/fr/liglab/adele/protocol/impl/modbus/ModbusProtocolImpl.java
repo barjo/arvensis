@@ -20,7 +20,9 @@ import java.net.UnknownHostException;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.wimpi.modbus.ModbusException;
 import net.wimpi.modbus.ModbusIOException;
@@ -39,6 +41,7 @@ import net.wimpi.modbus.procimg.InputRegister;
 import net.wimpi.modbus.procimg.Register;
 import net.wimpi.modbus.util.BitVector;
 
+import org.apache.felix.ipojo.annotations.Component;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +67,8 @@ public class ModbusProtocolImpl implements ModbusProcotol {
 	protected String m_hostAddress;
 	protected int m_port;
 	private Map m_infoDebug;
+	private String m_fca,m_rank,m_domain ;
+	private HashSet m_attributes ;
 
 	private TCPMasterConnection connection = null; /* the connection */
 	private ModbusTCPTransaction transaction = null; /* the transaction */

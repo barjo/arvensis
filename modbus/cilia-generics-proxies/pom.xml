@@ -75,6 +75,7 @@
 							org.apache.felix.ipojo,
 							org.osgi.service.remoteserviceadmin,
 							org.ow2.chameleon.rose.*,
+							org.osgi.service.event,
 							org.slf4j
 						</Import-Package>
 						<Export-Package />

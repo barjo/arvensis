@@ -3,6 +3,7 @@ package fr.liglab.adele.cilia.proxies.rose;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -33,9 +34,8 @@ public class CiliaProxiesConfigurator {
 
 		dynamicImporterDevice = new DynamicImporter.Builder(context,
 				"(service.imported=fr.liglab.adele.device)")
-				.protocol(getProtocolDevice()).customizer(new WrapperServiceRanking()).build();
+				.protocol(getProtocolDevice()).customizer(new WrapperImporter()).build();
 
-		logger.debug("Proxy WebServiceExporter Created");
 	}
 
 	/**
@@ -68,10 +68,10 @@ public class CiliaProxiesConfigurator {
 		dynamicImporterDevice.stop();
 	}
 
-	/* OSGI Ranker */
-	private class WrapperServiceRanking implements DynamicImporterCustomizer {
+	/* OSGI */
+	private class WrapperImporter implements DynamicImporterCustomizer {
 
-		public WrapperServiceRanking() {
+		public WrapperImporter() {
 		}
 
 		public ImportReference[] getImportReferences()
@@ -81,10 +81,8 @@ public class CiliaProxiesConfigurator {
 
 		public Object doImport(ImporterService importer, EndpointDescription description,
 				Map<String, Object> properties) {
-			setRank(properties, description);
 			ImportRegistration registration = importer.importService(description,
 					properties);
-			ImportReference iref = registration.getImportReference();
 			return registration;
 		}
 
@@ -94,18 +92,7 @@ public class CiliaProxiesConfigurator {
 			regis.close();
 		}
 
-		public synchronized void setRank(Map properties, EndpointDescription description) {
-			Map props = description.getProperties();
-			String value = (String) props.get("service.ranking");
-			if (value != null) {
-				try {
-					Integer.parseInt(value);
-					properties.put(org.osgi.framework.Constants.SERVICE_RANKING, value);
-				} catch (NumberFormatException e) {
-					logger.error("Service ranking property must be an integer string format");
-				}
-			}
-		}
+
 	}
 
 }

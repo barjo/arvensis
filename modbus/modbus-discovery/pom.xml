@@ -47,6 +47,7 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.6.1</version>
 		</dependency>
+		
 
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
@@ -77,6 +78,9 @@
 							org.apache.felix.ipojo,
 							org.osgi.service.remoteserviceadmin,
 							org.ow2.chameleon.rose.*,
+							javax.xml.parsers, 
+							org.xml.sax, 
+							org.xml.sax.helpers,
 							org.slf4j,
 						</Import-Package>
 						<Export-Package>

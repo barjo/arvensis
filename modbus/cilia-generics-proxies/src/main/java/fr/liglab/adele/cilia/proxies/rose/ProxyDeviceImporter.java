@@ -23,7 +23,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
@@ -33,12 +32,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.ImportReference;
-import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.ow2.chameleon.rose.AbstractImporterComponent;
-import org.ow2.chameleon.rose.DynamicImporter;
-import org.ow2.chameleon.rose.DynamicImporterCustomizer;
-import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +57,8 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 		m_bundleContext = context;
 	}
 
-	/* 
-	 * list of currently supported protocol 
+	/*
+	 * list of currently supported protocol
 	 */
 	public List getConfigPrefix() {
 		List list = new ArrayList();
@@ -89,9 +83,11 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 					Factory.class.getName(), sb.toString());
 			if (refs != null) {
 				Factory factory = (Factory) m_bundleContext.getService(refs[0]);
+				addProperties(props,description);
 				ComponentInstance instance = factory.createComponentInstance(props);
 				if (instance != null) {
 					ServiceRegistration sr = new DeviceService(instance);
+					sr.setProperties(props);
 					return sr;
 				} else {
 					logger.error("Proxy creation error");
@@ -102,10 +98,24 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
 		return null;
 	}
 
+	
+	public  void addProperties(Map props, EndpointDescription description) {
+		props.put("managed.service.pid", description.getId()) ;
+		String value = (String) props.get("rank.value");
+		if (value != null) {
+			try {
+				Integer.parseInt(value);
+				props.put(org.osgi.framework.Constants.SERVICE_RANKING, value);
+			} catch (NumberFormatException e) {
+				logger.error("Service ranking property must be an integer string format");
+			}
+		}
+		
+	}
+	
 	protected void destroyProxy(EndpointDescription description,
 			ServiceRegistration registration) {
 		logger.debug("Endoint destroyed ,ID=" + description.getId());

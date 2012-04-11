@@ -10,7 +10,6 @@
 	the specific language governing permissions and limitations under the License. 
 -->
 <ipojo>
-
 	<!-- Component Modbus/TCP Scanner -->
 	<component classname="fr.liglab.adele.discovery.impl.modbus.ModbusTCPScanner"
 		name="Modbus/TCP.discovery">
@@ -24,6 +23,8 @@
 				value="1000" />
 			<property name="ranking.file" type="java.lang.String"
 				field="m_urlProperties"  />
+			<property name="fca.xml.file" type="java.lang.String"
+				field="m_urlfca" />
 			<property name="scan.delay" field="m_delay" value="100" />
 			<property name="ping.time.out" field="m_timeout" value="2000" />
 			<property name="modbus.port.number" field="m_port" value="502" />

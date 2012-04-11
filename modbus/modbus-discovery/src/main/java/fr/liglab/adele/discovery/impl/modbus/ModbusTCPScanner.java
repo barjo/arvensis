@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -45,21 +46,23 @@ import org.slf4j.LoggerFactory;
  * @author Denis Morand
  * 
  */
-public class ModbusTCPScanner extends TimerTask  {
+public class ModbusTCPScanner extends TimerTask {
 	private static final Logger logger = LoggerFactory.getLogger("modbus.discovery");
 
 	private RoseMachine roseMachine;
-	private RemoteServiceAdmin adminService ;
+	private RemoteServiceAdmin adminService;
 	private InetAddress startAddress, endAddress;
 	private int m_delay, m_period, m_timeout, m_port;
-	private String m_domainID ;
+	private String m_domainID;
 	private Timer m_timer;
-	private String m_urlProperties;
+	private String m_urlProperties, m_urlfca;
 	private Properties m_devicesRankingProps;
-	
+	private Map m_fcaAttributes;
+
 	public ModbusTCPScanner(BundleContext bc) {
-		m_timer = new Timer() ;
+		m_timer = new Timer();
 		m_devicesRankingProps = new Properties();
+		m_fcaAttributes = new HashMap();
 	}
 
 	public void setStartAddress(String addr) {
@@ -72,7 +75,7 @@ public class ModbusTCPScanner extends TimerTask  {
 		}
 	}
 
-	public void setEndAddress(String addr) { 
+	public void setEndAddress(String addr) {
 		try {
 			endAddress = InetAddress.getByName(addr);
 		} catch (UnknownHostException e) {
@@ -103,6 +106,7 @@ public class ModbusTCPScanner extends TimerTask  {
 		/* Generate the unique device ID */
 		String deviceID = generateID(socket.getInetAddress().getHostAddress(),
 				socket.getPort());
+
 		/* Checks if that ID is already in registry */
 		if (!isEndPointRegistered(deviceID)) {
 			Map deviceProperties = setDeviceEndPoint(socket.getInetAddress()
@@ -110,7 +114,7 @@ public class ModbusTCPScanner extends TimerTask  {
 			if (socket != null) {
 				Map param = readModbusIdent(socket);
 				if (param != null) {
-					deviceProperties.put("device.identification", param) ;
+					deviceProperties.put("device.identification", param);
 				}
 			}
 			if (logger.isDebugEnabled()) {
@@ -118,9 +122,10 @@ public class ModbusTCPScanner extends TimerTask  {
 				logger.debug("Device info :" + deviceProperties.toString());
 			}
 			try {
-				roseMachine.putRemote(deviceID, new EndpointDescription(deviceProperties));
-			}
-			catch (Exception e) {
+				roseMachine
+						.putRemote(deviceID, new EndpointDescription(deviceProperties));
+			} catch (Exception e) {
+				e.printStackTrace();
 				roseMachine.removeRemote(deviceID);
 				logger.error("The proxy has not imported the service !");
 			}
@@ -180,7 +185,7 @@ public class ModbusTCPScanner extends TimerTask  {
 		address = startAddress;
 		do {
 			if (ping(address, m_timeout)) {
-				logger.trace("Device present at :"+address.getHostAddress());
+				logger.trace("Device present at :" + address.getHostAddress());
 				socket = tcpConnect(address, m_port);
 				if (socket != null) {
 					setRemoteDevice(socket);
@@ -191,7 +196,7 @@ public class ModbusTCPScanner extends TimerTask  {
 				}
 
 			} else {
-				logger.trace("Device absent at :"+address.getHostAddress());
+				logger.trace("Device absent at :" + address.getHostAddress());
 				resetRemoteDevice(address, m_port);
 			}
 
@@ -220,42 +225,52 @@ public class ModbusTCPScanner extends TimerTask  {
 			while (it.hasNext()) {
 				reference = ((ImportReference) it.next());
 				epd = reference.getImportedEndpoint();
-				if (epd.getId().equals(id)) {
-					return true;
+				if (epd != null) {
+					if (epd.getId().equals(id)) {
+						return true;
+					}
 				}
-			};
+			}
 		}
 		return false;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map setDeviceEndPoint(String hostAddr, int port) {
-		String score ;
+		String score;
+		String id = generateID(hostAddr, port);
 		Map m_props = new HashMap();
 		m_props.put(RemoteConstants.ENDPOINT_ID, generateID(hostAddr, port));
-		
-		m_props.put(Constants.OBJECTCLASS, new String[] {"None"});
-  		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, " ");
-		/* 
-		 * property 'service.imported" used by the dynamic imported to be wake up 
-		 * on proxy device.
+
+		m_props.put(Constants.OBJECTCLASS, new String[] { "none" });
+		m_props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "none");
+		/*
+		 * property 'service.imported" used by the dynamic imported to be wake
+		 * up on proxy device.
 		 */
 		m_props.put(RemoteConstants.SERVICE_IMPORTED, "fr.liglab.adele.device");
-		/* 
+		/*
 		 * Factory name , service reified locally
 		 */
-		m_props.put("service.factory", "FactoryModbus.TCP") ;
+		m_props.put("service.factory", "modbus.TCP");
 
 		score = getScore(hostAddr);
-		if (score !=null) {
+		if (score != null) {
 			/*
-			 * property : 'service.ranking' is used by the dynamic importer service
-			 * to set the ranking value
+			 * property : 'service.ranking' is used by the dynamic importer
+			 * service to set the ranking value
 			 */
-			m_props.put("service.ranking",score);
+			m_props.put("rank.value", score);
 		}
-		/* 
-		 * specifics   
+
+		/* Set FCA attributes */
+		Set attributes = (Set) m_fcaAttributes.get(id);
+		if (attributes != null) {
+			m_props.put("fca.attributes", attributes);
+		}
+
+		/*
+		 * specifics
 		 */
 		m_props.put("device.ip.address", hostAddr);
 		m_props.put("device.ip.port", port);
@@ -271,7 +286,7 @@ public class ModbusTCPScanner extends TimerTask  {
 			if (value != null) {
 				try {
 					Integer.parseInt(value);
-					score= value ;
+					score = value;
 					logger.debug("device=" + hostAddr + " 'service.ranking=" + value);
 				} catch (NumberFormatException e) {
 					logger.error("Malformed number in device properties file ,value ="
@@ -282,15 +297,16 @@ public class ModbusTCPScanner extends TimerTask  {
 		}
 		return score;
 	}
-		
+
 	private static String generateID(String addr, int port) {
-		StringBuffer sb = new StringBuffer(addr);
+		StringBuffer sb = new StringBuffer("IP.");
+		sb.append(addr);
 		sb.append(":").append(Integer.toString(port));
 		return sb.toString();
 	}
 
 	private void checksParam() {
-		
+
 		if (m_delay <= 0) {
 			String str = "Properties 'scan.delay' must not be a negative value" + m_delay;
 			logger.error(str);
@@ -307,22 +323,34 @@ public class ModbusTCPScanner extends TimerTask  {
 			logger.error(str);
 			throw new IllegalArgumentException(str);
 		}
-		if (m_domainID ==null) {
-			/* generate a "unique"  domain name */
-			m_domainID = "domain.ip-"+
-			              startAddress.toString()+"-"+
-			              endAddress.toString()+"-"+System.currentTimeMillis();
+		if (m_domainID == null) {
+			/* generate a "unique" domain name */
+			m_domainID = "domain.ip-" + startAddress.toString() + "-"
+					+ endAddress.toString() + "-" + System.currentTimeMillis();
 		}
-		if (m_urlProperties !=null) {
+		if (m_urlProperties != null) {
 			try {
 				m_devicesRankingProps.load(new URL(m_urlProperties).openStream());
-				logger.debug("Properties read " + m_devicesRankingProps.toString());
+				logger.debug("Properties read {}", m_devicesRankingProps.toString());
 			} catch (MalformedURLException e) {
 				logger.error("Invalid URL");
 			} catch (IOException e) {
-				logger.error("file " + m_urlProperties + " not existing");
+				logger.error("file {} {}", m_urlProperties, " not existing");
 			}
 		}
+		if (m_urlfca != null) {
+			XMLContextDescription xlmfca = new XMLContextDescription();
+			try {
+				m_fcaAttributes = xlmfca.load(new URL(m_urlfca).openStream());
+				logger.debug("FCA attributes read {}", m_fcaAttributes.toString());
+			} catch (MalformedURLException e) {
+				logger.error("Invalid URL");
+				e.printStackTrace();
+			} catch (IOException e) {
+				logger.error("file {} {}", m_urlfca, " not existing");
+			}
+			logger.debug("Functional Concept Analysis Attributs read "
+					+ m_fcaAttributes.toString());
+		}
 	}
-	
 }

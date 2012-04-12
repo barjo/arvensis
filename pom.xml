@@ -106,12 +106,12 @@
 		<repository>
 			<id>cloudbees-rose-release</id>
 			<name>Cloudbees Private Repository - RoSe - Release </name>
-			<url>http://repository-barjo.forge.cloudbees.com/release/</url>
+			<url>https://repository-barjo.forge.cloudbees.com/release/</url>
 		</repository>
 		<repository>
 			<id>cloudbees-rose-snapshot</id>
 			<name>Cloudbees Private Repository - RoSe - Snapshot</name>
-			<url>http://repository-barjo.forge.cloudbees.com/snapshot/</url>
+			<url>https://repository-barjo.forge.cloudbees.com/snapshot/</url>
 		</repository>
 	</repositories>
 

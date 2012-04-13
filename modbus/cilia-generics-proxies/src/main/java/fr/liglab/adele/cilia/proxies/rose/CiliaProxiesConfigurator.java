@@ -89,7 +89,11 @@ public class CiliaProxiesConfigurator {
 		public void unImport(ImporterService importer, EndpointDescription description,
 				Object registration) {
 			ImportRegistration regis = (ImportRegistration) registration;
-			regis.close();
+			try {
+				regis.close();
+			}
+			catch (Exception e) {	
+			}
 		}
 
 

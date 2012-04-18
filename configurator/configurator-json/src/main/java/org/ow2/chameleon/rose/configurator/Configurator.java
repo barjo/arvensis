@@ -23,8 +23,8 @@ import org.ow2.chameleon.rose.api.Machine;
 /**
  * 
  */
-@Component(name="RoSe.configurator")
-@Instantiate
+@Component(name="RoSe_configurator.json")
+@Instantiate(name="RoSe_configurator.json[0]")
 @Provides
 public class Configurator implements ArtifactInstaller{
 	private static final String THIS_COMPONENT="RoSe.configurator";

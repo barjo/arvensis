@@ -9,11 +9,13 @@ import java.text.ParseException;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -44,7 +46,18 @@ public class TodoRest {
 			if (todo != null)
 				return json.toJSON(tlist.getTodo(id).toMap());
 			else 
-				return "{}";
+				throw new WebApplicationException(404);
+	}
+	
+	@DELETE
+	@Path("{id}")
+	public Response delTodo(@PathParam("id") String id){
+		if (tlist.delTodo(id)){
+			return ok().build();
+		}
+		else {
+			return status(404).build();
+		}
 	}
 	
 	@GET

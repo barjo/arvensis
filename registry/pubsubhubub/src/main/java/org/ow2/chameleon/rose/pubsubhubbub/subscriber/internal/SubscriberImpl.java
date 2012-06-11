@@ -1,9 +1,9 @@
 package org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal;
 
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RECONNECT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_CONTENT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RECONNECT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
 import static org.ow2.chameleon.rose.pubsubhubbub.subscriber.Subscriber.COMPONENT_NAME;
@@ -53,7 +53,7 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	@Requires
 	private transient HttpService httpService;
 
-	@Requires
+	@Requires(id = "roseID")
 	private transient RoseMachine rose;
 
 	@Requires

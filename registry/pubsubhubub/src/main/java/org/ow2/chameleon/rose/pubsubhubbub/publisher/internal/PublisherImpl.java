@@ -100,7 +100,7 @@ public class PublisherImpl extends HttpServlet implements Publisher,
 	@Requires(filter = SERVLET_FACTORY_FILTER)
 	private transient Factory factoryRssServlet;
 
-	@Requires
+	@Requires(id = "roseID")
 	private transient RoseMachine rose;
 
 	private transient FeedWriter writer;
@@ -189,9 +189,10 @@ public class PublisherImpl extends HttpServlet implements Publisher,
 			hubPublisher.unregister(connectedHubs);
 		}
 		rssServletInstance.dispose();
-
+		httpService.unregister(rssUrl);
 		// unregister servlet
 		httpService.unregister(callBackUrl);
+		
 	}
 
 	public final void endpointAdded(final EndpointDescription endp,

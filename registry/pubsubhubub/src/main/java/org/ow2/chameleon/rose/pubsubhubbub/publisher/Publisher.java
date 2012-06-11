@@ -1,5 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.publisher;
 
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
+
 
 /**
  * Publisher interface with all constants.

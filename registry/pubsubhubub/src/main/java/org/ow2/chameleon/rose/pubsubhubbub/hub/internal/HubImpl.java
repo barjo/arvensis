@@ -80,8 +80,8 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	@Requires
 	private transient HttpService httpService;
-	
-	@Requires
+
+	@Requires(id = "roseID")
 	private transient RoseMachine rose;
 
 	@Requires
@@ -117,7 +117,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	public final void start() {
 		String port = null;
 		ServiceReference httpServiceRef;
-		
+
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
 			readers = new HashMap<Object, ReaderWithFeedIndex>();

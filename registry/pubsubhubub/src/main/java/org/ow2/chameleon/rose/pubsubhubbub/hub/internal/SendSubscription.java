@@ -6,6 +6,9 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,10 +32,16 @@ import org.ow2.chameleon.json.JSONService;
  */
 public class SendSubscription {
 
+	private static int THREAD_POOL = 5;
 	private HttpPost postMethod;
 
 	private JSONService json;
 	private LogService logger;
+	// client to send notification to subscribers;
+	private HttpClient client;
+	private ThreadSafeClientConnManager connManager;
+	private ConcurrentLinkedQueue<String> subscribers;
+	private ExecutorService executor;
 
 	/**
 	 * Main constructor.
@@ -46,6 +55,14 @@ public class SendSubscription {
 
 		this.logger = pLogger;
 		this.json = pJson;
+
+		connManager = new ThreadSafeClientConnManager();
+		connManager.setDefaultMaxPerRoute(20);
+		connManager.setMaxTotal(200);
+
+		this.client = new DefaultHttpClient(connManager);
+
+		executor = Executors.newFixedThreadPool(THREAD_POOL);
 	}
 
 	/**
@@ -58,10 +75,17 @@ public class SendSubscription {
 	 * @param updateOption
 	 *            add/remove options
 	 */
-	public final void sendSubscriptions(final Set<String> subscribers,
+	public final void sendSubscriptions(final Set<String> subscribersSet,
 			final EndpointDescription endpoint, final String updateOption) {
-		// run thread to send subscriptions
-		(new SendingUpdateThread(subscribers, endpoint, updateOption)).start();
+		synchronized (this) {
+			int i = THREAD_POOL;
+			subscribers = new ConcurrentLinkedQueue<String>(subscribersSet);
+
+			while (i > 0 && !subscribers.isEmpty()) {
+				executor.execute(new SendingUpdateThread(endpoint, updateOption));
+				i--;
+			}
+		}
 	}
 
 	/**
@@ -73,40 +97,28 @@ public class SendSubscription {
 	private class SendingUpdateThread extends Thread {
 
 		private String updateOption;
-		private Set<String> subcribers;
+		private String subcriber;
 		private EndpointDescription endpoint;
 
-		// client to send notification to subscribers;
-		private HttpClient client;
-		private ThreadSafeClientConnManager connManager;
-
 		/**
-		 * @param pSubscribers
-		 *            publishers
 		 * @param pEndpoint
 		 *            {@link EndpointDescription}
 		 * @param pUpdateOption
 		 *            new endpoint/remove endpoint
 		 */
-		public SendingUpdateThread(Set<String> pSubscribers,
-				EndpointDescription pEndpoint, String pUpdateOption) {
+		public SendingUpdateThread(EndpointDescription pEndpoint,
+				String pUpdateOption) {
 			super();
-			this.subcribers = pSubscribers;
 			this.endpoint = pEndpoint;
 			this.updateOption = pUpdateOption;
 
-			connManager = new ThreadSafeClientConnManager();
-			connManager.setDefaultMaxPerRoute(20);
-			connManager.setMaxTotal(200);
-
-			this.client = new DefaultHttpClient(connManager);
 		}
 
 		@Override
 		public final void run() {
 
-			for (String subscriberUrl : subcribers) {
-				postMethod = new HttpPost(subscriberUrl);
+			while ((subcriber = subscribers.poll()) != null) {
+				postMethod = new HttpPost(subcriber);
 				postMethod.setHeader("Content-Type",
 						"application/x-www-form-urlencoded");
 
@@ -118,12 +130,11 @@ public class SendSubscription {
 				try {
 					postMethod.setEntity(new UrlEncodedFormEntity(nvps,
 							HTTP.UTF_8));
-					final HttpResponse response = this.client
-							.execute(postMethod);
+					final HttpResponse response = client.execute(postMethod);
 					if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 						logger.log(LogService.LOG_ERROR,
 								"Error in sending an update to subscriber: "
-										+ subscriberUrl
+										+ subcriber
 										+ ", got response "
 										+ response.getStatusLine()
 												.getStatusCode());
@@ -136,7 +147,6 @@ public class SendSubscription {
 					logger.log(LogService.LOG_ERROR,
 							"Error in sending an update to subscriber", e);
 				}
-				connManager.shutdown();
 			}
 
 		}

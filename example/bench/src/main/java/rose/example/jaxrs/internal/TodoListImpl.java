@@ -54,7 +54,7 @@ public class TodoListImpl implements TodoList {
 		try {
 
 			Statement stmt = con.createStatement();
-			stmt.execute("INSERT into todolist (id,content) values " + "(\""
+			stmt.execute("INSERT OR REPLACE into todolist (id,content) values " + "(\""
 					+ todo.id() + "\", \"" + todo.content() + "\")");
 			stmt.close();
 		} catch (SQLException e) {

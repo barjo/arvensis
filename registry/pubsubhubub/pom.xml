@@ -107,6 +107,11 @@
 			<artifactId>org.apache.felix.log</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.servicemix.bundles</groupId>
+			<artifactId>org.apache.servicemix.bundles.rome</artifactId>
+			<version>1.0_2</version>
+		</dependency>
 	</dependencies>
 
 	<!-- Project repositories -->
@@ -149,12 +154,19 @@
 							org.ow2.chameleon.rose.pubsubhubbub.constants,
 							org.ow2.chameleon.rose.pubsubhubbub.distributedhub,
 							org.ow2.chameleon.rose.pubsubhubbub.distributedhub.jersey.resource,
-							org.ow2.chameleon.rose.pubsubhubbub.distributedhub.internal
+							org.ow2.chameleon.rose.pubsubhubbub.topic.publisher,
+							org.ow2.chameleon.rose.pubsubhubbub.topic.subscriber,
+							org.ow2.chameleon.rose.pubsubhubbub.topic.connector,
+							com.sun.syndication*;version=1.0.0
 						</Export-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.pubsubhubbub.hub.internal,
 							org.ow2.chameleon.rose.pubsubhubbub.publisher.internal,
-							org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal
+							org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal,
+							org.ow2.chameleon.rose.pubsubhubbub.topic.subscriber.internal,
+							org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.internal
+
+
 						</Private-Package>
 					</instructions>
 				</configuration>

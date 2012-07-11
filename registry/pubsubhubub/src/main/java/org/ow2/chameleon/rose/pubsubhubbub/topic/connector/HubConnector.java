@@ -78,7 +78,7 @@ public class HubConnector implements SubscriberConnector, PublisherConnector {
 	}
 
 	public void update(String topic) {
-		sendQuery(topic, HubMode.update);
+		sendQuery(topic, HubMode.publish);
 	}
 
 	public boolean connect(String topicUrl) {
@@ -104,6 +104,7 @@ public class HubConnector implements SubscriberConnector, PublisherConnector {
 			final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
 					hubMode.toString()));
+			
 
 			// only for subscriber
 			if (hubMode == HubMode.subscribe || hubMode == HubMode.unsubscribe) {
@@ -111,10 +112,13 @@ public class HubConnector implements SubscriberConnector, PublisherConnector {
 				verification.put(topicUrl, hubMode);
 				// POST parameters
 				nvps.add(new BasicNameValuePair(
-						HTTP_POST_PARAMETER_URL_CALLBACK, callBack));
-				nvps.add(new BasicNameValuePair(
 						HTTP_POST_PARAMETER_RSS_TOPIC_URL, topicUrl));
+				nvps.add(new BasicNameValuePair(
+						HTTP_POST_PARAMETER_URL_CALLBACK, callBack));
 				nvps.add(new BasicNameValuePair("hub.verify", "sync"));
+			}else if (hubMode == HubMode.publish) {
+				//subscriber update parameter
+				nvps.add(new BasicNameValuePair("hub.url", topicUrl));
 			}
 
 			try {
@@ -125,7 +129,7 @@ public class HubConnector implements SubscriberConnector, PublisherConnector {
 				if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NO_CONTENT) {
 					response.getEntity().getContent().close();
 					throw new ClientProtocolException(
-							"Error in subscription, received status from hub: "
+							"Error in "+hubMode.toString()+", received status from hub: "
 									+ response.getStatusLine().getStatusCode());
 				}
 				connectStatus = true;

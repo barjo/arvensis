@@ -47,8 +47,9 @@ public class PublishingImpl implements Publishing {
 
 	@Validate
 	void start() throws ServletException, NamespaceException {
+		port = HubConnector.findPort(context);
 
-		topic = new RSSTopicManager(rose.getHost()+":"+HubConnector.findPort(context), topicURL, httpService,
+		topic = new RSSTopicManager(rose.getHost()+":"+port, topicURL, httpService,
 				context);
 	}
 

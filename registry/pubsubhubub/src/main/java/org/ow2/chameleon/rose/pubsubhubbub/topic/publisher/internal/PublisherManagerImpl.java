@@ -70,6 +70,7 @@ public class PublisherManagerImpl implements PublisherManager,
 		// bind
 		publisher.bindManager(this);
 		
+	
 		return publisher;
 	}
 

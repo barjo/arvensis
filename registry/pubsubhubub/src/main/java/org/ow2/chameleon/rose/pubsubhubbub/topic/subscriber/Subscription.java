@@ -1,5 +1,6 @@
 package org.ow2.chameleon.rose.pubsubhubbub.topic.subscriber;
 
+import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 
 public interface Subscription {
@@ -7,5 +8,5 @@ public interface Subscription {
 	String COMPONENT_NAME ="Subscription";
 
 	String getTopicUrl();
-	void onContent(SyndFeed feed);
+	void onContent(SyndEntry syndEntry);
 }

@@ -32,6 +32,7 @@ import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.HubConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.SubscriberConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.subscriber.Subscription;
 
+import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
@@ -150,10 +151,9 @@ public class SubscriberManager extends HttpServlet implements
 
 			if (sub.getValue().equals(feed.getLink())
 					|| sub.getValue().equals("http://" + feed.getLink())) {
-				sub.getKey().onContent(feed);
+				sub.getKey().onContent((SyndEntry)feed.getEntries().get(0));
 			}
 		}
-
 	}
 
 	// for hub verification purpose

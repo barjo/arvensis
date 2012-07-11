@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.internal;
 
 import static org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.Publishing.COMPONENT_NAME;
+import static org.osgi.service.log.LogService.LOG_INFO;
 
 import javax.servlet.ServletException;
 
@@ -51,6 +52,7 @@ public class PublishingImpl implements Publishing {
 
 		topic = new RSSTopicManager(rose.getHost()+":"+port, topicURL, httpService,
 				context);
+		log.log(LOG_INFO, COMPONENT_NAME+ "has successfully started");
 	}
 
 	@Invalidate

@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.internal;
 
 import static org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.PublisherManager.COMPONENT_NAME;
+import static org.osgi.service.log.LogService.LOG_INFO;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
@@ -42,7 +43,9 @@ public class PublisherManagerImpl implements PublisherManager,
 		tracker = new ServiceTracker(context, Publishing.class.getName(), this);
 		tracker.open();
 		
-		hubConnect = HubConnector.getPublisherConnector(hubUrl);	
+		hubConnect = HubConnector.getPublisherConnector(hubUrl);
+		
+		log.log(LOG_INFO, COMPONENT_NAME+ "has successfully started");
 	}
 
 	@Invalidate
@@ -69,8 +72,7 @@ public class PublisherManagerImpl implements PublisherManager,
 
 		// bind
 		publisher.bindManager(this);
-		
-	
+		log.log(LOG_INFO, "Binding with publisher " + publisher.getTopic());
 		return publisher;
 	}
 

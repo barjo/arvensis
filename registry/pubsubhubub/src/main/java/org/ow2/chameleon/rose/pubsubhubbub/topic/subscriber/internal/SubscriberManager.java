@@ -1,5 +1,6 @@
 package org.ow2.chameleon.rose.pubsubhubbub.topic.subscriber.internal;
 
+import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 
@@ -91,6 +92,7 @@ public class SubscriberManager extends HttpServlet implements
 		tracker = new ServiceTracker(context, Subscription.class.getName(),
 				this);
 		tracker.open();
+		log.log(LOG_INFO, "SubscriberManager has successfully started");
 
 	}
 
@@ -110,6 +112,7 @@ public class SubscriberManager extends HttpServlet implements
 			log.log(LogService.LOG_ERROR, "Unsuccessful connect to hub "
 					+ hubUrl);
 		}
+		log.log(LOG_INFO, "Registered a subscriber "+ subs.getTopicUrl());
 		return subs;
 	}
 
@@ -121,6 +124,7 @@ public class SubscriberManager extends HttpServlet implements
 
 		hubConnect.unconnect(subscription.get(subs));
 		subscription.values().remove(subs);
+		log.log(LOG_INFO, "Unregistered a subscriber "+ subs.getTopicUrl());
 
 	}
 

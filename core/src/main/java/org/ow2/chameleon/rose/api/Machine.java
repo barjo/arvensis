@@ -24,7 +24,16 @@ import org.ow2.chameleon.rose.api.InConnection.InBuilder;
 import org.ow2.chameleon.rose.api.Instance.InstanceBuilder;
 import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
 
-
+/**
+ * The meat of RoSe. Once you have created a RoSe machine you can add to
+ * {@link InConnection} that allows for the import of remote services and
+ * {@link OutConnection} that allows for the export of local OSGi services. You
+ * can also create {@link Instance} from the {@link Machine}, it's useful to
+ * Instantiate component providing {@link ExporterService} and
+ * {@link ImporterService} as well as discovery component.
+ * 
+ * @author barjo
+ */
 public final class Machine {
 	private static final String RoSe_FACTORY_FILTER="(&("+OBJECTCLASS+"="+Factory.class.getName()+")(factory.state="+VALID+")(factory.name="+RoSe_MACHINE_COMPONENT_NAME+"))";
 

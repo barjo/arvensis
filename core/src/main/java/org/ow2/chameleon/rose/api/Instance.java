@@ -15,7 +15,17 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
+import org.ow2.chameleon.rose.ExporterService;
+import org.ow2.chameleon.rose.ImporterService;
 
+/**
+ * Useful builder that allows for the instantiation of component, such as the
+ * ones providing {@link ExporterService}, {@link ImporterService} as well as
+ * service discovery and publication facilities.
+ * 
+ * @author barjo
+ * 
+ */
 public final class Instance {
 	private static final String FACTORY_FILTER="("+OBJECTCLASS+"="+Factory.class.getName()+")(factory.state="+VALID+")";
 	

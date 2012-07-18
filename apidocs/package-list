@@ -1,0 +1,5 @@
+org.ow2.chameleon.rose
+org.ow2.chameleon.rose.api
+org.ow2.chameleon.rose.introspect
+org.ow2.chameleon.rose.registry
+org.ow2.chameleon.rose.util

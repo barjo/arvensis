@@ -34,7 +34,7 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
  * 
  */
 
-class TestHubImpl extends HttpServlet {
+public class TestHubImpl extends HttpServlet {
 
 	/**
 	 * 

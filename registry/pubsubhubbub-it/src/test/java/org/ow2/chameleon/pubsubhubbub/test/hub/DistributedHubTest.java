@@ -1,6 +1,6 @@
 package org.ow2.chameleon.pubsubhubbub.test.hub;
 
-import static org.ow2.chameleon.rose.RoseMachine.ROSE_MACHINE_ID;
+import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RECONNECT;
 import static org.ow2.chameleon.pubsubhubbub.test.clients.AbstractTestConfiguration.waitForIt;
 
@@ -872,12 +872,12 @@ public class DistributedHubTest extends AbstactHubTest {
 		try {
 			// run rose
 			Dictionary<String, String> roseProps = new Hashtable<String, String>();
-			roseProps.put(ROSE_MACHINE_ID, roseMachineId);
+			roseProps.put(RoSe_MACHINE_ID, roseMachineId);
 
 			ipojo.createComponentInstance("RoSe_machine", roseProps);
 
 			ServiceReference roseSref = osgi.getServiceReference(
-					RoseMachine.class.getName(), "(" + ROSE_MACHINE_ID + "="
+					RoseMachine.class.getName(), "(" + RoSe_MACHINE_ID + "="
 							+ roseMachineId + ")");
 
 			// run Test Pubsubhubbub

@@ -21,7 +21,7 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.8.0</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
+		<rose.core.version>0.3.1-SNAPSHOT</rose.core.version>
 		<json-service.version>0.4.0</json-service.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 
@@ -246,20 +246,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- Test Plugin -->
-			<plugin>
-				<groupId>org.apache.servicemix.tooling</groupId>
-				<artifactId>depends-maven-plugin</artifactId>
-				<version>1.2</version>
-				<executions>
-					<execution>
-						<id>generate-depends-file</id>
-						<goals>
-							<goal>generate-depends-file</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+			
 		</plugins>
 	</build>
 </project>

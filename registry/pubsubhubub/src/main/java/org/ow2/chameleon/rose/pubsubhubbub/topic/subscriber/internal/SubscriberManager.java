@@ -20,6 +20,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
@@ -32,6 +33,8 @@ import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMo
 import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.HubConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.SubscriberConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.subscriber.Subscription;
+import org.ow2.chameleon.rose.util.DefaultLogService;
+import org.xml.sax.XMLReader;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
@@ -53,7 +56,7 @@ public class SubscriberManager extends HttpServlet implements
 	@Property(name = "call.back", mandatory = true)
 	private String callBack;
 
-	@Requires
+	@Requires(optional=true, defaultimplementation = DefaultLogService.class)
 	private LogService log;
 
 	@Requires
@@ -112,7 +115,7 @@ public class SubscriberManager extends HttpServlet implements
 			log.log(LogService.LOG_ERROR, "Unsuccessful connect to hub "
 					+ hubUrl);
 		}
-		log.log(LOG_INFO, "Registered a subscriber "+ subs.getTopicUrl());
+		log.log(LOG_INFO, "Registered a subscriber to topic "+ subs.getTopicUrl());
 		return subs;
 	}
 
@@ -124,7 +127,7 @@ public class SubscriberManager extends HttpServlet implements
 
 		hubConnect.unconnect(subscription.get(subs));
 		subscription.values().remove(subs);
-		log.log(LOG_INFO, "Unregistered a subscriber "+ subs.getTopicUrl());
+		log.log(LOG_INFO, "Unregistered a subscriber to topic "+ subs.getTopicUrl());
 
 	}
 
@@ -134,7 +137,7 @@ public class SubscriberManager extends HttpServlet implements
 		InputStream in = req.getInputStream();
 		SyndFeedInput input = new SyndFeedInput();
 
-		ClassLoader bundle = this.getClass().getClassLoader();
+		ClassLoader bundle = SyndFeed.class.getClassLoader();
 		ClassLoader thread = Thread.currentThread().getContextClassLoader();
 		try {
 			// Switch
@@ -142,6 +145,7 @@ public class SubscriberManager extends HttpServlet implements
 			SyndFeed feed = input.build(new XmlReader(in));
 			notifySubscriptions(feed);
 		} catch (Exception e) {
+			resp.sendError(HttpStatus.SC_BAD_REQUEST);
 			e.printStackTrace();
 		} finally {
 			// Restore

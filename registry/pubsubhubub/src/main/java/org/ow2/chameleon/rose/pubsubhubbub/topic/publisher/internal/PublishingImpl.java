@@ -19,6 +19,7 @@ import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.HubConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.PublisherManager;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.Publishing;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 
 @Component(name = COMPONENT_NAME)
 @Provides
@@ -27,7 +28,7 @@ public class PublishingImpl implements Publishing {
 	@Requires
 	private HttpService httpService;
 
-	@Requires(optional = true)
+	@Requires(optional=true, defaultimplementation = DefaultLogService.class)
 	private LogService log;
 
 	@Requires

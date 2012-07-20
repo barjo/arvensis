@@ -17,6 +17,7 @@ import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.HubConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.connector.PublisherConnector;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.PublisherManager;
 import org.ow2.chameleon.rose.pubsubhubbub.topic.publisher.Publishing;
+import org.ow2.chameleon.rose.util.DefaultLogService;
 
 @Component(name=COMPONENT_NAME)
 public class PublisherManagerImpl implements PublisherManager,
@@ -29,7 +30,7 @@ public class PublisherManagerImpl implements PublisherManager,
 	private ServiceTracker tracker;
 	private PublisherConnector hubConnect;
 
-	@Requires
+	@Requires(optional=true, defaultimplementation = DefaultLogService.class)
 	private LogService log;
 
 	public PublisherManagerImpl(BundleContext context) {

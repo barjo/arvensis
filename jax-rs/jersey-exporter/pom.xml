@@ -11,14 +11,13 @@
 		the specific language governing permissions and limitations under the
 		License.
 	-->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!-- Project's parent -->
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
-		<version>0.0.7-SNAPSHOT</version>
+		<version>1.0.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -28,14 +27,14 @@
 	<packaging>bundle</packaging>
 	<name>OW2 Chameleon - RoSe JAX-RS Exporter (jersey)</name>
 	<description>OW2 Chameleon RoSe JAX-RS Exporter bundle, contains the RoSe exporter component based on the jersey library.</description>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 
 	<!-- All the version number should be set here-->
 	<properties>
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.3.1-SNAPSHOT</rose.core.version>
+		<rose.core.version>1.0.0</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		
 		<!-- Plugins version-->
@@ -90,7 +89,7 @@
 							org.ow2.chameleon.rose.rest,
 							org.ow2.chameleon.rose.rest.provider
 						</Private-Package>
-						<Export-Package/>
+						<Export-Package />
 						<Import-Package>
 							org.osgi.service.log;version=1.3,
 							org.ow2.chameleon.rose;version="[0.1,1)",

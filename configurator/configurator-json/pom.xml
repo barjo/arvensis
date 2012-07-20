@@ -6,14 +6,14 @@
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
-		<version>0.0.7-SNAPSHOT</version>
+		<version>1.0.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<!-- Description of the project -->
 	<artifactId>json-configurator</artifactId>
 	<name>OW2 Chameleon - RoSe Json Configurator</name>
-	<version>0.1.3-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>bundle</packaging>
 	<description>OW2 Chameleon ROSE Json Configurator</description>
 
@@ -21,7 +21,7 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.3.1-SNAPSHOT</rose.core.version>
+		<rose.core.version>1.0.0</rose.core.version>
 
 		<!-- Plugins version -->
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>

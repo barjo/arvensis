@@ -17,7 +17,7 @@
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -27,14 +27,14 @@
 	<packaging>bundle</packaging>
 	<name>OW2 Chameleon - RoSe JAX-RS Exporter (jersey)</name>
 	<description>OW2 Chameleon RoSe JAX-RS Exporter bundle, contains the RoSe exporter component based on the jersey library.</description>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 
 	<!-- All the version number should be set here-->
 	<properties>
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>1.0.0</rose.core.version>
+		<rose.core.version>1.0.1-SNAPSHOT</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		
 		<!-- Plugins version-->

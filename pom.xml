@@ -3,7 +3,7 @@
 
 	<groupId>org.ow2.chameleon.rose</groupId>
 	<artifactId>rose-parent</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>Rose Parent</name>
 	<packaging>pom</packaging>
 
@@ -71,7 +71,7 @@
 		<connection>scm:git:git@github.com:barjo/arvensis.git</connection>
 		<url>scm:git:git@github.com:barjo/arvensis.git</url>
 		<developerConnection>scm:git:git@github.com:barjo/arvensis.git</developerConnection>
-	  <tag>RoSe Arvensis 1.0.0</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<distributionManagement>

@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
-		<version>0.0.7-SNAPSHOT</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
 	<!-- Description of the project -->
@@ -23,14 +23,14 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.3.1-SNAPSHOT</rose.core.version>
+		<rose.core.version>1.0.1-SNAPSHOT</rose.core.version>
 		<jabsorb.version>1.3.1</jabsorb.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<mockito.version>1.7</mockito.version>
 		<jetty.version>2.2.0</jetty.version>
 		
 		<!-- Tested version-->
-		<jabsorb-importer.version>0.1.0-SNAPSHOT</jabsorb-importer.version>
+		<jabsorb-importer.version>1.0.1-SNAPSHOT</jabsorb-importer.version>
 
 		<!-- Plugins version-->
 		<compiler.plugin.version>2.1</compiler.plugin.version>

@@ -80,10 +80,10 @@
 							${project.artifactId}
 						</Bundle-SymbolicName>
 						<Import-Package>
-							org.ow2.chameleon.rose;version="[0.1,1)",
-							org.ow2.chameleon.rose.api;version="[0.1,1)",
-							org.ow2.chameleon.rose.introspect;version="[0.1,1)",
-							org.ow2.chameleon.rose.util;version="[0.1,1)",
+							org.ow2.chameleon.rose;version="[1,2)",
+							org.ow2.chameleon.rose.api;version="[1,2)",
+							org.ow2.chameleon.rose.introspect;version="[1,2)",
+							org.ow2.chameleon.rose.util;version="[1,2)",
 							org.osgi.framework,
 							org.osgi.service.log,
 							org.osgi.service.remoteserviceadmin,

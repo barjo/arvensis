@@ -117,8 +117,10 @@
 							org.osgi.framework,
 							org.osgi.service.log,
 							org.osgi.service.remoteserviceadmin,
-							org.ow2.chameleon.rose,
-							org.ow2.chameleon.rose.util
+							org.ow2.chameleon.rose;version="[1,2)",
+							org.ow2.chameleon.rose.registry;version="[1,2)",
+							org.ow2.chameleon.rose.introspect;version="[1,2)",
+							org.ow2.chameleon.rose.util;version="[1,2)"
 						</Import-Package>
 						<Export-Package />
 					</instructions>

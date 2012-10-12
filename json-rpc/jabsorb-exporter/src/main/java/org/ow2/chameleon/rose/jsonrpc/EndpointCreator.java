@@ -82,7 +82,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
     private JSONRPCBridge jsonbridge;
     
     /**
-     * Value of the {@link EndpointCreator#PROP_JABSORB_URL} property.
+     * Url compute from the servletname and the http server root.
      */
     private String myurl;
 
@@ -168,8 +168,8 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 		if (ref.getProperty(PROP_HTTP_PORT) != null){
 			httpport = valueOf((String) ref.getProperty(PROP_HTTP_PORT));
 		}
-		else if (System.getProperty(PROP_HTTP_PORT) != null) {
-			httpport = valueOf((String) System.getProperty(PROP_HTTP_PORT));
+        else if (context.getProperty(PROP_HTTP_PORT) != null ){
+            httpport = valueOf(context.getProperty(PROP_HTTP_PORT));
 		} else {
 			httpport = DEFAULT_HTTP_PORT;
 			logger.log( LOG_WARNING, "A default value ("+

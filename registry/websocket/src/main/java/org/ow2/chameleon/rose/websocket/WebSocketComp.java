@@ -5,12 +5,7 @@
     import org.glassfish.grizzly.websockets.WebSocketEngine;
     import org.osgi.framework.BundleContext;
     import org.osgi.service.http.HttpService;
-    import org.osgi.service.http.NamespaceException;
     import org.osgi.service.log.LogService;
-
-    import javax.servlet.ServletConfig;
-    import javax.servlet.ServletException;
-    import javax.servlet.http.HttpServlet;
 
     /**
      * Simple component that register a WebSocketApplication, the WebSocketEndpointDiscoApp
@@ -20,16 +15,13 @@
      */
     @Component(name="RoSe_websocket_publication")
     @Instantiate
-    public class WebSocketComp extends HttpServlet{
+    public class WebSocketComp {
 
         @Requires(optional = true)
         private LogService logger;
 
         @Requires
         private HttpService http;
-
-        @Property(name = "root.name",value = "/disco")
-        private String rootname;
 
         private final WebSocketApplication app;
 
@@ -39,50 +31,21 @@
 
 
         /**
-         * Register the WebSocketApplication.
-         * @param config
-         * @throws ServletException
-         */
-        @Override
-        public void init(ServletConfig config) throws ServletException {
-            super.init(config);
-            WebSocketEngine.getEngine().register(app);
-
-        }
-
-
-        /**
-         * Unregister the WebSocketApplication when the servlet is destroyed
-         */
-        @Override
-        public void destroy() {
-            WebSocketEngine.getEngine().unregister(app);
-            logger.log(LogService.LOG_INFO,"The WebSocket app has been unregistered");
-            super.destroy();
-        }
-
-        /**
-         * Start the component, register itself as a servlet through the HttpService.
+         * Start the component, register the app.
          */
         @Validate
         private void start(){
-            logger.log(LogService.LOG_INFO,"RoSe WebSocket registry starting.");
-            try {
-                http.registerServlet(rootname,this,null,null);
-            } catch (ServletException e) {
-                logger.log(LogService.LOG_ERROR,"Cannot register the websocket",e);
-            } catch (NamespaceException e) {
-                logger.log(LogService.LOG_ERROR,"Cannot register the websocket",e);
-            }
+            logger.log(LogService.LOG_INFO, "RoSe WebSocket registry starting.");
+            WebSocketEngine.getEngine().register(app);
         }
 
         /**
-         * Unregister itself through the HttpService.
+         * Unregister the app.
          */
         @Invalidate
         private void stop(){
-            logger.log(LogService.LOG_INFO,"RoSe WebSocket registry stopping.");
-            http.unregister(rootname);
+            logger.log(LogService.LOG_INFO, "RoSe WebSocket registry stopping.");
+            WebSocketEngine.getEngine().unregister(app);
         }
 
     }

@@ -32,7 +32,10 @@ public class WebSocketEndpointDiscoApp extends WebSocketApplication {
 
     @Override
     public boolean isApplicationRequest(HttpRequestPacket request) {
-            return true;
+            if (request.getRequestURI().endsWith("/disco"))
+               return true;
+            else
+               return false;
     }
 
     /**

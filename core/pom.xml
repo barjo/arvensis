@@ -24,7 +24,6 @@
 	<!-- Description of the project -->
 	<artifactId>rose-core</artifactId>
 	<name>OW2 Chameleon - RoSe Core</name>
-	<version>1.0.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<description>OW2 Chameleon ROSE Core bundle, contains the ROSE service specification.</description>
 

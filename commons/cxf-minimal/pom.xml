@@ -25,7 +25,6 @@
   <artifactId>cxf-bundle-minimal</artifactId>
   <packaging>bundle</packaging>
   <name>OW2 Chameleon - CXF Minimal Bundle</name>
-  <version>1.0.1-SNAPSHOT</version>
   <description>
     Bundle wrapping the CXF minimal bundle. This bundle is the same that the cxf one except for the cxf-busextension.xml which defers from the original file.
     In this bundle the extension for woodstox and jax-rs are not defined.
@@ -39,10 +38,6 @@
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  <organization>
-    <name>OW2 Chameleon</name>
-    <url>http://wiki.chameleon.ow2.org/</url>
-  </organization>
   <licenses>
     <license>
       <name>Apache 2</name>

@@ -9,13 +9,13 @@
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
 		<version>1.0.1-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
 	<artifactId>jabsorb-importer-it</artifactId>
 	<name>OW2 Chameleon - RoSe JSON-RPC Importer[IntegrationTest]</name>
-	<version>0.1.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<description>OW2 Chameleon ROSE JSON-RPC Importer Integration Test, contains the ROSE Json-rpc importer integration test</description>
 
@@ -23,15 +23,11 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>1.0.1-SNAPSHOT</rose.core.version>
 		<jabsorb.version>1.3.1</jabsorb.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<mockito.version>1.7</mockito.version>
 		<jetty.version>2.2.0</jetty.version>
 		
-		<!-- Tested version-->
-		<jabsorb-importer.version>1.0.1-SNAPSHOT</jabsorb-importer.version>
-
 		<!-- Plugins version-->
 		<compiler.plugin.version>2.1</compiler.plugin.version>
 		
@@ -113,13 +109,13 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
-			<version>${rose.core.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.jsonrpc</groupId>
 			<artifactId>jabsorb-importer</artifactId>
-			<version>${jabsorb-importer.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>	
 		<dependency>

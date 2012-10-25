@@ -12,7 +12,6 @@
 	<groupId>org.ow2.chameleon.rose.rest</groupId>
 	<artifactId>jersey-exporter-it</artifactId>
 	<name>OW2 Chameleon - RoSe JAX-RS Exporter[IntegrationTest]</name>
-	<version>0.1.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<description>OW2 Chameleon ROSE JAX-RS Exporter Integration Test, contains the ROSE jax-rs exporter integration test</description>
 
@@ -20,15 +19,11 @@
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>1.0.1-SNAPSHOT</rose.core.version>
 		<jersey.version>1.8</jersey.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<mockito.version>1.7</mockito.version>
 		<grizzly.version>1.9.36</grizzly.version>
 		
-		<!-- Tested version-->
-		<jersey-exporter.version>1.0.1-SNAPSHOT</jersey-exporter.version>
-
 		<!-- Plugins version-->
 		<compiler.plugin.version>2.1</compiler.plugin.version>
 		
@@ -116,13 +111,13 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
-			<version>${rose.core.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.rest</groupId>
 			<artifactId>jersey-exporter</artifactId>
-			<version>${jersey-exporter.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>	
 		<dependency>

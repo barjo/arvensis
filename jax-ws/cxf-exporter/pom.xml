@@ -27,14 +27,11 @@
 	<name>OW2 Chameleon - RoSe JAX-WS Exporter (cxf) </name>
 	<description>OW2 Chameleon RoSe JAX-WS Exporter bundle, contains the RoSe exporter component based on the cxf library.</description>
 
-	<version>1.0.1-SNAPSHOT</version>
-
 	<!-- All the version number should be set here-->
 	<properties>
 		<!-- Dependencies version -->
 		<ipojo.version>1.6.8</ipojo.version>
 		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>1.0.1-SNAPSHOT</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<cxf.version>2.5.2</cxf.version>
 		
@@ -52,7 +49,7 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
-			<version>${rose.core.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>

@@ -1,20 +1,5 @@
 package org.ow2.chameleon.rose.testing;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.ops4j.pax.exam.CoreOptions.felix;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.exam.CoreOptions.provision;
-import static org.ops4j.pax.exam.CoreOptions.systemProperty;
-import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.ow2.chameleon.rose.testing.RoSeHelper.waitForIt;
-
-import java.util.Map;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +20,15 @@ import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 import org.ow2.chameleon.testing.helpers.IPOJOHelper;
 import org.ow2.chameleon.testing.helpers.OSGiHelper;
+
+import java.util.Map;
+
+import static junit.framework.Assert.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.ops4j.pax.exam.CoreOptions.*;
+import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.testing.RoSeHelper.waitForIt;
 
 public abstract class ExporterComponentAbstractTest {
 	
@@ -221,6 +215,8 @@ public abstract class ExporterComponentAbstractTest {
             verify(logService).log(LOG_WARNING, "YEAHH!!"+i);
         }
     }
+
+
     
 
 	/**

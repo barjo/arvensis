@@ -1,15 +1,5 @@
 package org.ow2.chameleon.rose.api;
 
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.osgi.framework.Constants.SERVICE_ID;
-import static org.osgi.framework.FrameworkUtil.createFilter;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -20,6 +10,16 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.ExporterService;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.osgi.framework.Constants.SERVICE_ID;
+import static org.osgi.framework.FrameworkUtil.createFilter;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 
 /**
  * A {@link OutConnection} allows to export all services matching a given
@@ -212,7 +212,9 @@ public final class OutConnection {
 		}
 
 		public void modifiedService(ServiceReference reference, Object object) {
-			// XXX not supported
+            //destroy and recreate!
+            tracker.remove(reference);
+            tracker.addingService(reference);
 		}
 
 		public void removedService(ServiceReference reference, Object object) {

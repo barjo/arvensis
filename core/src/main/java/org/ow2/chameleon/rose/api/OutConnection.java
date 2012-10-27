@@ -34,8 +34,8 @@ public final class OutConnection {
 	private static final String DEFAULT_EXPORTER_FILTER = "(" + OBJECTCLASS
 			+ "=" + ExporterService.class.getName() + ")";
 
-	private final ExporterTracker extracker;
-	private final Machine machine;
+	private ExporterTracker extracker;
+	private Machine machine;
 	private final Filter sfilter;
 	private final Filter xfilter;
 	private final Map<String, Object> extraProperties;
@@ -64,6 +64,16 @@ public final class OutConnection {
 	public void close() {
 		extracker.close();
 	}
+
+    /**
+     * Link this connection to an Other machine, not the old one anymore.
+     * @param machine
+     */
+    public void update(Machine machine) {
+        this.machine = machine;
+        machine.add(this);
+        extracker = new ExporterTracker();
+    }
 
 	/**
 	 * @return The {@link ExportReference} created through this

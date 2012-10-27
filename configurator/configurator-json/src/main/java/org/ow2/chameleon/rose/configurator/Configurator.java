@@ -5,6 +5,7 @@ import static org.osgi.service.log.LogService.LOG_WARNING;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +19,10 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.api.InConnection;
+import org.ow2.chameleon.rose.api.Instance;
 import org.ow2.chameleon.rose.api.Machine;
+import org.ow2.chameleon.rose.api.OutConnection;
 
 /**
  * 
@@ -65,6 +69,24 @@ public class Configurator implements ArtifactInstaller{
 		logger.log(LogService.LOG_INFO, THIS_COMPONENT+" is stopping");
 	}
 
+    private Machine getMachine(String machineId){
+        Collection<Machine> machs = machines.values();
+        for(Machine machine : machs){
+            if (machine.getId().equals(machineId))
+                return machine;
+        }
+
+        return null;
+    }
+
+    private boolean containsMachine(String machineId){
+        Collection<Machine> machs = machines.values();
+        for(Machine machine : machs){
+            if (machine.getId().equals(machineId))
+                return true;
+        }
+        return false;
+    }
 	
 	/*-----------------*
 	 *  File handling  *
@@ -102,8 +124,24 @@ public class Configurator implements ArtifactInstaller{
 		
 		try{
 			Machine machine = parser.parse(json);
-			machine.start();
-			machines.put(name, machine);
+            Machine existing = getMachine(machine.getId());
+
+            if (existing == null){
+			    machine.start();
+			    machines.put(name, machine);
+
+            } else {
+                for(Instance instance : machine.getInstances())
+                    instance.update(existing);
+                for(InConnection in : machine.getIns()){
+                    in.update(existing);
+                }
+                for(OutConnection out : machine.getOuts()){
+                    out.update(existing);
+                }
+                machines.put(name,existing);
+            }
+
 			logger.log(LOG_INFO, "Configuration "+name+" successfully handled");
 		}
 		catch(Exception e){
@@ -115,13 +153,44 @@ public class Configurator implements ArtifactInstaller{
 
 	public void uninstall(File file) throws Exception {
 		String name = file.getName();
-		logger.log(LOG_INFO, "Configuration file: "+name +" removed");
-		
-		if (machines.containsKey(name)){
-			machines.remove(name).stop();
-			logger.log(LOG_INFO, "The file: "+name+" as been removed. The corresonding Rose configuration has been destroyed.");
-		}
-		
+
+        Map<String, Object> json;
+
+        try{
+            json = jsonservice.fromJSON(new FileInputStream(file));
+        }catch(Exception e){
+            logger.log(LOG_WARNING, "Cannot parse removed rose configuration file: "+name,e);
+            throw e;
+        }
+
+        try{
+            Machine machine = parser.parse(json);
+
+            if (machines.containsKey(name)){
+                Machine existing = machines.remove(name);
+
+                if(!containsMachine(existing.getId())){
+                    existing.stop();
+                } else{
+
+                    for(Instance instance : machine.getInstances())
+                        existing.remove(instance);
+
+                    for(OutConnection out : machine.getOuts())
+                        existing.remove(out);
+
+                    for(InConnection in : machine.getIns()){
+                        existing.remove(in);
+                    }
+                }
+
+                logger.log(LOG_INFO, "The file: "+name+" as been removed. The corresponding Rose configuration has been destroyed.");
+            }
+
+
+        } catch (Exception e){
+            logger.log(LOG_WARNING, "Cannot parse removed rose configuration file: "+name,e);
+        }
 	}
 	
 
@@ -131,25 +200,7 @@ public class Configurator implements ArtifactInstaller{
 		logger.log(LOG_INFO, "Start to reload configuration file: "+name);
 		
 		if (machines.containsKey(name)) {
-			Map<String, Object> json;
-
-			try {
-				json = jsonservice.fromJSON(new FileInputStream(file));
-			} catch (Exception e) {
-				logger.log(LOG_WARNING, "Cannot parse updated rose configuration file: " + name, e);
-				throw e;
-			}
-
-			try { //stop and remove oldconf, then start newconf
-				Machine machine = parser.parse(json);
-				machines.remove(name).stop();
-				machine.start();
-				machines.put(name, machine);
-			} catch (Exception e) {
-				logger.log(LOG_WARNING, "Cannot parse updated rose configuration file:" + name
-						+ " an exception occured", e);
-				throw e;
-			}
+		    logger.log(LOG_WARNING, "Updating a configuration file is not supported! please delete and create a new one.");
 		}else {
 			install(file); //handle as new
 		}

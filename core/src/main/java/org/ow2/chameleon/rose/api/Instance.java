@@ -30,9 +30,9 @@ public final class Instance {
 	private static final String FACTORY_FILTER="("+OBJECTCLASS+"="+Factory.class.getName()+")(factory.state="+VALID+")";
 	
 	
-	private final Machine machine;
+	private Machine machine;
 	private final String component;
-	private final ServiceTracker tracker;
+	private ServiceTracker tracker;
 	private final Hashtable<String, Object> conf = new Hashtable<String, Object>();
 	
 	private Instance(InstanceBuilder builder) {
@@ -59,7 +59,17 @@ public final class Instance {
 	 */
 	public void stop(){
 		tracker.close();
-	}
+    }
+
+    public void update(Machine machine){
+        try {
+            tracker = new ServiceTracker(machine.getContext(), machine.getContext().createFilter("(&"+FACTORY_FILTER+"(factory.name="+component+"))"), new InstanceCreator());
+            this.machine = machine;
+            machine.add(this);
+        } catch (InvalidSyntaxException e) {
+            throw new IllegalArgumentException("The component name must not contains illegal character.",e);
+        }
+    }
 	
 	public static class InstanceBuilder {
 		private final Machine machine;

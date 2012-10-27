@@ -36,8 +36,8 @@ public final class InConnection {
 	private static final String DEFAULT_IMPORTER_FILTER = "(" + OBJECTCLASS
 			+ "=" + ImporterService.class.getName() + ")";
 
-	private final ImporterTracker imptracker;
-	private final Machine machine;
+	private ImporterTracker imptracker;
+	private Machine machine;
 	private final Filter edfilter;
 	private final Filter ifilter;
 	private final Map<String, Object> extraProperties;
@@ -67,6 +67,16 @@ public final class InConnection {
 	public void close() {
 		imptracker.close();
 	}
+
+    /**
+     * Link this connection to an Other machine, not the old one anymore.
+     * @param machine
+     */
+    public void update(Machine machine) {
+        this.machine = machine;
+        machine.add(this);
+        imptracker = new ImporterTracker();
+    }
 	
 	/**
 	 * @return The {@link ImportReference} created through this {@link InConnection}.
@@ -74,9 +84,8 @@ public final class InConnection {
 	public ImportReference[] getImportReferences(){
 		return customizer.getImportReferences();
 	}
-	
 
-	/**
+    /**
 	 * Convenient Builder for the creation of a {@link InConnection}.
 	 * 
 	 * @author barjo

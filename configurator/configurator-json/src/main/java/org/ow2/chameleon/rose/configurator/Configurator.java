@@ -2,6 +2,8 @@ package org.ow2.chameleon.rose.configurator;
 
 import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.util.RoseTools.removeFromMachine;
+import static org.ow2.chameleon.rose.util.RoseTools.updateMachine;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,10 +21,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.api.InConnection;
-import org.ow2.chameleon.rose.api.Instance;
 import org.ow2.chameleon.rose.api.Machine;
-import org.ow2.chameleon.rose.api.OutConnection;
 
 /**
  * 
@@ -69,6 +68,10 @@ public class Configurator implements ArtifactInstaller{
 		logger.log(LogService.LOG_INFO, THIS_COMPONENT+" is stopping");
 	}
 
+    /**
+     * @param machineId
+     * @return The existing machine of given id.
+     */
     private Machine getMachine(String machineId){
         Collection<Machine> machs = machines.values();
         for(Machine machine : machs){
@@ -79,6 +82,10 @@ public class Configurator implements ArtifactInstaller{
         return null;
     }
 
+    /**
+     * @param machineId
+     * @return <code>true</code> if a machine of given id exist, <code>false</code> otherwise.
+     */
     private boolean containsMachine(String machineId){
         Collection<Machine> machs = machines.values();
         for(Machine machine : machs){
@@ -131,14 +138,7 @@ public class Configurator implements ArtifactInstaller{
 			    machines.put(name, machine);
 
             } else {
-                for(Instance instance : machine.getInstances())
-                    instance.update(existing);
-                for(InConnection in : machine.getIns()){
-                    in.update(existing);
-                }
-                for(OutConnection out : machine.getOuts()){
-                    out.update(existing);
-                }
+                updateMachine(existing,machine.getOuts(),machine.getIns(),machine.getInstances());
                 machines.put(name,existing);
             }
 
@@ -172,16 +172,7 @@ public class Configurator implements ArtifactInstaller{
                 if(!containsMachine(existing.getId())){
                     existing.stop();
                 } else{
-
-                    for(Instance instance : machine.getInstances())
-                        existing.remove(instance);
-
-                    for(OutConnection out : machine.getOuts())
-                        existing.remove(out);
-
-                    for(InConnection in : machine.getIns()){
-                        existing.remove(in);
-                    }
+                    removeFromMachine(existing,machine.getOuts(),machine.getIns(),machine.getInstances());
                 }
 
                 logger.log(LOG_INFO, "The file: "+name+" as been removed. The corresponding Rose configuration has been destroyed.");

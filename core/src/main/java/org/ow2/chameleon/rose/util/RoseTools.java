@@ -32,6 +32,10 @@ import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest;
+import org.ow2.chameleon.rose.api.InConnection;
+import org.ow2.chameleon.rose.api.Instance;
+import org.ow2.chameleon.rose.api.Machine;
+import org.ow2.chameleon.rose.api.OutConnection;
 
 /**
  * This class contains some useful static methods.
@@ -338,5 +342,27 @@ public final class RoseTools {
         result.removeAll(list2);
 
         return result;
+    }
+
+    public static void updateMachine(Machine machine,Collection<OutConnection> outs,Collection<InConnection> ins, Collection<Instance> instances){
+        for(InConnection in : ins)
+            in.update(machine);
+
+        for(OutConnection out : outs)
+            out.update(machine);
+
+        for(Instance instance : instances)
+            instance.update(machine);
+    }
+
+    public static void removeFromMachine(Machine machine,Collection<OutConnection> outs,Collection<InConnection> ins, Collection<Instance> instances){
+        for(OutConnection out : outs)
+            machine.remove(out);
+
+        for(InConnection in : ins)
+            machine.remove(in);
+
+        for(Instance instance : instances)
+            machine.remove(instance);
     }
 }

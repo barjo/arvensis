@@ -1,27 +1,5 @@
 package org.ow2.chameleon.rose.configurator;
 
-import static org.osgi.service.log.LogService.LOG_DEBUG;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
-import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
-import static org.ow2.chameleon.rose.api.InConnection.InBuilder.in;
-import static org.ow2.chameleon.rose.api.OutConnection.OutBuilder.out;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.component;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.connection;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.exporter_filter;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.factory;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.host;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.importer_filter;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.in;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.machine;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.out;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.properties;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.protocol;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.service_filter;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.felix.ipojo.parser.ParseException;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -31,6 +9,17 @@ import org.ow2.chameleon.rose.api.Instance.InstanceBuilder;
 import org.ow2.chameleon.rose.api.Machine;
 import org.ow2.chameleon.rose.api.Machine.MachineBuilder;
 import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.osgi.service.log.LogService.LOG_DEBUG;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
+import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
+import static org.ow2.chameleon.rose.api.InConnection.InBuilder.in;
+import static org.ow2.chameleon.rose.api.OutConnection.OutBuilder.out;
+import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.*;
 
 /**
  * Create a RoseConfiguration object for a given Map based configuration. 
@@ -46,6 +35,7 @@ public class ConfigurationParser {
 	
 	
 	public enum ConfType{
+        extension,
 		machine,
 		component,
 		connection,
@@ -159,8 +149,8 @@ public class ConfigurationParser {
 		List<Map<String,Object>> jsons = (List<Map<String, Object>>) list;
 		for (Map<String, Object> json : jsons) {
 		
-			if (in.isIn(json)){
-				Map<String,Object> inmap = (Map<String, Object>) in.getValue(json);
+			if (ConfType.in.isIn(json)){
+				Map<String,Object> inmap = (Map<String, Object>) ConfType.in.getValue(json);
 			
 				//Mandatory
 				String endpoint = (String) ConfType.endpoint_filter.getValue(inmap);
@@ -184,8 +174,8 @@ public class ConfigurationParser {
 				inBuilder.add(); //create the connection
 			}
 		
-			if (out.isIn(json)){
-				Map<String,Object> outmap = (Map<String, Object>) out.getValue(json);
+			if (ConfType.out.isIn(json)){
+				Map<String,Object> outmap = (Map<String, Object>) ConfType.out.getValue(json);
 			
 				//Mandatory
 				String service = (String) service_filter.getValue(outmap);
@@ -225,5 +215,6 @@ public class ConfigurationParser {
 			throw new ParseException("The configuration does not contains a valid rose machine configuration");
 		}
 	}
-	
+
+
 }

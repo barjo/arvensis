@@ -1,11 +1,5 @@
 package org.ow2.chameleon.rose;
 
-import static org.osgi.service.log.LogService.LOG_WARNING;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
@@ -14,6 +8,12 @@ import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.ow2.chameleon.rose.internal.BadImportRegistration;
 import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+
+import static org.osgi.service.log.LogService.LOG_WARNING;
 
 /**
  * Abstract implementation of an proxy-creator which provides an {@link ImporterService}.
@@ -110,8 +110,8 @@ public abstract class AbstractImporterComponent implements ImporterService {
 	 *---------------------------------*/
 	
 	/**
-	 * @param sref
-	 * @param extraProperties
+	 * @param description
+	 * @param properties
 	 * @return
 	 */
 	public ImportRegistration importService(EndpointDescription description,Map<String, Object> properties) {
@@ -163,11 +163,8 @@ public abstract class AbstractImporterComponent implements ImporterService {
 		private ServiceRegistration reg;
 		
 		/**
-		 * Register the {@code pEndesc} thanks to {@code context}.
-		 * 
-		 * @param pSref
-		 * @param pEnddesc
-		 * @param context
+		 * @param description
+		 * @param sreg
 		 */
 		public MyImportReference(EndpointDescription description, ServiceRegistration sreg) {
 			desc = description;

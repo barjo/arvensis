@@ -1,9 +1,11 @@
 package org.ow2.chameleon.rose.configurator;
 
-import static org.osgi.service.log.LogService.LOG_INFO;
-import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.ow2.chameleon.rose.util.RoseTools.removeFromMachine;
-import static org.ow2.chameleon.rose.util.RoseTools.updateMachine;
+import org.apache.felix.fileinstall.ArtifactInstaller;
+import org.apache.felix.ipojo.annotations.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.log.LogService;
+import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.api.Machine;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,17 +13,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.felix.fileinstall.ArtifactInstaller;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.Validate;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.log.LogService;
-import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.api.Machine;
+import static org.osgi.service.log.LogService.LOG_INFO;
+import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.util.RoseTools.removeFromMachine;
+import static org.ow2.chameleon.rose.util.RoseTools.updateMachine;
 
 /**
  * 
@@ -35,6 +30,7 @@ public class Configurator implements ArtifactInstaller{
 	private static final String ROSE_CONF_REGX = "^rose-conf(-[a-zA-Z_0-9]+|).json$";
 	
 	private Map<String,Machine> machines = new HashMap<String, Machine>();
+    private Map<String, MachineConfiguration> confs = new HashMap<String, MachineConfiguration>();
 	
 	
 	@Requires(optional=true)
@@ -133,6 +129,7 @@ public class Configurator implements ArtifactInstaller{
 			Machine machine = parser.parse(json);
             Machine existing = getMachine(machine.getId());
 
+
             if (existing == null){
 			    machine.start();
 			    machines.put(name, machine);
@@ -142,9 +139,11 @@ public class Configurator implements ArtifactInstaller{
                 machines.put(name,existing);
             }
 
+            confs.put(name,new MachineConfiguration(machine)); //save the conf
+
 			logger.log(LOG_INFO, "Configuration "+name+" successfully handled");
 		}
-		catch(Exception e){
+		catch(Exception e){ //TODO fix error handling ?
 			logger.log(LOG_WARNING, "Cannot parse "+name+" an exception occured",e);
 			throw e;
 		}
@@ -154,25 +153,17 @@ public class Configurator implements ArtifactInstaller{
 	public void uninstall(File file) throws Exception {
 		String name = file.getName();
 
-        Map<String, Object> json;
 
         try{
-            json = jsonservice.fromJSON(new FileInputStream(file));
-        }catch(Exception e){
-            logger.log(LOG_WARNING, "Cannot parse removed rose configuration file: "+name,e);
-            throw e;
-        }
+            MachineConfiguration mconf = confs.remove(name);
 
-        try{
-            Machine machine = parser.parse(json);
-
-            if (machines.containsKey(name)){
+            if (mconf != null){
                 Machine existing = machines.remove(name);
 
-                if(!containsMachine(existing.getId())){
+                if(!containsMachine(existing.getId())){ //last configuration, stop the machine.
                     existing.stop();
-                } else{
-                    removeFromMachine(existing,machine.getOuts(),machine.getIns(),machine.getInstances());
+                } else{ //just update the configuration
+                    removeFromMachine(existing, mconf.getOuts(), mconf.getIns(), mconf.getInstances());
                 }
 
                 logger.log(LOG_INFO, "The file: "+name+" as been removed. The corresponding Rose configuration has been destroyed.");
@@ -190,8 +181,11 @@ public class Configurator implements ArtifactInstaller{
 		String name = file.getName();
 		logger.log(LOG_INFO, "Start to reload configuration file: "+name);
 		
-		if (machines.containsKey(name)) {
-		    logger.log(LOG_WARNING, "Updating a configuration file is not supported! please delete and create a new one.");
+		if (machines.containsKey(name)) {     //TODO something better ?
+            uninstall(file);
+            install(file);
+
+		    logger.log(LOG_WARNING, "New configuration has been successfully handled");
 		}else {
 			install(file); //handle as new
 		}

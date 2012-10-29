@@ -8,6 +8,7 @@ import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_HOST;
 import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public final class Machine {
 		conf.put(RoSe_MACHINE_ID, builder.id);
 		conf.put("instance.name", RoSe_MACHINE_COMPONENT_NAME+"_"+builder.id);
 		conf.put(RoSe_MACHINE_HOST, builder.host);
-	}
+    }
 	
 	/**
 	 * Start the rose machine, open all connections and start each instances. 
@@ -157,7 +158,7 @@ public final class Machine {
 	 * @return
 	 */
 	public List<InConnection> getIns(){
-		return unmodifiableList(ins);
+		return new ArrayList<InConnection>(ins);
 	}
 	
 	/**
@@ -186,7 +187,7 @@ public final class Machine {
 	 * @return
 	 */
 	public List<OutConnection> getOuts(){
-		return unmodifiableList(outs);
+		return new ArrayList<OutConnection>(outs);
 	}
 	
 	/**
@@ -215,7 +216,7 @@ public final class Machine {
 	 * @return
 	 */
 	public List<Instance> getInstances(){
-		return unmodifiableList(instances);
+		return new ArrayList<Instance>(instances);
 	}
 	
 	

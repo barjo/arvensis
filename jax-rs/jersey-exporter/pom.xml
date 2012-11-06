@@ -100,7 +100,6 @@
 							org.ow2.chameleon.rose.introspect;version="[1,2)",
 							org.ow2.chameleon.rose.util;version="[1,2)",
 							org.osgi.framework,
-							org.osgi.service.event,
 							org.osgi.service.http,
 							org.osgi.service.log,
 							org.osgi.service.remoteserviceadmin,

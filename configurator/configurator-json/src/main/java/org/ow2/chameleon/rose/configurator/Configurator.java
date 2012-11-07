@@ -27,7 +27,7 @@ import static org.ow2.chameleon.rose.util.RoseTools.updateMachine;
 public class Configurator implements ArtifactInstaller{
 	private static final String THIS_COMPONENT="RoSe.configurator";
 
-	private static final String ROSE_CONF_REGX = "^rose-conf(-[a-zA-Z_0-9]+|).json$";
+	private static final String ROSE_CONF_REGX = "^rose-conf(-[a-zA-Z_0-9]+|).(json|rose)$";
 	
 	private Map<String,Machine> machines = new HashMap<String, Machine>();
     private Map<String, MachineConfiguration> confs = new HashMap<String, MachineConfiguration>();

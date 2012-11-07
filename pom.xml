@@ -27,12 +27,15 @@
 		<ipojo.plugin.version>1.6.0</ipojo.plugin.version>
 		<osgi.version>4.2.0</osgi.version>
 		<bundle.plugin.version>2.3.4</bundle.plugin.version>
-		<compiler.plugin.version>2.1</compiler.plugin.version>
+		<compiler.plugin.version>2.5.1</compiler.plugin.version>
 		<javadoc.plugin.version>2.8.1</javadoc.plugin.version>
 
 		<!-- Test dependencies version -->
-		<mockito.version>1.8.5</mockito.version>
-		<junit.version>4.8.2</junit.version>
+		<mockito.version>1.9.5</mockito.version>
+		<junit.version>4.9</junit.version>
+		<pax-exam.version>2.6.0</pax-exam.version>
+		<pax-url.version>1.4.2</pax-url.version>
+		<pax-runner.version>1.7.6</pax-runner.version>
 
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

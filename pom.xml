@@ -49,6 +49,7 @@
 			<modules>
 				<module>core</module>
 				<module>configurator/configurator-json</module>
+				<module>testing</module>
 			</modules>
 		</profile>
 
@@ -76,7 +77,6 @@
 		<profile>
 			<id>test</id>
 			<modules>
-				<module>testing</module>
 				<module>jax-ws/cxf-exporter-it</module>
 				<module>json-rpc/jabsorb-exporter-it</module>
 				<module>json-rpc/jabsorb-importer-it</module>

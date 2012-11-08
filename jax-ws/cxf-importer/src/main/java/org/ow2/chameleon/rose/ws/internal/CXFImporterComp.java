@@ -1,26 +1,10 @@
 package org.ow2.chameleon.rose.ws.internal;
 
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
-import static org.ow2.chameleon.rose.util.RoseTools.loadClass;
-import static org.ow2.chameleon.rose.util.RoseTools.registerProxy;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import javax.jws.WebService;
-
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.annotations.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
@@ -29,6 +13,16 @@ import org.ow2.chameleon.rose.AbstractImporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
+
+import javax.jws.WebService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
+import static org.ow2.chameleon.rose.util.RoseTools.loadClass;
+import static org.ow2.chameleon.rose.util.RoseTools.registerProxy;
 
 /**
  * This component provides a JAX-WS, Apache CXF based implementation of an
@@ -98,7 +92,7 @@ public class CXFImporterComp extends AbstractImporterComponent implements Import
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.AbstractImporterComponent#getRoseMachine()
 	 */
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return machine;
 	}
 

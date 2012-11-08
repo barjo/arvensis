@@ -1,26 +1,10 @@
 package org.ow2.chameleon.rose.rest;
 
-import static java.lang.Integer.valueOf;
-import static org.osgi.service.log.LogService.LOG_DEBUG;
-import static org.osgi.service.log.LogService.LOG_ERROR;
-import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Path;
-
-import org.apache.felix.ipojo.annotations.Bind;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.apache.felix.ipojo.annotations.Validate;
+import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.core.spi.component.ComponentContext;
+import com.sun.jersey.core.spi.component.ioc.IoCComponentProvider;
+import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
+import org.apache.felix.ipojo.annotations.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
@@ -34,10 +18,16 @@ import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 import org.ow2.chameleon.rose.rest.provider.ManagedComponentProvider;
 import org.ow2.chameleon.rose.rest.provider.ProxiedComponentProvider;
 
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ioc.IoCComponentProvider;
-import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
+import javax.ws.rs.Path;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.Integer.valueOf;
+import static org.osgi.service.log.LogService.*;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 
 /**
  * This component provides a REST, Jersey based implementation of an
@@ -362,7 +352,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 * 
 	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
 	 */
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return machine;
 	}
 }

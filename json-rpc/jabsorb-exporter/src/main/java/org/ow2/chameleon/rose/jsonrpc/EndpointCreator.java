@@ -1,27 +1,6 @@
 package org.ow2.chameleon.rose.jsonrpc;
 
-import static java.lang.Integer.valueOf;
-import static java.util.Arrays.asList;
-import static org.osgi.service.log.LogService.LOG_ERROR;
-import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
-
-import java.net.URI;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.felix.ipojo.annotations.Bind;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.annotations.*;
 import org.jabsorb.JSONRPCBridge;
 import org.jabsorb.JSONRPCServlet;
 import org.osgi.framework.BundleContext;
@@ -34,6 +13,16 @@ import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
+
+import java.net.URI;
+import java.util.*;
+
+import static java.lang.Integer.valueOf;
+import static java.util.Arrays.asList;
+import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
 
 @Component(name="RoSe_exporter.jabsorb")
 @Provides(specifications={ExporterService.class,ExporterIntrospection.class})
@@ -284,7 +273,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
 	 */
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return machine;
 	}
 }

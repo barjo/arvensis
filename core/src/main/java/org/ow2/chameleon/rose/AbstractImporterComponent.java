@@ -98,12 +98,7 @@ public abstract class AbstractImporterComponent implements ImporterService {
 	 * @return The {@link LogService} service.
 	 */
 	protected abstract LogService getLogService();
-	
-	
-	/**
-	 * @return The {@link RoseMachine} service.
-	 */
-	protected abstract RoseMachine getRoseMachine();
+
 	
 	/*---------------------------------*
 	 *  ExporterService implementation *

@@ -1,17 +1,5 @@
 package org.ow2.chameleon.rose.api;
 
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.osgi.framework.FrameworkUtil.createFilter;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
-import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.REMOTE;
-
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -24,6 +12,18 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
+
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.osgi.framework.FrameworkUtil.createFilter;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
+import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.REMOTE;
 
 /**
  * A {@link InConnection} allows to import all services matching a given filter with all available {@link ImporterService} dynamically.
@@ -164,7 +164,7 @@ public final class InConnection {
 
 	/**
 	 * Track All {@link ExporterService} matching <code>xfilter</code> and
-	 * create a {@link ServiceToBeImporterTracker} tracker for each of them.
+	 * create a {@link org.ow2.chameleon.rose.api.InConnection.ServiceToBeImportedTracker} tracker for each of them.
 	 * 
 	 * @author barjo
 	 */
@@ -184,9 +184,14 @@ public final class InConnection {
 		}
 		
 		public Object addingService(ServiceReference reference) {
-			ImporterService exporter = (ImporterService) machine.getContext()
+			ImporterService importer = (ImporterService) machine.getContext()
 					.getService(reference);
-			return new ServiceToBeImporterTracker(exporter);
+
+            //This exporter is linked to an other RoSeMachine, do not track
+            if (!importer.getRoseMachine().getId().equals(machine.getId()))
+                return null;
+
+			return new ServiceToBeImportedTracker(importer);
 		}
 
 		public void modifiedService(ServiceReference reference, Object object) {
@@ -195,7 +200,7 @@ public final class InConnection {
 		}
 
 		public void removedService(ServiceReference reference, Object object) {
-			ServiceToBeImporterTracker stracker = (ServiceToBeImporterTracker) object;
+			ServiceToBeImportedTracker stracker = (ServiceToBeImportedTracker) object;
 			stracker.close(); //close the tracker
 		}
 	}
@@ -206,14 +211,14 @@ public final class InConnection {
 	 * 
 	 * @author barjo
 	 */
-	private class ServiceToBeImporterTracker implements
+	private class ServiceToBeImportedTracker implements
 			EndpointListener {
 		private final ImporterService importer;
 		private final ServiceRegistration sreg;
 		private final Hashtable<String, Object> props;
 		private final Map<EndpointDescription, Object> tracked;
 
-		private ServiceToBeImporterTracker(ImporterService pImporter) {
+		private ServiceToBeImportedTracker(ImporterService pImporter) {
 			//Track only the remote EndpointDescription
 			props = new Hashtable<String, Object>();
 			props.put(ENDPOINT_LISTENER_INTEREST, REMOTE);

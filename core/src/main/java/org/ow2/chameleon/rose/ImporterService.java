@@ -1,12 +1,12 @@
 package org.ow2.chameleon.rose;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The component providing this service are capable of creating a proxy thanks
@@ -35,5 +35,9 @@ public interface ImporterService {
      *         service.
      */
     Collection<ImportReference> getAllImportReference();
-	
+
+    /**
+     * @return The {@code RoseMachine} linked to this {@code ImporterService}
+     */
+    RoseMachine getRoseMachine();
 }

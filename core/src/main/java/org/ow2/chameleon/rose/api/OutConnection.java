@@ -182,6 +182,11 @@ public final class OutConnection {
 		public Object addingService(ServiceReference reference) {
 			ExporterService exporter = (ExporterService) machine.getContext()
 					.getService(reference);
+
+            //This exporter is linked to an other RoSeMachine, do not track
+            if (!exporter.getRoseMachine().getId().equals(machine.getId()))
+                return null;
+
 			return new ServiceToBeExportedTracker(exporter);
 		}
 

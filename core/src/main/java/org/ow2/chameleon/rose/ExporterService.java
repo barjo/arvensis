@@ -1,12 +1,12 @@
 package org.ow2.chameleon.rose;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The {@link ExporterService} service are provided by the exporter component.
@@ -14,7 +14,7 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
  * For each request to export a service, an {@link ExportRegistration} is returned.
  * 
  * @author barjo
- * @version 0.2.0
+ * @version 1.0.1
  **/
 public interface ExporterService {
 
@@ -37,6 +37,11 @@ public interface ExporterService {
      *         service.
      */
     Collection<ExportReference> getAllExportReference();
-	
+
+
+    /**
+     * @return The {@code RoseMachine} linked to this {@code ExporterService}
+     */
+    RoseMachine getRoseMachine();
 }
  

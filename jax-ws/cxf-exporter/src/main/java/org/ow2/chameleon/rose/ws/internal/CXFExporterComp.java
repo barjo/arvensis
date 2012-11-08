@@ -268,8 +268,7 @@ public class CXFExporterComp extends AbstractExporterComponent implements Export
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
 	 */
-	@Override
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return machine;
 	}
 	

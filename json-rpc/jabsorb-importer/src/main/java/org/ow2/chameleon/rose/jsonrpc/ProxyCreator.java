@@ -1,23 +1,6 @@
 package org.ow2.chameleon.rose.jsonrpc;
 
-import static java.lang.String.valueOf;
-import static java.util.Arrays.asList;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
-import static org.ow2.chameleon.rose.util.RoseTools.registerProxy;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.annotations.*;
 import org.jabsorb.client.Client;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -27,6 +10,18 @@ import org.ow2.chameleon.rose.AbstractImporterComponent;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.util.RoseTools;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.String.valueOf;
+import static java.util.Arrays.asList;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
+import static org.ow2.chameleon.rose.util.RoseTools.registerProxy;
 
 /**
  * Provides an {@link ImporterService} allowing to access a
@@ -136,8 +131,7 @@ public class ProxyCreator extends AbstractImporterComponent{
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.AbstractImporterComponent#getRoseMachine()
 	 */
-	@Override
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return machine;
 	}
     

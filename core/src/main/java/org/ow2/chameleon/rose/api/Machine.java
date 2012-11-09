@@ -7,10 +7,7 @@ import static org.ow2.chameleon.rose.RoSeConstants.RoSe_MACHINE_COMPONENT_NAME;
 import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_HOST;
 import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
@@ -235,6 +232,15 @@ public final class Machine {
 	public String getId() {
 		return (String) conf.get(RoSe_MACHINE_ID);
 	}
+
+    public Map<String,Object> getConf(){
+        return new HashMap<String, Object>(conf);
+    }
+
+    public int getState(){
+        ComponentInstance instance = (ComponentInstance) tracker.getService();
+        return (instance == null ? -1 : instance.getState());
+    }
 	
 	
 	/**
@@ -256,7 +262,7 @@ public final class Machine {
 		}
 		
 		public MachineBuilder host(String pHost){
-			host=pHost;
+			host=pHost == null ? host : pHost;
 			return this;
 		}
 		
@@ -274,7 +280,6 @@ public final class Machine {
 		
 		public Object addingService(ServiceReference reference) {
 			Factory factory = (Factory) context.getService(reference);
-			context.ungetService(reference);
 			try {
 				return factory.createComponentInstance(conf);
 			} catch (Exception e) {
@@ -287,6 +292,7 @@ public final class Machine {
 
 		public void removedService(ServiceReference reference, Object service) {
 			((ComponentInstance) service).dispose();
+            context.ungetService(reference);
 		}
 		
 	}

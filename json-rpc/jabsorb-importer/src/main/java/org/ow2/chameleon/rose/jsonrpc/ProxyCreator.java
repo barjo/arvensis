@@ -167,6 +167,4 @@ public class ProxyCreator extends AbstractImporterComponent{
 	protected void stop() {
         super.stop();
     }
-
-
 }

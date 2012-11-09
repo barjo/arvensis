@@ -1,14 +1,5 @@
 package org.ow2.chameleon.rose.api;
 
-import static java.util.Collections.singletonMap;
-import static org.apache.felix.ipojo.Factory.VALID;
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.ow2.chameleon.rose.RoSeConstants.ROSE_REQUIRE_ID;
-import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
-
-import java.util.Hashtable;
-import java.util.Map;
-
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.osgi.framework.InvalidSyntaxException;
@@ -17,6 +8,16 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
+
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+import static org.apache.felix.ipojo.Factory.VALID;
+import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.ow2.chameleon.rose.RoSeConstants.ROSE_REQUIRE_ID;
+import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
 
 /**
  * Useful builder that allows for the instantiation of component, such as the
@@ -59,6 +60,19 @@ public final class Instance {
 	 */
 	public void stop(){
 		tracker.close();
+    }
+
+    public Map<String,Object> getConf(){
+        return new HashMap<String, Object>(conf);
+    }
+
+    public String getComponent(){
+        return component;
+    }
+
+    public int getState(){
+        ComponentInstance instance = (ComponentInstance) tracker.getService();
+        return (instance == null ? -1 : instance.getState());
     }
 
     public void update(Machine machine){

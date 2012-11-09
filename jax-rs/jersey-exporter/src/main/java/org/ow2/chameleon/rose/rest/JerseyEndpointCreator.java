@@ -6,6 +6,7 @@ import com.sun.jersey.core.spi.component.ioc.IoCComponentProvider;
 import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
 import org.apache.felix.ipojo.annotations.*;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
@@ -207,14 +208,22 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 * .framework.ServiceReference, java.util.Map)
 	 */
 	protected EndpointDescription createEndpoint(ServiceReference sref,
-			Map<String, Object> extraProperties) {
+			Map<String, Object> extraProperties)  {
 
 		// Get the service object
 		Object service = context.getService(sref);
 
-		Class<?> klass = service.getClass();
+        //Get the annoted class
+        Class<?> klass = service.getClass();
+        String[] objectClass = (String[]) sref.getProperty(Constants.OBJECTCLASS);
+        int index = 0;
 
-		// Release the reference
+        while (!klass.isAnnotationPresent(Path.class) && index < objectClass.length){
+            try{ klass=sref.getBundle().loadClass(objectClass[index++]); }catch (ClassNotFoundException e){}
+        }
+
+
+        // Release the reference
 		context.ungetService(sref);
 
 		//check if class is annotated by @Path

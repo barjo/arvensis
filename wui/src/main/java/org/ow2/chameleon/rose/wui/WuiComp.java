@@ -1,22 +1,18 @@
 package org.ow2.chameleon.rose.wui;
 
-import org.apache.felix.ipojo.annotations.*;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
-import org.osgi.service.remoteserviceadmin.ExportReference;
-import org.ow2.chameleon.rose.RoseMachine;
-import org.ow2.chameleon.rose.api.Instance;
+import org.osgi.framework.ServiceRegistration;
 import org.ow2.chameleon.rose.api.Machine;
 
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
 
@@ -27,249 +23,51 @@ import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
  */
 @Component(name="RoSe_Wui")
 @Instantiate
-@Provides(specifications = RESTMachine.class)
-public class WuiComp implements RESTMachine {
-
-    @Requires(optional = true)
-    private LogService logger;
+public class WuiComp {
 
     private final Machine myrose;
 
     private final BundleContext context;
 
-    private final Map<String,Machine> myMachines = new HashMap<String, Machine>();
+    private final List<ServiceRegistration> registrations = new ArrayList<ServiceRegistration>();
+
+    //REST Api object, that allows to manage RoSe Machine
+    private final WuiMachine wuiMachine;
+
+    //REST Api object, that allows to inspect RoSe elements
+    private final WuiInspect wuiInspect;
 
     public WuiComp(BundleContext context) throws InvalidSyntaxException {
         this.context = context;
 
-        //Create a rose machine that export this service thx to jersey.
+        //Create a rose machine that export the REST Api service thx to jersey.
         myrose = machine(context,"wui-machine").create();
         myrose.exporter("RoSe_exporter.jersey").withProperty("jersey.servlet.name","/rose").create();
         myrose.out("("+ Constants.OBJECTCLASS+"="+RESTMachine.class.getName()+")").protocol(Collections.singletonList("jax-rs")).add();
+        myrose.out("("+ Constants.OBJECTCLASS+"="+RESTInspect.class.getName()+")").protocol(Collections.singletonList("jax-rs")).add();
+
+
+        wuiMachine = new WuiMachine(context);
+        wuiInspect = new WuiInspect(context);
     }
 
-    public Response getMachines(String filter) {
-        try {
-            filter = (filter == null ? "("+RoseMachine.RoSe_MACHINE_ID+"=*)" : "(&("+RoseMachine.RoSe_MACHINE_ID+"=*)"+filter+")");
-            ServiceReference[] refs = context.getServiceReferences(RoseMachine.class.getName(), filter);
-
-            JSONArray machines = new JSONArray();
-
-            if (refs != null) {
-                for (ServiceReference ref: refs)
-                    machines.put(ref.getProperty(RoseMachine.RoSe_MACHINE_ID));
-            }
-
-            return Response.ok(machines.toString()).build();
-
-        } catch (InvalidSyntaxException e) { //bad filter
-            return Response.status(400).entity(e.getMessage()).build();
-        }
-    }
-
-    public Response getMachine(String machineId){
-        try {
-            ServiceReference[] refs = context.getServiceReferences(RoseMachine.class.getName(), "("+RoseMachine.RoSe_MACHINE_ID+"="+machineId+")");
-
-            if (refs == null){
-                return Response.noContent().status(404).build();
-            } else {
-                RoseMachine machine = (RoseMachine) context.getService(refs[0]);
-                context.ungetService(refs[0]);
-
-                return Response.ok((new JSONObject(machine.getProperties())).toString()).build();
-            }
-
-        } catch (Exception e) {
-          logger.log(LogService.LOG_DEBUG,"Cannot get the RoSeMachine available on the gateway",e);
-          return Response.serverError().build();
-        }
-    }
-
-    public Response getCreatedEndpoints(String machineId) {
-        try {
-
-            ServiceReference[] refs = context.getServiceReferences(ExportReference.class.getName(), "(endpoint.framework.uuid="+machineId+")");
-            if (refs == null){
-                return Response.noContent().status(404).build();
-            }
-
-            JSONArray endpoints = new JSONArray();
-
-            for(ServiceReference ref: refs){
-                endpoints.put(ref.getProperty("endpoint.id"));
-            }
-
-            return  Response.ok(endpoints.toString()).build();
-
-        }catch (InvalidSyntaxException e){
-            return Response.status(400).entity(e.getMessage()).build();
-        }
-    }
-
-    public Response getCreatedEndpoint(String machineId, String endpointId) {
-        System.out.println("PIFEnd");
-        try {
-
-            ServiceReference[] refs = context.getServiceReferences(ExportReference.class.getName(),
-                    "(&(endpoint.framework.uuid="+machineId+")(endpoint.id="+endpointId+"))");
-
-            if (refs == null){
-                return Response.noContent().status(404).build();
-            }
-
-            else {
-                ExportReference endpoint = (ExportReference) context.getService(refs[0]);
-                context.ungetService(refs[0]);
-
-                return Response.ok((new JSONObject(endpoint.getExportedEndpoint().getProperties())).toString()).build();
-            }
-
-        }catch (InvalidSyntaxException e){
-            return Response.status(400).entity(e.getMessage()).build();
-        }
-    }
-
-    public Response createMachine(String machineId,String host) {
-        if(myMachines.containsKey(machineId)){
-            return Response.status(400).entity("Machine "+machineId+" has already been created").build();
-        }
-
-        Machine m;
-        if (host == null)
-            m = machine(context,machineId).create();
-        else
-            m = machine(context,machineId).host(host).create();
-
-        myMachines.put(m.getId(),m);
-        m.start();
-
-        return Response.ok().build();
-    }
-
-    public Response createInstance(String machineId, String name, String factory, String properties) {
-        if(!myMachines.containsKey(machineId)){
-            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
-        }
-        if (factory==null){
-            return Response.status(400).entity("The request must contain the query param factory").build();
-        }
-
-        Map<String,Object> props;
-
-        try {
-            props=toJson(properties);
-        } catch (JSONException e) {
-            return Response.status(400).entity(e.getMessage()).build();
-        }
-
-
-        Machine m = myMachines.get(machineId);
-
-        m.exporter(factory).name(name).withProperties(props).create();
-
-        m.start();
-
-        return Response.ok().build();
-    }
-
-    public Response destroyInstance(String machineId, String name) {
-        if(!myMachines.containsKey(machineId)){
-            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
-        }
-
-        Machine m = myMachines.get(machineId);
-        Instance todestroy = null;
-        for (Instance instance: m.getInstances()){
-            if (name.equals(instance.getConf().get("instance.name"))){
-                todestroy = instance;
-                break;
-            }
-        }
-
-        if(todestroy!=null){
-            m.remove(todestroy);
-        }
-
-        return Response.ok().build();
-    }
-
-    public Response getInstances(String machineId) {
-        if(!myMachines.containsKey(machineId)){
-            return Response.status(404).entity("Machine "+machineId+" has not been created through the wui!").build();
-        }
-
-        JSONArray json = new JSONArray();
-        List<Instance> instances = myMachines.get(machineId).getInstances();
-
-        for(Instance instance: instances){
-            json.put(instance.getConf().get("instance.name"));
-        }
-
-        return Response.ok(json.toString()).build();
-    }
-
-    @Override
-    public Response getInstance(@PathParam("machineId") String machineId, @PathParam("name") String name) {
-        if(!myMachines.containsKey(machineId)){
-            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
-        }
-
-        JSONObject json = null;
-        List<Instance> instances = myMachines.get(machineId).getInstances();
-
-        for(Instance instance: instances){
-            if (name.equals(instance.getConf().get("instance.name"))){
-                json = new JSONObject(instance.getConf());
-                try {
-                    json.accumulate("component", instance.getComponent());
-                    json.accumulate("state", instance.getState());
-                } catch (JSONException e) {}
-                break;
-            }
-        }
-
-        if (json == null){
-            return Response.status(400).entity("Instance: " + name + " does not exist for Machine " + machineId).build();
-        }
-
-        return Response.ok(json.toString()).build();
-    }
-
-    public Response destroyMachine(String machineId) {
-        if(!myMachines.containsKey(machineId)){
-            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
-        }
-
-        Machine m = myMachines.remove(machineId);
-        m.stop();
-
-        return Response.ok().build();
-    }
 
     @Validate
     private void start() {
-        myrose.start();
+        //Register the REST Api that allows to manage RoSe machines
+        wuiMachine.register();
+
+        //Register the REST Api that allows to inspect the RoSe elements
+        wuiInspect.register();
+
+        myrose.start(); //Start the RoSe machine, export the WUI with jersey
     }
 
     @Invalidate
     private void stop() {
-        myrose.stop();
-    }
+        myrose.stop(); //Stop the RoSe machine, destroy the WUI
 
-    private Map<String,Object> toJson(String json) throws JSONException {
-        Map<String,Object> map = new HashMap<String, Object>();
-
-        if(json==null)
-            return map;
-
-        JSONObject jobj = new JSONObject(json);
-
-        for(Iterator<String> iter = jobj.keys(); iter.hasNext();){
-            String key = iter.next();
-            map.put(key,jobj.get(key));
-        }
-
-        return map;
+        wuiMachine.unRegister();
+        wuiInspect.unRegister();
     }
 }

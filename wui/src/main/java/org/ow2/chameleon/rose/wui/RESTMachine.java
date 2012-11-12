@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
  * Date: 08/11/12
  * Time: 14:50
  */
-@Path("/machine")
+@Path("/machines")
 public interface RESTMachine {
 
     @GET
@@ -28,16 +28,6 @@ public interface RESTMachine {
     @DELETE
     @Path("{machineId}")
     public Response destroyMachine(@PathParam("machineId")String machineId);
-
-    @GET
-    @Path("{machineId}/export")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getCreatedEndpoints(@PathParam("machineId") String machineId);
-
-    @GET
-    @Path("{machineId}/export/{endpointId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getCreatedEndpoint(@PathParam("machineId") String machineId, @PathParam("endpointId") String endpointId);
 
     @GET
     @Path("{machineId}/instances")

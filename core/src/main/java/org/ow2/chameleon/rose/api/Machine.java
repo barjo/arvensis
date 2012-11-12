@@ -1,14 +1,5 @@
 package org.ow2.chameleon.rose.api;
 
-import static java.util.Collections.unmodifiableList;
-import static org.apache.felix.ipojo.Factory.VALID;
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.ow2.chameleon.rose.RoSeConstants.RoSe_MACHINE_COMPONENT_NAME;
-import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_HOST;
-import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
-
-import java.util.*;
-
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.osgi.framework.BundleContext;
@@ -21,6 +12,14 @@ import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.api.InConnection.InBuilder;
 import org.ow2.chameleon.rose.api.Instance.InstanceBuilder;
 import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
+
+import java.util.*;
+
+import static org.apache.felix.ipojo.Factory.VALID;
+import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.ow2.chameleon.rose.RoSeConstants.RoSe_MACHINE_COMPONENT_NAME;
+import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_HOST;
+import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
 
 /**
  * The meat of RoSe. Once you have created a RoSe machine you can add to
@@ -113,7 +112,7 @@ public final class Machine {
 	
 	/**
 	 * Add an {@link ExporterService}
-	 * @param name, the exporter component name.
+	 * @param factory, the exporter component name.
 	 * @return
 	 */
 	public InstanceBuilder exporter(String factory){
@@ -122,7 +121,7 @@ public final class Machine {
 	
 	/**
 	 * Add an {@link ImporterService}
-	 * @param name, The importer component name.
+	 * @param factory, The importer component name.
 	 * @return
 	 */
 	public InstanceBuilder importer(String factory){

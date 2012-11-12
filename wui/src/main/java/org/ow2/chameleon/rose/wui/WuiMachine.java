@@ -4,9 +4,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
 import org.ow2.chameleon.rose.api.Instance;
 import org.ow2.chameleon.rose.api.Machine;
+import org.ow2.chameleon.rose.api.OutConnection;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
@@ -51,6 +53,12 @@ public class WuiMachine implements RESTMachine {
         reg=null;
     }
 
+    /*-------------------------------------------------------
+      Machine
+        GET               /machines/:machineId      (json)
+        GET, PUT, DELETE  /machines/:machineId      (json)
+    ---------------------------------------------------------*/
+
     public Response getMachines(String filter) {
         JSONArray machines = new JSONArray();
 
@@ -94,6 +102,25 @@ public class WuiMachine implements RESTMachine {
         return Response.ok().build();
     }
 
+
+    public Response destroyMachine(String machineId) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        }
+
+        Machine m = myMachines.remove(machineId);
+        m.stop();
+
+        return Response.ok().build();
+    }
+
+    /*--------------------------------------------------------------------
+      Instances
+        GET               /machines/:machineId/instances          (json)
+        GET, PUT, DELETE  /machines/:machineId/instances/:instId  (json)
+    ----------------------------------------------------------------------*/
+
+
     public Response createInstance(String machineId, String name, String factory, String properties) {
         if(!myMachines.containsKey(machineId)){
             return Response.status(404).entity("Machine "+machineId+" does not exist").build();
@@ -105,7 +132,7 @@ public class WuiMachine implements RESTMachine {
         Map props;
 
         try {
-            props = (properties.equals("")) ? Collections.emptyMap() : toJson(properties);
+            props = toJson(properties);
         } catch (JSONException e) {
             return Response.status(400).entity(e.getMessage()).build();
         }
@@ -182,22 +209,104 @@ public class WuiMachine implements RESTMachine {
         return Response.ok(json.toString()).build();
     }
 
-    public Response destroyMachine(String machineId) {
+    /*---------------------------------------------------------------
+       OutConnection
+         GET               /machines/:machineId/outs         (json)
+         GET, PUT, DELETE  /machines/:machineId/outs/:outId  (json)
+     ----------------------------------------------------------------*/
+
+    public Response createOut(String machineId, String name, String serviceFilter, String properties) {
         if(!myMachines.containsKey(machineId)){
             return Response.status(404).entity("Machine "+machineId+" does not exist").build();
         }
+        if (serviceFilter==null){
+            return Response.status(400).entity("The request must contain the query param service_filter").build();
+        }
 
-        Machine m = myMachines.remove(machineId);
-        m.stop();
+        Map props;
+
+        try {
+            props = toJson(properties);
+        } catch (JSONException e) {
+            return Response.status(400).entity(e.getMessage()).build();
+        }
+
+
+        Machine m = myMachines.get(machineId);
+
+        try {
+            m.out(serviceFilter).withProperties(props).withProperty("connection.id", name).add();
+        } catch (InvalidSyntaxException e){
+            return Response.status(400).entity("the param service_filter is not valid:" + e.getMessage()).build();
+        }
+        m.start();
 
         return Response.ok().build();
     }
 
+    public Response destroyOut(String machineId, String name) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        }
+
+        Machine m = myMachines.get(machineId);
+        OutConnection todestroy = null;
+        for (OutConnection out: m.getOuts()){
+            if (name.equals(out.getConf().get("connection.id"))){
+                todestroy = out;
+                break;
+            }
+        }
+
+        if(todestroy!=null){
+            m.remove(todestroy);
+        }
+
+        return Response.ok().build();
+    }
+
+    public Response getOuts(String machineId) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" has not been created through the wui!").build();
+        }
+
+        JSONArray json = new JSONArray();
+        List<OutConnection> outs = myMachines.get(machineId).getOuts();
+
+        for(OutConnection out: outs){
+            json.put(out.getConf().get("connection.id"));
+        }
+
+        return Response.ok(json.toString()).build();
+    }
+
+    public Response getOut(String machineId, String name) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        }
+
+        JSONObject json = null;
+        List<OutConnection> outs = myMachines.get(machineId).getOuts();
+
+        for(OutConnection out: outs){
+            if (name.equals(out.getConf().get("connection.id"))){
+                json = new JSONObject(out.getConf());
+                try{ json.put("size",out.size()); }catch (JSONException e){};
+                break;
+            }
+        }
+
+        if (json == null){
+            return Response.status(400).entity("Out Connection: " + name + " does not exist for Machine " + machineId).build();
+        }
+
+        return Response.ok(json.toString()).build();
+    }
 
     public static Map<String,Object> toJson(String json) throws JSONException {
         Map<String,Object> map = new HashMap<String, Object>();
 
-        if(json==null)
+        if(json==null || json.equals(""))
             return map;
 
         JSONObject jobj = new JSONObject(json);

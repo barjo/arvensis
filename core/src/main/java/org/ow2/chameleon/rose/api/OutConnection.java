@@ -75,6 +75,20 @@ public final class OutConnection {
         extracker = new ExporterTracker();
     }
 
+    public Map<String,Object> getConf(){
+        Map<String,Object> conf = new HashMap<String, Object>(extraProperties);
+        conf.put("service_filter",sfilter.toString());
+        conf.put("machine",machine.getId());
+        return conf;
+    }
+
+    /**
+     * @return The number of services exported through this connection.
+     */
+    public int size(){
+        return extracker.getSize();
+    }
+
 	/**
 	 * @return The {@link ExportReference} created through this
 	 *         {@link OutConnection}.
@@ -199,6 +213,14 @@ public final class OutConnection {
 			ServiceToBeExportedTracker stracker = (ServiceToBeExportedTracker) object;
 			stracker.close(); // close the tracker
 		}
+
+        public int getSize(){
+            if (tracker.size()>0){
+                return ((ServiceToBeExportedTracker) tracker.getService()).getSize();
+            } else {
+                return 0;
+            }
+        }
 	}
 
 	/**
@@ -235,7 +257,11 @@ public final class OutConnection {
 		public void removedService(ServiceReference reference, Object object) {
 			customizer.unExport(exporter, reference, object);
 		}
-	}
+
+        public int getSize() {
+            return tracker.size();
+        }
+    }
 
 	/**
 	 * Default {@link OutCustomizer}.

@@ -12,6 +12,10 @@ import javax.ws.rs.core.Response;
 @Path("/machines")
 public interface RESTMachine {
 
+    /*-----------
+       Machine
+     -----------*/
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     Response getMachines(@QueryParam("filter") String filter);
@@ -28,6 +32,10 @@ public interface RESTMachine {
     @DELETE
     @Path("{machineId}")
     public Response destroyMachine(@PathParam("machineId")String machineId);
+
+    /*-----------
+       Instance
+     -----------*/
 
     @GET
     @Path("{machineId}/instances")
@@ -47,4 +55,28 @@ public interface RESTMachine {
     @DELETE
     @Path("{machineId}/instances/{name}")
     public Response destroyInstance(@PathParam("machineId") String machineId, @PathParam("name") String name);
+
+
+    /*---------------
+       OutConnection
+    -----------------*/
+
+    @GET
+    @Path("{machineId}/outs")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOuts(@PathParam("machineId") String machineId);
+
+    @GET
+    @Path("{machineId}/outs/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOut(@PathParam("machineId") String machineId, @PathParam("id") String name);
+
+    @PUT
+    @Path("{machineId}/outs/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createOut(@PathParam("machineId") String machineId, @PathParam("id") String name,@QueryParam("service_filter") String serviceFilter, String properties);
+
+    @DELETE
+    @Path("{machineId}/outs/{id}")
+    public Response destroyOut(@PathParam("machineId") String machineId, @PathParam("id") String name);
 }

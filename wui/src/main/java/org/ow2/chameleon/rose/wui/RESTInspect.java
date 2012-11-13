@@ -22,14 +22,19 @@ public interface RESTInspect {
     @GET
     Response getMachine(@PathParam("id") String machineId);
 
+    @Path("/discovered")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    Response getDiscovered(@QueryParam("machine")String machineId);
+
     @Path("/exported")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
-    Response getExported(@QueryParam("filter")String filter,@QueryParam("machine")String machine);
+    Response getExported(@QueryParam("machine")String machineId);
 
-    @Path("/exported/{id}")
+    @Path("/imported")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
-    Response getExported(@PathParam("id")String endpoint);
+    Response getImported(@QueryParam("framework")String machineId);
 
 }

@@ -1,34 +1,11 @@
 package org.ow2.chameleon.rose.util;
 
-import static java.util.Collections.emptyList;
-import static org.osgi.framework.Constants.SERVICE_ID;
-import static org.osgi.framework.Constants.SERVICE_PID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
-import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.*;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest;
@@ -36,6 +13,16 @@ import org.ow2.chameleon.rose.api.InConnection;
 import org.ow2.chameleon.rose.api.Instance;
 import org.ow2.chameleon.rose.api.Machine;
 import org.ow2.chameleon.rose.api.OutConnection;
+
+import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static org.osgi.framework.Constants.SERVICE_ID;
+import static org.osgi.framework.Constants.SERVICE_PID;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.*;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
+import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
 
 /**
  * This class contains some useful static methods.
@@ -158,46 +145,6 @@ public final class RoseTools {
 		return interrest;
 	}
 
-	/**
-	 * @param context
-	 *            {@link BundleContext}
-	 * @return A Snapshot of All {@link ExporterService} available within this
-	 *         Machine.
-	 */
-	public static List<ExporterService> getAllExporter(BundleContext context) {
-
-		try {
-			return getAllExporter(context, "(" + ENDPOINT_CONFIG + "=*)");
-		} catch (InvalidSyntaxException e) {
-			assert false; // What would Dr. Gordon Freeman do ?
-		}
-
-		return emptyList();
-	}
-
-	/**
-	 * @param context
-	 *            {@link BundleContext}
-	 * @param filter
-	 * @return A Snapshot of All {@link ExporterService} available within this
-	 *         Machine which match <code>filter</code>.
-	 * @throws InvalidSyntaxException
-	 *             if <code>filter</code> is not valid.
-	 */
-	public static List<ExporterService> getAllExporter(BundleContext context,
-			String filter) throws InvalidSyntaxException {
-		List<ExporterService> exporters = new ArrayList<ExporterService>();
-
-		ServiceReference[] srefs = context.getAllServiceReferences(
-				ExporterService.class.getName(), filter);
-
-		for (ServiceReference sref : srefs) {
-			exporters.add((ExporterService) context.getService(sref));
-			context.ungetService(sref);
-		}
-
-		return exporters;
-	}
 
 	/**
 	 * @param context

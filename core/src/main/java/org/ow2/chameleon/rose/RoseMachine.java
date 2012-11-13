@@ -1,11 +1,14 @@
 package org.ow2.chameleon.rose;
 
-import java.util.Map;
-
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.ExportReference;
+import org.osgi.service.remoteserviceadmin.ImportReference;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 public interface RoseMachine {
 	
@@ -41,7 +44,31 @@ public interface RoseMachine {
 	void addEndpointListener(EndpointListener listener, EndpointListerInterrest interrest, String filter) throws InvalidSyntaxException;
 
 	void removeEndpointListener(EndpointListener listener, EndpointListerInterrest interrest);
-	
+
+    /**
+     * @see org.osgi.service.remoteserviceadmin.RemoteServiceAdmin#getExportedServices()
+     */
+    Collection<ExportReference> getExportedServices();
+
+    /**
+     * @see org.osgi.service.remoteserviceadmin.RemoteServiceAdmin#getExportedServices()
+     */
+    Collection<ImportReference> getImportedEndpoints();
+
+    /**
+     * @return The ExporterService linked to this RoseMachine
+     */
+    Set<ExporterService> getExporters();
+
+    /**
+     * @return The ImporterService linked to this RoseMachine
+     */
+    Set<ImporterService> getImporters();
+
+    /**
+     * @return The Set of EndpointDescription discovered by this machine.
+     */
+    Set<EndpointDescription> getDiscoveredEndpoints();
 	
 	/**
 	 * @return This rose machine id.

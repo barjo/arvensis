@@ -50,6 +50,7 @@
 				<module>core</module>
 				<module>configurator/configurator-json</module>
 				<module>testing</module>
+				<module>wui</module>
 			</modules>
 		</profile>
 
@@ -72,6 +73,15 @@
 				<module>commons/cxf-minimal</module>
 			</modules>
 		</profile>
+
+		<!-- Profile used to build distribition -->
+		<profile>
+			<id>dist</id>
+			<modules>
+				<module>distribution/rose-web</module>
+			</modules>
+		</profile>
+
 
 		<!-- Profile used in order to run the integration tests -->
 		<profile>

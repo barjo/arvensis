@@ -17,7 +17,7 @@ import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
 
 /**
  * Implementation of {@code RESTMachine} that allows for the management of RoSe machines over the web. It use The RoSe
- * Java fluent API {@ling Machine}.
+ * Java fluent API {@link Machine}.
  */
 public class WuiMachine implements RESTMachine {
 

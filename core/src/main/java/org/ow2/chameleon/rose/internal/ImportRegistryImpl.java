@@ -1,17 +1,14 @@
 package org.ow2.chameleon.rose.internal;
 
-import static org.osgi.framework.FrameworkUtil.createFilter;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.ow2.chameleon.rose.registry.ImportRegistry;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.osgi.framework.FrameworkUtil.createFilter;
 
 /**
  * {@link HashMap} based Implementations of {@link ImportRegistry}.
@@ -76,7 +73,7 @@ public class ImportRegistryImpl implements
 	 *-------------------------------------*/
 	
 	/**
-	 * Add an {@link EndpointDescription}.All {@link EndpointListener} which are
+	 * Add an {@link EndpointDescription}. All {@link EndpointListener} which are
 	 * interesting in the {@link EndpointDescription} are notified.
 	 * 
 	 * @param key
@@ -157,6 +154,15 @@ public class ImportRegistryImpl implements
 		}
 		return desc;
 	}
+
+    /**
+     * @return The registry EndpointDescription.
+     */
+    public Set<EndpointDescription> getEndpoints(){
+        synchronized (descriptions){
+            return new HashSet<EndpointDescription>(counter.keySet());
+        }
+    }
 	
 
 	/*-------------------------------------*

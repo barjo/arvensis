@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
+import org.ow2.chameleon.rose.api.InConnection;
 import org.ow2.chameleon.rose.api.Instance;
 import org.ow2.chameleon.rose.api.Machine;
 import org.ow2.chameleon.rose.api.OutConnection;
@@ -302,6 +303,102 @@ public class WuiMachine implements RESTMachine {
 
         return Response.ok(json.toString()).build();
     }
+
+    /*---------------------------------------------------------------
+      InConnection
+        GET               /machines/:machineId/ins          (json)
+        GET, PUT, DELETE  /machines/:machineId/ins/:inId    (json)
+    ----------------------------------------------------------------*/
+
+    public Response createIn(String machineId, String name, String endpointFilter, String properties) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        }
+        if (endpointFilter==null){
+            return Response.status(400).entity("The request must contain the query param endpoint_filter").build();
+        }
+
+        Map props;
+
+        try {
+            props = toJson(properties);
+        } catch (JSONException e) {
+            return Response.status(400).entity(e.getMessage()).build();
+        }
+
+
+        Machine m = myMachines.get(machineId);
+
+        try {
+            m.in(endpointFilter).withProperties(props).withProperty("connection.id", name).add();
+        } catch (InvalidSyntaxException e){
+            return Response.status(400).entity("the param endpoint_filter is not valid:" + e.getMessage()).build();
+        }
+        m.start();
+
+        return Response.ok().build();
+    }
+
+    public Response destroyIn(String machineId, String inId) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        }
+
+        Machine m = myMachines.get(machineId);
+        InConnection todestroy = null;
+        for (InConnection in: m.getIns()){
+            if (inId.equals(in.getConf().get("connection.id"))){
+                todestroy = in;
+                break;
+            }
+        }
+
+        if(todestroy!=null){
+            m.remove(todestroy);
+        }
+
+        return Response.ok().build();
+    }
+
+    public Response getIns(String machineId) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" has not been created through the wui!").build();
+        }
+
+        JSONArray json = new JSONArray();
+        List<InConnection> ins = myMachines.get(machineId).getIns();
+
+        for(InConnection in: ins){
+            json.put(in.getConf().get("connection.id"));
+        }
+
+        return Response.ok(json.toString()).build();
+    }
+
+    public Response getIn(String machineId, String inId) {
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        }
+
+        JSONObject json = null;
+        List<InConnection> ins = myMachines.get(machineId).getIns();
+
+        for(InConnection in: ins){
+            if (inId.equals(in.getConf().get("connection.id"))){
+                json = new JSONObject(in.getConf());
+                try{ json.put("size",in.size()); }catch (JSONException e){};
+                break;
+            }
+        }
+
+        if (json == null){
+            return Response.status(400).entity("In Connection: " + inId + " does not exist for Machine " + machineId).build();
+        }
+
+        return Response.ok(json.toString()).build();
+    }
+
+
 
     public static Map<String,Object> toJson(String json) throws JSONException {
         Map<String,Object> map = new HashMap<String, Object>();

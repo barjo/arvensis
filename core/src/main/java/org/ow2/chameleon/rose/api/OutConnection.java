@@ -78,6 +78,7 @@ public final class OutConnection {
     public Map<String,Object> getConf(){
         Map<String,Object> conf = new HashMap<String, Object>(extraProperties);
         conf.put("service_filter",sfilter.toString());
+        conf.put("exporter_filter",xfilter.toString());
         conf.put("machine",machine.getId());
         return conf;
     }

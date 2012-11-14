@@ -127,7 +127,16 @@ public final class Machine {
 	public InstanceBuilder importer(String factory){
 		return InstanceBuilder.instance(this, factory);
 	}
-	
+
+    /**
+     * Create a Component Instance with the given {@link Factory} name.
+     * @param factory, the component name.
+     * @return
+     */
+    public InstanceBuilder instance(String factory){
+        return InstanceBuilder.instance(this, factory);
+    }
+
 	/**
 	 * add a In connection.
 	 * @param in

@@ -79,4 +79,27 @@ public interface RESTMachine {
     @DELETE
     @Path("{machineId}/outs/{id}")
     public Response destroyOut(@PathParam("machineId") String machineId, @PathParam("id") String name);
+
+    /*---------------
+       InConnection
+    -----------------*/
+
+    @GET
+    @Path("{machineId}/ins")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getIns(@PathParam("machineId") String machineId);
+
+    @GET
+    @Path("{machineId}/ins/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getIn(@PathParam("machineId") String machineId, @PathParam("id") String inId);
+
+    @PUT
+    @Path("{machineId}/ins/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createIn(@PathParam("machineId") String machineId, @PathParam("id") String inId,@QueryParam("endpoint_filter") String endpointFilter, String properties);
+
+    @DELETE
+    @Path("{machineId}/ins/{id}")
+    public Response destroyIn(@PathParam("machineId") String machineId, @PathParam("id") String inId);
 }

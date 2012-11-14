@@ -68,6 +68,21 @@ public final class InConnection {
 		imptracker.close();
 	}
 
+    public Map<String,Object> getConf(){
+        Map<String,Object> conf = new HashMap<String, Object>(extraProperties);
+        conf.put("endpoint_filter",edfilter.toString());
+        conf.put("importer_filter",ifilter.toString());
+        conf.put("machine",machine.getId());
+        return conf;
+    }
+
+    /**
+     * @return The number of services exported through this connection.
+     */
+    public int size(){
+        return imptracker.getSize();
+    }
+
     /**
      * Link this connection to an Other machine, not the old one anymore.
      * @param machine
@@ -203,6 +218,14 @@ public final class InConnection {
 			ServiceToBeImportedTracker stracker = (ServiceToBeImportedTracker) object;
 			stracker.close(); //close the tracker
 		}
+
+        public int getSize(){
+            if (tracker.size()>0){
+                return ((ServiceToBeImportedTracker) tracker.getService()).getSize();
+            } else {
+                return 0;
+            }
+        }
 	}
 
 	/**
@@ -252,6 +275,10 @@ public final class InConnection {
 				customizer.unImport(importer, endpoint, key);
 			}
 		}
+
+        public int getSize() {
+            return tracked.keySet().size();
+        }
 	}
 
 	/**

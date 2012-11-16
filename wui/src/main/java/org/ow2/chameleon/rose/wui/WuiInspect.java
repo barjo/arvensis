@@ -52,8 +52,12 @@ public class WuiInspect implements  RESTInspect{
             JSONArray machines = new JSONArray();
 
             if (refs != null) {
-                for (ServiceReference ref: refs)
-                    machines.put(ref.getProperty(RoseMachine.RoSe_MACHINE_ID));
+                for (ServiceReference ref: refs){
+                    RoseMachine machine = (RoseMachine) context.getService(ref);
+                    JSONObject json = new JSONObject(machine.getProperties());
+                    machines.put(json);
+                    context.ungetService(ref);
+                }
             }
 
             return Response.ok(machines.toString()).build();

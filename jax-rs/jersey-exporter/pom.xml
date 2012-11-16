@@ -102,7 +102,6 @@
                             org.osgi.service.log,
                             org.osgi.service.http,
 							org.osgi.service.remoteserviceadmin,
-                            org.apache.felix.ipojo.annotations,
 							javax.servlet;version="[2.5,4)",
 							javax.ws.rs,
                             com.sun.jersey.api.core,

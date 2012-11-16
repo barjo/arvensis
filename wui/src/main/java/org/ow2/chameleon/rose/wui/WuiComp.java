@@ -1,13 +1,12 @@
 package org.ow2.chameleon.rose.wui;
 
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.annotations.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.ow2.chameleon.rose.api.Machine;
 
 import java.util.ArrayList;
@@ -24,6 +23,9 @@ import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
 @Component(name="RoSe_Wui")
 @Instantiate
 public class WuiComp {
+
+    @Requires
+    private HttpService http; //use to register resources
 
     private final Machine myrose;
 
@@ -54,6 +56,12 @@ public class WuiComp {
 
     @Validate
     private void start() {
+        try {
+            http.registerResources("/rose/wui","/app",null);
+        } catch (NamespaceException e) {
+            e.printStackTrace();
+        }
+
         //Register the REST Api that allows to manage RoSe machines
         wuiMachine.register();
 
@@ -65,6 +73,8 @@ public class WuiComp {
 
     @Invalidate
     private void stop() {
+        http.unregister("/rose/wui");
+
         myrose.stop(); //Stop the RoSe machine, destroy the WUI
 
         wuiMachine.unRegister();

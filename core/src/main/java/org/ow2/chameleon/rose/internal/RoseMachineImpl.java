@@ -53,7 +53,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	private LogService logger;
 	
 	public RoseMachineImpl(BundleContext pContext) {
-		properties = new Hashtable<String, Object>(5);
+		properties = new Hashtable<String, Object>(6);
 		registrations = new HashSet<ServiceRegistration>(2);
 		context = pContext;
 		
@@ -283,6 +283,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 		properties.put(SERVICE_VENDOR, "org.ow2.chameleon");
 		properties.put(SERVICE_RANKING, MAX_VALUE);
 		properties.put(RoSe_MACHINE_HOST, myhost);
+        properties.put(RoSe_MACHINE_DATE,new Date().getTime());
 	}
 
     /**

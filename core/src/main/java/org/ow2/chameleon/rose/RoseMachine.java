@@ -15,12 +15,17 @@ public interface RoseMachine {
 	/**
 	 * System property identifying the ID for this rose machine.
 	 */
-	final static String RoSe_MACHINE_ID = "rose.machine.id";
+	final static String RoSe_MACHINE_ID = "id";
 
 	/**
 	 * System property identifying the host name for this rose machine.
 	 */
-	final static String RoSe_MACHINE_HOST = "rose.machine.host";
+	final static String RoSe_MACHINE_HOST = "host";
+
+    /**
+     * TimeStamp
+     */
+    final static String RoSe_MACHINE_DATE = "date";
 
 	final static String ENDPOINT_LISTENER_INTEREST = "endpoint.listener.interrest";
 

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" ng-app="myApp" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="utf-8">
+  <title>RoSe Web-UI</title>
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+  <ul class="nav nav-tabs">
+	  <li ng-class="{active: currentView == 'inspect-machines'}"><a href="#/inspect-machines">Inspect Machines</a></li>
+	  <li ng-class="{active: currentView == 'inspect-exported'}"><a href="#/inspect-exported">Inspect Exported</a></li>
+  </ul>
+
+  <div ng-view></div>
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
+  -->
+  <script src="lib/jquery.js"></script>
+  <script src="lib/bootstrap/bootstrap.js"></script>
+  <script src="lib/angular/angular.min.js"></script>
+  <script src="lib/angular/angular-resource.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/controllers.js"></script>
+  <script src="js/filters.js"></script>
+  <!--  <script src="js/directives.js"></script> -->
+</body>
+</html>

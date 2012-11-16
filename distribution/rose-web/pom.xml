@@ -80,14 +80,6 @@
 								</artifactItem>
 								<artifactItem>
 									<groupId>org.apache.felix</groupId>
-									<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-									<version>1.8.2</version>
-									<type>jar</type>
-									<overWrite>true</overWrite>
-									<outputDirectory>${core.dir}</outputDirectory>
-								</artifactItem>
-								<artifactItem>
-									<groupId>org.apache.felix</groupId>
 									<artifactId>org.apache.felix.fileinstall</artifactId>
 									<version>3.2.6</version>
 									<type>jar</type>

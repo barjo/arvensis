@@ -104,7 +104,7 @@ public class Configurator implements ArtifactInstaller{
 	}
 
 	@SuppressWarnings("unchecked")
-	public void install(File file) throws Exception {
+	public synchronized void install(File file) throws Exception {
 		String name = file.getName();
 
 		//GUARD - If the configuration already exists update
@@ -150,7 +150,7 @@ public class Configurator implements ArtifactInstaller{
 	}
 
 
-	public void uninstall(File file) throws Exception {
+	public synchronized void uninstall(File file) throws Exception {
 		String name = file.getName();
 
 
@@ -177,19 +177,17 @@ public class Configurator implements ArtifactInstaller{
 	
 
 	@SuppressWarnings("unchecked")
-	public void update(File file) throws Exception {
+	public synchronized void update(File file) throws Exception {
 		String name = file.getName();
 		logger.log(LOG_INFO, "Start to reload configuration file: "+name);
 		
 		if (machines.containsKey(name)) {     //TODO something better ?
             uninstall(file);
-            install(file);
+        }
 
-		    logger.log(LOG_WARNING, "New configuration has been successfully handled");
-		}else {
-			install(file); //handle as new
-		}
+        install(file);
 
+		logger.log(LOG_WARNING, "New configuration has been successfully handled");
 	}
 }
 

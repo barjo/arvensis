@@ -1,9 +1,6 @@
 package org.ow2.chameleon.rose.api;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Filter;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
@@ -40,6 +37,7 @@ public final class OutConnection {
 	private final Filter xfilter;
 	private final Map<String, Object> extraProperties;
 	private final OutCustomizer customizer;
+    private static LogService logger = null;
 
 	private OutConnection(OutBuilder builder) {
 		extraProperties = builder.extraProperties;
@@ -250,7 +248,13 @@ public final class OutConnection {
 		}
 
 		public Object addingService(ServiceReference reference) {
-			return customizer.export(exporter, reference, extraProperties);
+            try {
+                log(LogService.LOG_DEBUG, "Machine: "+ machine.getId()+" export service: "+reference.getProperty(Constants.SERVICE_ID),null,machine.getContext());
+			    return customizer.export(exporter, reference, extraProperties);
+            } catch (Exception e){
+                log(LogService.LOG_ERROR, "Machine: "+machine.getId()+" cannot export service: "+reference.getProperty(Constants.SERVICE_ID),e,machine.getContext());
+                return null;
+            }
 		}
 
 		public void modifiedService(ServiceReference reference, Object object) {
@@ -260,7 +264,9 @@ public final class OutConnection {
 		}
 
 		public void removedService(ServiceReference reference, Object object) {
-			customizer.unExport(exporter, reference, object);
+            log(LogService.LOG_DEBUG, "Service: "+reference.getProperty(Constants.SERVICE_ID)+" is no longer exporter by: "+machine.getId(),null,machine.getContext());
+
+            customizer.unExport(exporter, reference, object);
 		}
 
         public int getSize() {
@@ -322,15 +328,20 @@ public final class OutConnection {
      * @param exception The exception which need to be log.
      */
     private static void log(int level, String message, Throwable exception, BundleContext context){
-        ServiceReference sref = context.getServiceReference(LogService.class.getName());
-        if (sref !=null){
-            try{
-                LogService logger = (LogService) context.getService(sref);
-                logger.log(level,message,exception);
-            }finally{
+
+        if (logger == null)  {
+            ServiceReference sref = context.getServiceReference(LogService.class.getName());
+            if (!(sref==null)){
+                logger = (LogService) context.getService(sref);
                 context.ungetService(sref);
             }
         }
-        //XXX sysout something if there is no LogService ?
+        if (logger !=null){
+            logger.log(level,message,exception);
+        }
+        else{
+            System.out.println(message);
+            exception.printStackTrace();
+        }
     }
 }

@@ -198,8 +198,9 @@ public final class OutConnection {
 
             //This exporter is linked to an other RoSeMachine, do not track
             if (!exporter.getRoseMachine().getId().equals(machine.getId())){
-                log(LogService.LOG_DEBUG,"Ignore Exporter: "+reference+" not from machine: "
-                        +machine.getId(),null,machine.getContext());
+                log(LogService.LOG_DEBUG,"Machine: " +machine.getId() + " ignore Exporter: "+
+                        reference.getProperty(Constants.SERVICE_ID)+" from machine: "
+                        +exporter.getRoseMachine().getId(),null,machine.getContext());
                 return null;
             }
 
@@ -249,10 +250,12 @@ public final class OutConnection {
 
 		public Object addingService(ServiceReference reference) {
             try {
-                log(LogService.LOG_DEBUG, "Machine: "+ machine.getId()+" export service: "+reference.getProperty(Constants.SERVICE_ID),null,machine.getContext());
+                log(LogService.LOG_DEBUG, "Machine: "+ machine.getId()+
+                        " export service: "+reference.getProperty(Constants.SERVICE_ID),null,machine.getContext());
 			    return customizer.export(exporter, reference, extraProperties);
             } catch (Exception e){
-                log(LogService.LOG_ERROR, "Machine: "+machine.getId()+" cannot export service: "+reference.getProperty(Constants.SERVICE_ID),e,machine.getContext());
+                log(LogService.LOG_ERROR, "Machine: "+machine.getId()+
+                        " cannot export service: "+reference.getProperty(Constants.SERVICE_ID),e,machine.getContext());
                 return null;
             }
 		}
@@ -264,8 +267,8 @@ public final class OutConnection {
 		}
 
 		public void removedService(ServiceReference reference, Object object) {
-            log(LogService.LOG_DEBUG, "Service: "+reference.getProperty(Constants.SERVICE_ID)+" is no longer exporter by: "+machine.getId(),null,machine.getContext());
-
+            log(LogService.LOG_DEBUG, "Service: "+reference.getProperty(Constants.SERVICE_ID)+
+                    " is no longer exporter by: "+machine.getId(),null,machine.getContext());
             customizer.unExport(exporter, reference, object);
 		}
 
@@ -328,12 +331,10 @@ public final class OutConnection {
      * @param exception The exception which need to be log.
      */
     private static void log(int level, String message, Throwable exception, BundleContext context){
-
         if (logger == null)  {
             ServiceReference sref = context.getServiceReference(LogService.class.getName());
             if (!(sref==null)){
                 logger = (LogService) context.getService(sref);
-                context.ungetService(sref);
             }
         }
         if (logger !=null){
@@ -341,7 +342,8 @@ public final class OutConnection {
         }
         else{
             System.out.println(message);
-            exception.printStackTrace();
+            if(exception!=null)
+                exception.printStackTrace();
         }
     }
 }

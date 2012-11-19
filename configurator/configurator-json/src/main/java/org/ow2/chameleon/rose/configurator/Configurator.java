@@ -104,7 +104,7 @@ public class Configurator implements ArtifactInstaller{
 	}
 
 	@SuppressWarnings("unchecked")
-	public synchronized void install(File file) throws Exception {
+	public void install(File file) throws Exception {
 		String name = file.getName();
 
 		//GUARD - If the configuration already exists update
@@ -150,7 +150,7 @@ public class Configurator implements ArtifactInstaller{
 	}
 
 
-	public synchronized void uninstall(File file) throws Exception {
+	public void uninstall(File file) throws Exception {
 		String name = file.getName();
 
 
@@ -177,7 +177,7 @@ public class Configurator implements ArtifactInstaller{
 	
 
 	@SuppressWarnings("unchecked")
-	public synchronized void update(File file) throws Exception {
+	public void update(File file) throws Exception {
 		String name = file.getName();
 		logger.log(LOG_INFO, "Start to reload configuration file: "+name);
 		

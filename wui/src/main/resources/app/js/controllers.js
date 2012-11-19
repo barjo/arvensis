@@ -21,3 +21,19 @@ function InspectExportedCtrl($scope,$rootScope, Inspect) {
   $scope.orderProp = 'endpoint.framework.uuid';
 }
 
+
+function InspectImportedCtrl($scope,$rootScope, Inspect) {
+  $rootScope.currentView="inspect-imported";
+
+  $scope.iendpoints = Inspect.imported();
+  $scope.orderProp = 'endpoint.framework.uuid';
+}
+
+
+function InspectDiscoveredCtrl($scope,$rootScope, Inspect) {
+  $rootScope.currentView="inspect-discovered";
+
+  $scope.dendpoints = Inspect.disco();
+  $scope.orderProp = 'endpoint.framework.uuid';
+}
+

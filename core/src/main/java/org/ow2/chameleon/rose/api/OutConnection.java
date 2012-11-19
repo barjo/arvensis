@@ -199,8 +199,11 @@ public final class OutConnection {
 					.getService(reference);
 
             //This exporter is linked to an other RoSeMachine, do not track
-            if (!exporter.getRoseMachine().getId().equals(machine.getId()))
+            if (!exporter.getRoseMachine().getId().equals(machine.getId())){
+                log(LogService.LOG_DEBUG,"Ignore Exporter: "+reference+" not from machine: "
+                        +machine.getId(),null,machine.getContext());
                 return null;
+            }
 
 			return new ServiceToBeExportedTracker(exporter);
 		}
@@ -213,6 +216,7 @@ public final class OutConnection {
 		public void removedService(ServiceReference reference, Object object) {
 			ServiceToBeExportedTracker stracker = (ServiceToBeExportedTracker) object;
 			stracker.close(); // close the tracker
+            machine.getContext().ungetService(reference);
 		}
 
         public int getSize(){
@@ -290,7 +294,7 @@ public final class OutConnection {
 						+ sref.getProperty(SERVICE_ID)
 						+ " provided by the bundle of id"
 						+ sref.getBundle().getBundleId(),
-						registration.getException());
+						registration.getException(),context);
 			}
 			
 			return registration;
@@ -308,26 +312,25 @@ public final class OutConnection {
 		public ExportReference[] getExportReferences() {
 			return (ExportReference[]) xrefs.toArray();
 		}
-		
-		/**
-		 * Wrapper around the {@link LogService#log(int, String, Throwable)} method.
-		 * 
-		 * @param level The {@link LogService} log level.
-		 * @param message An optional message to log
-		 * @param exception The exception which need to be log.
-		 */
-		private void log(int level, String message, Throwable exception){
-			ServiceReference sref = context.getServiceReference(LogService.class.getName());
-			if (sref !=null){
-				try{
-					LogService logger = (LogService) context.getService(sref);
-					logger.log(level,message,exception);
-				}finally{
-					context.ungetService(sref);
-				}
-			}
-			//XXX sysout something if there is no LogService ?
-		}
-		
 	}
+
+    /**
+     * Wrapper around the {@link LogService#log(int, String, Throwable)} method.
+     *
+     * @param level The {@link LogService} log level.
+     * @param message An optional message to log
+     * @param exception The exception which need to be log.
+     */
+    private static void log(int level, String message, Throwable exception, BundleContext context){
+        ServiceReference sref = context.getServiceReference(LogService.class.getName());
+        if (sref !=null){
+            try{
+                LogService logger = (LogService) context.getService(sref);
+                logger.log(level,message,exception);
+            }finally{
+                context.ungetService(sref);
+            }
+        }
+        //XXX sysout something if there is no LogService ?
+    }
 }

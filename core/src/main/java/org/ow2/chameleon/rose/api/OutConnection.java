@@ -37,7 +37,6 @@ public final class OutConnection {
 	private final Filter xfilter;
 	private final Map<String, Object> extraProperties;
 	private final OutCustomizer customizer;
-    private static LogService logger = null;
 
 	private OutConnection(OutBuilder builder) {
 		extraProperties = builder.extraProperties;
@@ -47,13 +46,14 @@ public final class OutConnection {
 		customizer = builder.customizer;
 		extracker = new ExporterTracker();
 		machine.add(this);
-	}
+    }
 
 	/**
 	 * Open the {@link OutConnection}.
 	 */
 	public void open() {
 		extracker.open();
+        log(LogService.LOG_INFO,"Machine: "+machine.getId() +" OutConnection is open: "+size()+" services are exported.",null,machine.getContext());
 	}
 
 	/**
@@ -198,9 +198,9 @@ public final class OutConnection {
 
             //This exporter is linked to an other RoSeMachine, do not track
             if (!exporter.getRoseMachine().getId().equals(machine.getId())){
-                log(LogService.LOG_DEBUG,"Machine: " +machine.getId() + " ignore Exporter: "+
-                        reference.getProperty(Constants.SERVICE_ID)+" from machine: "
-                        +exporter.getRoseMachine().getId(),null,machine.getContext());
+               log(LogService.LOG_DEBUG, "Machine: " + machine.getId() + " ignore Exporter: " +
+                        reference.getProperty(Constants.SERVICE_ID) + " from machine: "
+                        + exporter.getRoseMachine().getId(), null, machine.getContext());
                 return null;
             }
 
@@ -250,12 +250,12 @@ public final class OutConnection {
 
 		public Object addingService(ServiceReference reference) {
             try {
-                log(LogService.LOG_DEBUG, "Machine: "+ machine.getId()+
-                        " export service: "+reference.getProperty(Constants.SERVICE_ID),null,machine.getContext());
+                log(LogService.LOG_DEBUG, "Machine: " + machine.getId() +
+                        " export service: " + reference.getProperty(Constants.SERVICE_ID), null, machine.getContext());
 			    return customizer.export(exporter, reference, extraProperties);
             } catch (Exception e){
-                log(LogService.LOG_ERROR, "Machine: "+machine.getId()+
-                        " cannot export service: "+reference.getProperty(Constants.SERVICE_ID),e,machine.getContext());
+                log(LogService.LOG_ERROR, "Machine: " + machine.getId() +
+                        " cannot export service: " + reference.getProperty(Constants.SERVICE_ID), e, machine.getContext());
                 return null;
             }
 		}
@@ -267,8 +267,8 @@ public final class OutConnection {
 		}
 
 		public void removedService(ServiceReference reference, Object object) {
-            log(LogService.LOG_DEBUG, "Service: "+reference.getProperty(Constants.SERVICE_ID)+
-                    " is no longer exporter by: "+machine.getId(),null,machine.getContext());
+            log(LogService.LOG_DEBUG, "Service: " + reference.getProperty(Constants.SERVICE_ID) +
+                    " is no longer exporter by: " + machine.getId(), null, machine.getContext());
             customizer.unExport(exporter, reference, object);
 		}
 
@@ -299,11 +299,11 @@ public final class OutConnection {
 			if (registration.getException() == null){ //Successful export
 				xrefs.add(registration.getExportReference());
 			}else { //export failed
-				log(LogService.LOG_WARNING, "Cannot export service of id: "
-						+ sref.getProperty(SERVICE_ID)
-						+ " provided by the bundle of id"
-						+ sref.getBundle().getBundleId(),
-						registration.getException(),context);
+                log(LogService.LOG_WARNING, "Cannot export service of id: "
+                        + sref.getProperty(SERVICE_ID)
+                        + " provided by the bundle of id"
+                        + sref.getBundle().getBundleId(),
+                        registration.getException(), context);
 			}
 			
 			return registration;
@@ -323,22 +323,13 @@ public final class OutConnection {
 		}
 	}
 
-    /**
-     * Wrapper around the {@link LogService#log(int, String, Throwable)} method.
-     *
-     * @param level The {@link LogService} log level.
-     * @param message An optional message to log
-     * @param exception The exception which need to be log.
-     */
-    private static void log(int level, String message, Throwable exception, BundleContext context){
-        if (logger == null)  {
-            ServiceReference sref = context.getServiceReference(LogService.class.getName());
-            if (!(sref==null)){
-                logger = (LogService) context.getService(sref);
-            }
-        }
-        if (logger !=null){
-            logger.log(level,message,exception);
+    public static void log(int level,String message, Throwable exception,BundleContext context){
+        ServiceReference sref = context.getServiceReference(LogService.class.getName());
+        LogService logger = null;
+        if (!(sref==null)){
+            logger = (LogService) context.getService(sref);
+            logger.log(level, message, exception);
+            context.ungetService(sref);
         }
         else{
             System.out.println(message);

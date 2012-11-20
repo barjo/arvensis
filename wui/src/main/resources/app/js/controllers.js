@@ -14,26 +14,22 @@ function InspectMachinesCtrl($scope, $rootScope, Inspect) {
   };
 }
 
-function InspectExportedCtrl($scope,$rootScope, Inspect) {
-  $rootScope.currentView="inspect-exported";
+function InspectEndpointsCtrl($scope,$rootScope, Inspect) {
+  $scope.getExported = function(){
+  	return Inspect.exported();
+  }
   
-  $scope.xendpoints = Inspect.exported();
-  $scope.orderProp = 'endpoint.framework.uuid';
-}
-
-
-function InspectImportedCtrl($scope,$rootScope, Inspect) {
-  $rootScope.currentView="inspect-imported";
-
-  $scope.iendpoints = Inspect.imported();
-  $scope.orderProp = 'endpoint.framework.uuid';
-}
-
-
-function InspectDiscoveredCtrl($scope,$rootScope, Inspect) {
-  $rootScope.currentView="inspect-discovered";
-
-  $scope.dendpoints = Inspect.disco();
+  $scope.getImported = function(){
+  	return Inspect.imported();
+  }
+  
+  $scope.getDisco = function(){
+  	return Inspect.disco();
+  }
+  
+  $rootScope.currentView="inspect-endpoints"; 
+  $scope.endpointType = "exported";
+  $scope.endpoints = $scope.getExported();
   $scope.orderProp = 'endpoint.framework.uuid';
 }
 

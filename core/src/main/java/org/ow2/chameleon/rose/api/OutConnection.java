@@ -209,7 +209,9 @@ public final class OutConnection {
 
 		public void modifiedService(ServiceReference reference, Object object) {
 			// nothing to do
-
+            log(LogService.LOG_WARNING,"Machine: "+machine.getId()+", exporter: "
+                    +reference.getProperty(Constants.SERVICE_ID)+
+                    " has been updated, that's awkward.",null,machine.getContext());
 		}
 
 		public void removedService(ServiceReference reference, Object object) {
@@ -261,9 +263,13 @@ public final class OutConnection {
 		}
 
 		public void modifiedService(ServiceReference reference, Object object) {
-            //destroy and recreate!
-            tracker.remove(reference);
+
+            log(LogService.LOG_WARNING,"Machine: "+machine.getId()+", service: "
+                    +reference.getProperty(Constants.SERVICE_ID)+
+                    " property has been updated, remove and re add.",null,machine.getContext());
+            tracker.removedService(reference,object);
             tracker.addingService(reference);
+
 		}
 
 		public void removedService(ServiceReference reference, Object object) {
@@ -323,6 +329,14 @@ public final class OutConnection {
 		}
 	}
 
+    /**
+     * Convenient method to get the LogService and log a message,
+     * TODO probably something better to do, like using a tracker.
+     * @param level  The {@code message} log level.
+     * @param message The message to be log.
+     * @param exception Optional {@code Throwable} that need to be looged.
+     * @param context {@code BundleContext} to get the {@code LogService}
+     */
     public static void log(int level,String message, Throwable exception,BundleContext context){
         ServiceReference sref = context.getServiceReference(LogService.class.getName());
         LogService logger = null;

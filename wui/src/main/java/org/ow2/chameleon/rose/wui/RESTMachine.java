@@ -25,9 +25,10 @@ public interface RESTMachine {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMachine(@PathParam("machineId")String machineId);
 
-    @PUT
-    @Path("{machineId}")
-    public Response createMachine(@PathParam("machineId")String machineId,@QueryParam("host")String host);
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createMachine(String machineJson);
 
     @DELETE
     @Path("{machineId}")

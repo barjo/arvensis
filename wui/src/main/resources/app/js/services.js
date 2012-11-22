@@ -11,4 +11,9 @@ angular.module('myApp.services', ['ngResource']).
 			disco : {method:'GET', params:{type:'discovered'}, isArray:true},
    			machines : {method:'GET', params:{type:'machines'}, isArray:true}
   		});
-	});
+	}).
+    factory('Machine', function($resource){
+		return $resource('../machines/:id/:cmd/:cmdId',{}, {
+		});
+	})
+;

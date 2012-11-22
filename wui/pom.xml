@@ -81,7 +81,8 @@
 							org.apache.felix.ipojo,
 							org.apache.felix.ipojo.parser,
                             javax.ws.rs*;version="[0,2)",
-                            javax.xml.bind
+                            javax.xml.bind,
+                            javax.xml.bind.annotation
 						</Import-Package>
 						<Private-Package>
                             org.json,

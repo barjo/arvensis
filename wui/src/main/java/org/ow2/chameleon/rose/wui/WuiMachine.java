@@ -56,15 +56,21 @@ public class WuiMachine implements RESTMachine {
 
     /*-------------------------------------------------------
       Machine
-        GET               /machines/:machineId      (json)
-        GET, PUT, DELETE  /machines/:machineId      (json)
+        GET, POST    /machines               (json)
+        GET, DELETE  /machines/:machineId    (json)
     ---------------------------------------------------------*/
 
     public Response getMachines(String filter) {
         JSONArray machines = new JSONArray();
 
-        for(String id: myMachines.keySet()){
-            machines.put(id);
+        for(Machine machine: myMachines.values()){
+            try{
+                JSONObject json = new JSONObject(machine.getConf());
+                json.put("state",machine.getState());
+                machines.put(json);
+            } catch (Exception e){
+                //TODO Log Warning
+            }
         }
 
         return Response.ok(machines.toString()).build();
@@ -86,21 +92,39 @@ public class WuiMachine implements RESTMachine {
 
     }
 
-    public Response createMachine(String machineId,String host) {
-        if(myMachines.containsKey(machineId)){
-            return Response.status(400).entity("Machine "+machineId+" has already been created").build();
+    public Response createMachine(String machineJson) {
+        JSONObject json;
+        String id;
+        String host;
+        try {
+            json = new JSONObject(machineJson);
+            id=json.get("id").toString();
+        } catch (JSONException e) {
+            return Response.status(400).entity("Content is not valid :" + e.getMessage()).build();
+        }
+
+        try { host=json.get("host").toString(); }catch (JSONException e){host=null;};
+
+        if(myMachines.containsKey(id)){
+            return Response.status(400).entity("Machine "+id+" has already been created").build();
         }
 
         Machine m;
         if (host == null)
-            m = machine(context,machineId).create();
+            m = machine(context,id).create();
         else
-            m = machine(context,machineId).host(host).create();
+            m = machine(context,id).host(host).create();
 
         myMachines.put(m.getId(),m);
         m.start();
+        try{
+            json = new JSONObject(m.getConf());
+            json.put("state",m.getState());
+        }catch (JSONException e){
+            //TODO log something
+        }
 
-        return Response.ok().build();
+        return Response.ok(json.toString()).build();
     }
 
 

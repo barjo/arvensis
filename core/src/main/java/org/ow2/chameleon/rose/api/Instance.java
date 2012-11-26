@@ -126,31 +126,31 @@ public final class Instance {
 			return new Instance(this);
 		}
 	}
-	
-	/**
-	 * Get the RoSe_machine component factory and create an instance if binded.
-	 * @author barjo
-	 */
-	private class InstanceCreator implements ServiceTrackerCustomizer {
-		
-		public Object addingService(ServiceReference reference) {
-			Factory factory = (Factory) machine.getContext().getService(reference);
-			machine.getContext().ungetService(reference);
-			try {
-				return factory.createComponentInstance(conf);
-			} catch (Exception e) {
-				return null;
-			}
-		}
 
-		public void modifiedService(ServiceReference reference, Object service) {
-		}
+    /**
+     * Get the RoSe_machine component factory and create an instance if bind.
+     * @author barjo
+     */
+    private class InstanceCreator implements ServiceTrackerCustomizer {
 
-		public void removedService(ServiceReference reference, Object service) {
-			((ComponentInstance) service).dispose();
-		}
-		
-	}
-	
-	
+        public Object addingService(ServiceReference reference) {
+            Factory factory = (Factory) machine.getContext().getService(reference);
+
+            try {
+                return factory.createComponentInstance(conf);
+            } catch (Exception e) {
+                return null;
+            } finally {
+                machine.getContext().ungetService(reference);
+            }
+        }
+
+        public void modifiedService(ServiceReference reference, Object service) {
+        }
+
+        public void removedService(ServiceReference reference, Object service) {
+            ((ComponentInstance) service).dispose();
+        }
+    }
+
 }

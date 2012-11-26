@@ -18,6 +18,7 @@ import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 import org.ow2.chameleon.rose.rest.provider.ManagedComponentProvider;
 import org.ow2.chameleon.rose.rest.provider.ProxiedComponentProvider;
+import org.ow2.chameleon.rose.util.RoseTools;
 
 import javax.ws.rs.Path;
 import java.net.URI;
@@ -219,7 +220,11 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
         int index = 0;
 
         while (!klass.isAnnotationPresent(Path.class) && index < objectClass.length){
-            try{ klass=sref.getBundle().loadClass(objectClass[index++]); }catch (ClassNotFoundException e){}
+            try{
+                klass = RoseTools.loadClass(context,objectClass[index++]);
+            }catch (ClassNotFoundException e){
+                logger.log(LOG_ERROR,"Cannot load the ObjecClass for the given service bundle",e);
+            }
         }
 
 
@@ -321,8 +326,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 */
 	public IoCComponentProvider getComponentProvider(ComponentContext ccontext,
 			final Class<?> klass) {
-		System.out
-				.println("Get component Provider " + klass.getCanonicalName());
+
 		// TODO What about the context
 
 		// Singleton case

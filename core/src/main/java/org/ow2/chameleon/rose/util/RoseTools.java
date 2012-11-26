@@ -267,7 +267,24 @@ public final class RoseTools {
 
 		return klass;
 	}
-	
+
+    /**
+     * Load the Class of name <code>klassname</code>
+     * TODO handle class version
+     * @param context The BundleContext
+     * @param klassname The Class name.
+     * @return The Class of name <code>klassname</code>
+     * @throws ClassNotFoundException if we can't load the Class of name <code>klassname</code>
+     */
+    public static Class<?> loadClass(BundleContext context,String klassname) throws ClassNotFoundException {
+        ServiceReference sref = context.getServiceReference(PackageAdmin.class.getName());
+        PackageAdmin padmin = (PackageAdmin) context.getService(sref);
+        String pname = klassname.substring(0, klassname.lastIndexOf(".")); // extract package name
+        ExportedPackage pkg = padmin.getExportedPackage(pname);
+
+        context.ungetService(sref);
+        return pkg.getExportingBundle().loadClass(klassname);
+    }
 	
 	/**
      * Subtracts all elements in the second list from the first list,

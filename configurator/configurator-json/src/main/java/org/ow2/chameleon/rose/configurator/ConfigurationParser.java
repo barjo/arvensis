@@ -35,7 +35,6 @@ public class ConfigurationParser {
 	
 	
 	public enum ConfType{
-        extension,
 		machine,
 		component,
 		connection,

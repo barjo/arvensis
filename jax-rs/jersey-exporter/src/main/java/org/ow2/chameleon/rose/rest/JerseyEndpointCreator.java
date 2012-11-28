@@ -18,7 +18,6 @@ import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
 import org.ow2.chameleon.rose.rest.provider.ManagedComponentProvider;
 import org.ow2.chameleon.rose.rest.provider.ProxiedComponentProvider;
-import org.ow2.chameleon.rose.util.RoseTools;
 
 import javax.ws.rs.Path;
 import java.net.URI;
@@ -221,7 +220,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 
         while (!klass.isAnnotationPresent(Path.class) && index < objectClass.length){
             try{
-                klass = RoseTools.loadClass(context,objectClass[index++]);
+                klass = sref.getBundle().loadClass(objectClass[index++]);
             }catch (ClassNotFoundException e){
                 logger.log(LOG_ERROR,"Cannot load the ObjecClass for the given service bundle",e);
             }

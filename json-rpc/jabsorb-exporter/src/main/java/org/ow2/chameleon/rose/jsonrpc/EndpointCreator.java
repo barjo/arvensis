@@ -79,7 +79,7 @@ public class EndpointCreator extends AbstractExporterComponent implements Export
 	 * Property containing the value of the
 	 * {@link EndpointCreator#PROP_HTTP_PORT} HttpService property.
 	 * Set in {@link EndpointCreator#bindHttpService(HttpService, ServiceReference)}
-	 */
+	 *
     private int httpport;
     
     /**

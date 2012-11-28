@@ -142,11 +142,12 @@ public class WuiMachine implements RESTMachine {
     /*--------------------------------------------------------------------
       Instances
         GET               /machines/:machineId/instances          (json)
+        POST              /machines/:machineId/instances          (json)
         GET, PUT, DELETE  /machines/:machineId/instances/:instId  (json)
     ----------------------------------------------------------------------*/
 
 
-    public Response createInstance(String machineId, String name, String factory, String properties) {
+    public Response putInstance(String machineId, String name, String factory, String properties) {
         if(!myMachines.containsKey(machineId)){
             return Response.status(404).entity("Machine "+machineId+" does not exist").build();
         }
@@ -157,7 +158,7 @@ public class WuiMachine implements RESTMachine {
         Map props;
 
         try {
-            props = toJson(properties);
+            props = fromJson(properties);
         } catch (JSONException e) {
             return Response.status(400).entity(e.getMessage()).build();
         }
@@ -170,6 +171,39 @@ public class WuiMachine implements RESTMachine {
         m.start();
 
         return Response.ok().build();
+    }
+
+    public Response postInstance(String machineId, String content) {
+
+        Machine m;
+
+        if(!myMachines.containsKey(machineId)){
+            return Response.status(404).entity("Machine "+machineId+" does not exist").build();
+        } else {
+            m = myMachines.get(machineId);
+        }
+
+
+        try {
+            Map<String,Object> conf = fromJson(content);
+
+            Instance ins;
+
+            if (conf.containsKey("name") && conf.containsKey("properties"))
+                ins = m.exporter((String) conf.get("factory")).name((String) conf.get("name")).withProperties(
+                        fromJson(((JSONObject) conf.get("properties")).toString())).create();
+            else if (conf.containsKey("name"))
+                ins = m.exporter((String) conf.get("factory")).name((String)conf.get("name")).create();
+            else
+                ins = m.exporter((String) conf.get("factory")).create();
+
+            ins.start();
+
+            return Response.ok().build();
+
+        } catch (Exception e) {
+            return Response.status(400).entity(e.getMessage()).build();
+        }
     }
 
     public Response destroyInstance(String machineId, String name) {
@@ -251,7 +285,7 @@ public class WuiMachine implements RESTMachine {
         Map props;
 
         try {
-            props = toJson(properties);
+            props = fromJson(properties);
         } catch (JSONException e) {
             return Response.status(400).entity(e.getMessage()).build();
         }
@@ -345,7 +379,7 @@ public class WuiMachine implements RESTMachine {
         Map props;
 
         try {
-            props = toJson(properties);
+            props = fromJson(properties);
         } catch (JSONException e) {
             return Response.status(400).entity(e.getMessage()).build();
         }
@@ -424,7 +458,7 @@ public class WuiMachine implements RESTMachine {
 
 
 
-    public static Map<String,Object> toJson(String json) throws JSONException {
+    public static Map<String,Object> fromJson(String json) throws JSONException {
         Map<String,Object> map = new HashMap<String, Object>();
 
         if(json==null || json.equals(""))

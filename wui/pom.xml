@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<version>1.6.4</version>
+			<version>${ipojo.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
@@ -78,8 +78,6 @@
 							org.osgi.service.remoteserviceadmin,
                             org.osgi.service.http,
 							org.osgi.util.tracker,
-							org.apache.felix.ipojo,
-							org.apache.felix.ipojo.parser,
                             javax.ws.rs*;version="[0,2)",
                             javax.xml.bind,
                             javax.xml.bind.annotation

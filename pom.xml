@@ -94,6 +94,7 @@
 		<profile>
 			<id>test</id>
 			<modules>
+				<module>jax-rs/jersey-exporter-it</module>
 				<module>jax-ws/cxf-exporter-it</module>
 				<module>json-rpc/jabsorb-exporter-it</module>
 				<!-- <module>json-rpc/jabsorb-importer-it</module> Pb with last version of OSGi class Version in framework-->

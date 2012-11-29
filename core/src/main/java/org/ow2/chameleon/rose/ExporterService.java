@@ -30,7 +30,7 @@ public interface ExporterService {
 	 * @param properties Additional properties provided by the framework rather than the one provided by {@code sref}
 	 * @return An {@link ExportRegistration}.
 	 */
-	ExportRegistration exportService(ServiceReference sref, Map<String, Object> properties);
+	ExportRegistration exportService(ServiceReference sref, Map<String, ?> properties);
 
 	/**
      * @return All {@link ExportReference} of services exported through this

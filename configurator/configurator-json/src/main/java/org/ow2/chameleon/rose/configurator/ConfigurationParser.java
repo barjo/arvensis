@@ -1,6 +1,5 @@
 package org.ow2.chameleon.rose.configurator;
 
-import org.apache.felix.ipojo.parser.ParseException;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.log.LogService;
@@ -60,10 +59,10 @@ public class ConfigurationParser {
 		}
 	}
 
-	private Machine parseMachine(Object obj) throws InvalidSyntaxException, ParseException {
+	private Machine parseMachine(Object obj) throws InvalidSyntaxException {
 		Machine rosemachine;
 		if ( !(obj instanceof Map)){
-			throw new ParseException(machine+" must contains a valid machine description: "+obj+" is not a valid jsonobject");
+			throw new IllegalArgumentException(machine+" must contains a valid machine description: "+obj+" is not a valid jsonobject");
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -110,9 +109,9 @@ public class ConfigurationParser {
 	 * FIXME
 	 */
 	@SuppressWarnings({ "unchecked" })
-	private void parseComponent(Object list, Machine machine) throws InvalidSyntaxException, ParseException {
+	private void parseComponent(Object list, Machine machine) throws InvalidSyntaxException {
 		if ( !(list instanceof List)){
-			throw new ParseException(component+" must contains a valid component description: "+list+" is not a valid jsonobject");
+			throw new IllegalArgumentException(component+" must contains a valid component description: "+list+" is not a valid jsonobject");
 		}
 		
 		logger.log(LOG_DEBUG, "Parse component instances of machine: " +machine.getId());
@@ -138,9 +137,9 @@ public class ConfigurationParser {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void parseConnection(Object list, Machine machine) throws InvalidSyntaxException, ParseException {
+	private void parseConnection(Object list, Machine machine) throws InvalidSyntaxException {
 		if ( !(list instanceof List)){
-			throw new ParseException(connection+" must contains a valid connection description: "+list+" is not a valid jsonarray ");
+			throw new IllegalArgumentException(connection+" must contains a valid connection description: "+list+" is not a valid jsonarray ");
 		}
 		
 		logger.log(LOG_DEBUG, "Parse connections of machine: " +machine.getId());
@@ -205,13 +204,13 @@ public class ConfigurationParser {
 	}
 
 
-	public Machine parse(Map<String, Object> json) throws InvalidSyntaxException, ParseException {
+	public Machine parse(Map<String, Object> json) throws InvalidSyntaxException {
 		
 		if (machine.isIn(json)){
 			return parseMachine(machine.getValue(json));
 		}
 		else {
-			throw new ParseException("The configuration does not contains a valid rose machine configuration");
+			throw new IllegalArgumentException("The configuration does not contains a valid rose machine configuration");
 		}
 	}
 

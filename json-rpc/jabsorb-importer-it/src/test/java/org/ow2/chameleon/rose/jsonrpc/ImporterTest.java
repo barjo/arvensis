@@ -1,16 +1,5 @@
 package org.ow2.chameleon.rose.jsonrpc;
 
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.swissbox.tinybundles.core.TinyBundles.newBundle;
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import org.jabsorb.JSONRPCBridge;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -23,6 +12,17 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.testing.ImporterComponentAbstractTest;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.swissbox.tinybundles.core.TinyBundles.newBundle;
+import static org.osgi.framework.Constants.OBJECTCLASS;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
+
 /**
  * Integration test for the jabsorb-endpoint-creator component.
  * @author barjo
@@ -31,7 +31,7 @@ import org.ow2.chameleon.rose.testing.ImporterComponentAbstractTest;
 public class ImporterTest extends ImporterComponentAbstractTest {
     private static final String FILTER="("+ENDPOINT_CONFIG+"=jsonrpc)";
     protected static final String SERVLETNAME ="/JSONRPC";
-    
+
 
     @Before
     @Override

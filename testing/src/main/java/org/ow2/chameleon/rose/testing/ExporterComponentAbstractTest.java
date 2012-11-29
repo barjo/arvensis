@@ -79,7 +79,6 @@ public abstract class ExporterComponentAbstractTest {
 
         Option[] bundles = options(provision(
                 mavenBundle().groupId("org.apache.felix").artifactId("org.apache.felix.ipojo").versionAsInProject(),
-                mavenBundle().groupId("org.apache.felix").artifactId("org.apache.felix.ipojo.annotations").versionAsInProject(),
                 mavenBundle().groupId("org.ow2.chameleon.testing").artifactId("osgi-helpers").versionAsInProject(),
                 mavenBundle().groupId("org.ow2.chameleon.rose.testing").artifactId("rose-helpers").versionAsInProject(),
                 mavenBundle().groupId("org.ow2.chameleon.rose").artifactId("rose-core").versionAsInProject(), 

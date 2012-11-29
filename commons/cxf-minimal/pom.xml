@@ -74,6 +74,7 @@
               com.sun.xml.internal.bind.api;resolution:=optional,
               org.apache.commons.logging.*;resolution:=optional,
               org.slf4j.*;resolution:=optional,
+              org.objectweb.asm*;resolution:=optional,
               org.eclipse.jetty.jmx;resolution:=optional,
               com.sun*;resolution:=optional,
               org.springframework*;resolution:=optional;version="[2.5,4)",

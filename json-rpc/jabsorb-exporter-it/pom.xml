@@ -21,15 +21,10 @@
 
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.6.8</ipojo.version>
-		<osgi.version>4.2.0</osgi.version>
 		<jabsorb.version>1.3.1</jabsorb.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<mockito.version>1.7</mockito.version>
 		<grizzly.version>1.9.36</grizzly.version>
-		
-		<!-- Plugins version-->
-		<compiler.plugin.version>2.1</compiler.plugin.version>
 		
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

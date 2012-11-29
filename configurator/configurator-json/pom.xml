@@ -17,15 +17,6 @@
 	<description>OW2 Chameleon ROSE Json Configurator</description>
 
 	<properties>
-		<!-- Dependencies version -->
-		<ipojo.version>1.6.8</ipojo.version>
-		<osgi.version>4.2.0</osgi.version>
-
-		<!-- Plugins version -->
-		<bundle.plugin.version>2.3.4</bundle.plugin.version>
-		<compiler.plugin.version>2.1</compiler.plugin.version>
-		<ipojo.plugin.version>1.6.0</ipojo.plugin.version>
-
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -40,7 +31,7 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<version>1.6.4</version>
+			<version>${ipojo.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
@@ -98,42 +89,40 @@
 							org.ow2.chameleon.rose.api;version="[1,2)",
 							org.ow2.chameleon.rose.introspect;version="[1,2)",
 							org.ow2.chameleon.rose.util;version="[1,2)",
-							org.osgi.framework,
-							org.osgi.service.log,
-							org.osgi.service.remoteserviceadmin,
-							org.osgi.util.tracker,
+							org.osgi.framework;version="[1,2)",
+							org.osgi.service.log;version="[1,2)",
+							org.osgi.service.remoteserviceadmin;version="[1,2)",
+							org.osgi.util.tracker;version="[1,2)",
 							org.apache.felix.fileinstall,
-							org.ow2.chameleon.json,
-							org.apache.felix.ipojo,
-							org.apache.felix.ipojo.parser
+							org.ow2.chameleon.json
 						</Import-Package>
 						<Private-Package>
 							org.ow2.chameleon.rose.configurator
 						</Private-Package>
+                        <Export-Package/>
 					</instructions>
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-ipojo-plugin</artifactId>
-				<version>${ipojo.plugin.version}</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>ipojo-bundle</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-ipojo-plugin</artifactId>
+                <version>${ipojo.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>ipojo-bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${compiler.plugin.version}</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.5</source>
+					<target>1.5</target>
 				</configuration>
 			</plugin>
 		</plugins>

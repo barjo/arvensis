@@ -117,7 +117,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 * @param extraProperties
 	 * @return
 	 */
-	public final ExportRegistration exportService(ServiceReference sref,Map<String,Object> extraProperties) {
+	public final ExportRegistration exportService(ServiceReference sref,Map<String,?> extraProperties) {
 		ExportRegistration xreg;
 		
 		synchronized (registrations) {

@@ -24,9 +24,10 @@
 	<properties>
 		<!-- Dependencies version -->
 		<ipojo.version>1.8.4</ipojo.version>
-		<ipojo.plugin.version>1.8.2</ipojo.plugin.version>
-		<osgi.version>4.2.0</osgi.version>
-		<bundle.plugin.version>2.3.4</bundle.plugin.version>
+		<ipojo.plugin.version>1.8.4</ipojo.plugin.version>
+		<osgi.version>4.3.1</osgi.version>
+        <osgi.ent.version>4.2.0</osgi.ent.version>
+		<bundle.plugin.version>2.3.7</bundle.plugin.version>
 		<compiler.plugin.version>2.5.1</compiler.plugin.version>
 		<javadoc.plugin.version>2.8.1</javadoc.plugin.version>
 
@@ -72,7 +73,14 @@
 				<module>commons/cxf-minimal</module>
 			</modules>
 		</profile>
-
+		
+		<!-- Profile used to build the web user interface-->
+		<profile>
+			<id>wui</id>
+			<modules>
+				<module>wui</module>
+			</modules>
+		</profile>
 		<!-- Profile used to build distribition -->
 		<profile>
 			<id>dist</id>
@@ -88,7 +96,7 @@
 			<modules>
 				<module>jax-ws/cxf-exporter-it</module>
 				<module>json-rpc/jabsorb-exporter-it</module>
-				<module>json-rpc/jabsorb-importer-it</module>
+				<!-- <module>json-rpc/jabsorb-importer-it</module> Pb with last version of OSGi class Version in framework-->
 			</modules>
 		</profile>
 	</profiles>

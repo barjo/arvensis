@@ -177,7 +177,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	 *------------------------------*/
 
     @Deprecated
-	public Collection<ExportRegistration> exportService(ServiceReference reference, Map<String, Object> properties) {
+	public Collection<ExportRegistration> exportService(ServiceReference reference, Map<String, ?> properties) {
 		Collection<ExporterService> exporters = getExporters();
 		Collection<ExportRegistration> registrations = new HashSet<ExportRegistration>(); 
 		

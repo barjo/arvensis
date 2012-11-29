@@ -81,7 +81,7 @@ public final class RoseTools {
 	 * @return {@link Map} containing the extra properties.
 	 */
 	public static Map<String, Object> computeEndpointExtraProperties(
-			ServiceReference sref, Map<String, Object> extraProps,
+			ServiceReference sref, Map<String, ?> extraProps,
 			List<String> configPrefix, String machineId) {
 		Map<String, Object> properties = new HashMap<String, Object>();
 

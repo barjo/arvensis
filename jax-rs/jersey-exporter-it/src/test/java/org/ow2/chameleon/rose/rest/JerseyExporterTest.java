@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 import static org.junit.Assert.*;
 import static org.ops4j.pax.exam.CoreOptions.*;
 import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
+import static org.ow2.chameleon.rose.util.RoseTools.waitForIt;
 
 /**
  * Integration test for the jersey-exporter component.
@@ -88,6 +89,7 @@ public class JerseyExporterTest  {
      */
     @Test
     public void testExporterCreation(){
+        waitForIt(3000);
         assertTrue(myExporter.getState() == ComponentInstance.VALID);
     }
 

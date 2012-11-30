@@ -80,7 +80,7 @@ public class RESTInspectTest {
      */
     @Test
     public void testRestInspectExport(){
-       waitForIt(1000);
+       waitForIt(3000);
        //ping
        assertTrue(ping(200));
     }

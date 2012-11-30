@@ -212,6 +212,9 @@ public final class OutConnection {
             log(LogService.LOG_WARNING,"Machine: "+machine.getId()+", exporter: "
                     +reference.getProperty(Constants.SERVICE_ID)+
                     " has been updated, that's awkward.",null,machine.getContext());
+            //dummy update
+            tracker.removedService(reference,object);
+            tracker.addingService(reference);
 		}
 
 		public void removedService(ServiceReference reference, Object object) {

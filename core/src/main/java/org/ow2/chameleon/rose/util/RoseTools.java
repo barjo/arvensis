@@ -308,6 +308,13 @@ public final class RoseTools {
         return result;
     }
 
+    public static void waitForIt(long millis){
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+        }
+    }
+
     public static void updateMachine(Machine machine,Collection<OutConnection> outs,Collection<InConnection> ins, Collection<Instance> instances){
         for(InConnection in : ins)
             in.update(machine);

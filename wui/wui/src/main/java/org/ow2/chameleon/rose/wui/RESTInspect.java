@@ -12,6 +12,9 @@ import javax.ws.rs.core.Response;
 @Path("/inspect")
 public interface RESTInspect {
 
+    @OPTIONS
+    Response ping();
+
     @Path("/machines")
     @Produces(MediaType.APPLICATION_JSON)
     @GET

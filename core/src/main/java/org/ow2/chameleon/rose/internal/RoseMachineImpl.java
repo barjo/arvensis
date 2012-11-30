@@ -7,7 +7,6 @@ import org.osgi.service.remoteserviceadmin.*;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
-import org.ow2.chameleon.rose.util.DefaultLogService;
 
 import java.util.*;
 
@@ -49,7 +48,7 @@ public class RoseMachineImpl implements RoseMachine,RemoteServiceAdmin{
 	
 	private final BundleContext context;
 	
-	@Requires(optional=true,defaultimplementation=DefaultLogService.class)
+	@Requires(optional=true)
 	private LogService logger;
 	
 	public RoseMachineImpl(BundleContext pContext) {

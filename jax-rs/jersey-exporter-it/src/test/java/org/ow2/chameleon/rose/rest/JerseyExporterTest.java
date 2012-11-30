@@ -28,7 +28,6 @@ import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.*;
 import static org.ops4j.pax.exam.CoreOptions.*;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
 
 /**
@@ -38,7 +37,6 @@ import static org.ow2.chameleon.rose.api.Machine.MachineBuilder.machine;
 @RunWith(JUnit4TestRunner.class)
 @ExamReactorStrategy(EagerSingleStagedReactorFactory.class)
 public class JerseyExporterTest  {
-    private static final String FILTER="("+ENDPOINT_CONFIG+"=rest)";
     private static final String HTTP_PORT = "9027";
 
 

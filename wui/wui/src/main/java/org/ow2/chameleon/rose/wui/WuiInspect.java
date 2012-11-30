@@ -44,6 +44,13 @@ public class WuiInspect implements  RESTInspect{
         reg=null;
     }
 
+    /**
+     * @return 200, is alive.
+     */
+    public Response ping() {
+        return Response.ok().build();
+    }
+
     public Response getAllMachine(@QueryParam("filter") String filter) {
         try {
             filter = (filter == null ? "("+ RoseMachine.RoSe_MACHINE_ID+"=*)" : "(&("+RoseMachine.RoSe_MACHINE_ID+"=*)"+filter+")");

@@ -110,7 +110,7 @@ public class ImportRegistryImpl implements
 						.entrySet()) {
 					String filter = entry.getValue();
 
-					if (description.matches(filter)) { // TODO null is valid ?
+					if (description.matches(filter)) {
 						entry.getKey().endpointAdded(description, filter);
 					}
 				}
@@ -145,7 +145,7 @@ public class ImportRegistryImpl implements
 							.entrySet()) {
 						String filter = entry.getValue();
 
-						if (desc.matches(filter)) { // TODO check if null valid
+						if (desc.matches(filter)) {
 							entry.getKey().endpointRemoved(desc, filter);
 						}
 					}

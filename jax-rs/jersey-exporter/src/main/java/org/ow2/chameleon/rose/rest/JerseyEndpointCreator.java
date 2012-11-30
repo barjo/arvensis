@@ -89,7 +89,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 */
 	private int httpport;
 
-	private JerseyServletBridge container = null;
+	private volatile JerseyServletBridge container = null;
 
 	private final MyResourceConfig rsconfig = new MyResourceConfig();
 
@@ -175,7 +175,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 * or removing a class into the ResourceConfig.
 	 */
 	private void reloadServlet() {
-		if (container == null) {
+		if (container == null && !rsconfig.isEmpty()) {
 			container = new JerseyServletBridge(this);
 			try {
 				httpservice.registerServlet(rootName, container,
@@ -208,7 +208,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 * .framework.ServiceReference, java.util.Map)
 	 */
 	protected EndpointDescription createEndpoint(ServiceReference sref,
-			Map<String, Object> extraProperties)  {
+			Map<String, Object> extraProperties) throws IllegalArgumentException,RuntimeException  {
 
 		// Get the service object
 		Object service = context.getService(sref);
@@ -279,7 +279,7 @@ public class JerseyEndpointCreator extends AbstractExporterComponent implements
 	 * @throws IllegalArgumentException
 	 */
 	private void addRessource(Object instance, Class<?> klass)
-			throws IllegalArgumentException {
+			throws IllegalArgumentException,RuntimeException {
 		// Create the managed component provider and add the class to the
 		// ressource config
 		rsconfig.addComponentProvider(klass, new ManagedComponentProvider(

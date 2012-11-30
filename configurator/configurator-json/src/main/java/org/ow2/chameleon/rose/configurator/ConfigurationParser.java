@@ -36,6 +36,7 @@ public class ConfigurationParser {
 	public enum ConfType{
 		machine,
 		component,
+        instance,
 		connection,
 		id,
 		host,
@@ -95,12 +96,15 @@ public class ConfigurationParser {
 		if (connection.isIn(json)){
 			parseConnection(connection.getValue(json), rosemachine);
 		}
-		
+
+        //Parse the instance/component conf
 		if (component.isIn(json)){
 			parseComponent(component.getValue(json), rosemachine);
 		}
-		
-		//TODO parse components
+
+        if (instance.isIn(json)){
+            parseComponent(instance.getValue(json),rosemachine);
+        }
 		
 		return rosemachine;
 	}

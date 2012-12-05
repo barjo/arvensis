@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
-		<version>1.0.1-SNAPSHOT</version>
+		<version>1.0.2</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -99,7 +99,7 @@
 						<Private-Package>
 							org.ow2.chameleon.rose.configurator
 						</Private-Package>
-                        <Export-Package/>
+                        <Export-Package />
 					</instructions>
 				</configuration>
 			</plugin>

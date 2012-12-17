@@ -13,11 +13,11 @@
 	<!-- Proxy Importer for 'Devices' -->
 	<component classname="fr.liglab.adele.cilia.proxies.rose.ProxyDeviceImporter"
 		name="Cilia_Importer.device">
-		<provides>
+		<provides specifications="org.ow2.chameleon.rose.ImporterService">
 			<property type="java.lang.String[]" name="endpoint.config"
 				value="{tcp.ip}" />
 		</provides>		
-		<requires field="roseMachine" />
+		<requires field="roseMachine" id = "rose.machine"/>
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />
 	</component>
@@ -27,5 +27,6 @@
 		<callback transition="validate" method="start" />
 		<callback transition="invalidate" method="stop" />
 	</component>
+    <instance component="Cilia_RoseProxies.configurator"/>
 	
 </ipojo>

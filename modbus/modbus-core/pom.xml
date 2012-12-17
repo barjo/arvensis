@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
-			<version>0.2.4-SNAPSHOT</version>
+			<version>1.0.2</version>
 			<type>bundle</type>
 			<scope>compile</scope>
 		</dependency>

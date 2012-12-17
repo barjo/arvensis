@@ -15,15 +15,6 @@
 
 package fr.liglab.adele.cilia.proxies.rose;
 
-import static org.apache.felix.ipojo.Factory.VALID;
-import static org.osgi.framework.Constants.OBJECTCLASS;
-
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.felix.ipojo.ComponentInstance;
 import org.apache.felix.ipojo.Factory;
 import org.osgi.framework.BundleContext;
@@ -33,9 +24,15 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.rose.AbstractImporterComponent;
+import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static org.apache.felix.ipojo.Factory.VALID;
+import static org.osgi.framework.Constants.OBJECTCLASS;
 
 /**
  * Service importer for tcp/ip protocol <br>
@@ -43,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Denis Morand
  */
-public class ProxyDeviceImporter extends AbstractImporterComponent {
+public class ProxyDeviceImporter extends AbstractImporterComponent implements ImporterService{
 	private static final Logger logger = LoggerFactory.getLogger("cilia.rose.proxies");
 
 	private static final String FACTORY_FILTER = "(" + OBJECTCLASS + "="
@@ -126,7 +123,7 @@ public class ProxyDeviceImporter extends AbstractImporterComponent {
 		return null;
 	}
 
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return roseMachine;
 	}
 

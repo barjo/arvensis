@@ -14,7 +14,8 @@
 	<!-- Component Web Service HTTP Ping scanner  -->
 	<component classname="fr.liglab.adele.discovery.impl.webservice.WebServiceHttpPing"
 		name="WebService_HttpPing.inquiry">
-		<properties>
+
+        <properties>
 			<property name="url" field="m_urlWebService" type="java.lang.String" />
 			<property name="scan.period" type="java.lang.String" field="m_period"
 				value="1000" />
@@ -23,7 +24,8 @@
 			          value="simpleWebServiceRequestor.factory"/> 
 			<property name="service.interface" type="java.lang.String" field="m_serviceProxy" />
 		</properties>
-		<requires field="roseMachine" />
+
+		<requires field="roseMachine" id = "rose.machine"/>
 		<requires field="adminService" />
 		<callback transition="validate" method="runScan" />
 		<callback transition="invalidate" method="stopScan" />

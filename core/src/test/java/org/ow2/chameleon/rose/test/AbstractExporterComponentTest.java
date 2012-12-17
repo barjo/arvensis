@@ -1,17 +1,5 @@
 package org.ow2.chameleon.rose.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +13,14 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.RoseMachine;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *  Test Suite of the {@link AbstractExporterComponent} class.
@@ -188,7 +184,7 @@ public class AbstractExporterComponentTest {
 			assertNull(reg.getExportReference()); //Now that is has been closed
 			assertNull(creator.getExportReference(sref)); //No more exported
 			
-			//assertEquals(--count, creator.getAllExportReference().size()); //verify that one and only one has been removed
+			//assertEquals(--getSize, creator.getAllExportReference().size()); //verify that one and only one has been removed
 			verify(machine).removeLocal(xref); //Verify that the ExportReference has been removed from the ExportRegistry.
 		}
 		
@@ -281,10 +277,8 @@ public class AbstractExporterComponentTest {
 			return descs.size();
 		}
 
-		@Override
-		protected RoseMachine getRoseMachine() {
+		public RoseMachine getRoseMachine() {
 			return machine;
 		}
-
 	}
 }

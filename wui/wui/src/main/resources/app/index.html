@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" ng-app="myApp" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="utf-8">
+  <title>RoSe Web-UI</title>
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/bootstrap-responsive.css">
+</head>
+<body>
+
+	<div id="wrap">
+
+		<div class="navbar">
+			<div class="navbar-inner">
+				<a class="brand" href="#">RoSe Wui</a>
+				<ul class="nav">
+					<li ng-class="{active: currentView == 'inspect-machines'}"><a href="#/inspect-machines">Inspect Machines</a></li>
+					<li ng-class="{active: currentView == 'inspect-endpoints'}"><a href="#/inspect-endpoints">Inspect Endpoints</a></li>
+					<li ng-class="{active: currentView == 'manage-machines'}"><a href="#/manage-machines">Manage Machines</a></li>
+				</ul>
+			</div>
+		</div>
+
+		<!-- View, inject by angular -->
+		<div ng-view></div>
+
+		<div id="push"></div>
+
+	</div>
+	<div id="footer">
+		<div class="container">
+			<p class="muted credit">@}'-,-- <a href="http://barjo.github.com/arvensis/">RoSe Arvensis</a> - <a href="http://github.com/barjo">barjo</a> 2012 --,-'{@</p>
+		</div>
+	</div>
+
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
+  -->
+  <script src="lib/jquery.js"></script>
+  <script src="lib/bootstrap/bootstrap.js"></script>
+  <script src="lib/angular/angular.min.js"></script>
+  <script src="lib/angular/angular-resource.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/controllers.js"></script>
+  <script src="js/filters.js"></script>
+  <!--  <script src="js/directives.js"></script> -->
+</body>
+</html>

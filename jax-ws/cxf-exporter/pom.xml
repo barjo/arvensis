@@ -10,14 +10,14 @@
 		the specific language governing permissions and limitations under the
 		License.
 	-->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!-- Project's parent -->
 	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
+		<groupId>org.ow2.chameleon.rose</groupId>
+		<artifactId>rose-parent</artifactId>
+		<version>1.0.3-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<groupId>org.ow2.chameleon.rose.ws</groupId>
@@ -27,21 +27,12 @@
 	<name>OW2 Chameleon - RoSe JAX-WS Exporter (cxf) </name>
 	<description>OW2 Chameleon RoSe JAX-WS Exporter bundle, contains the RoSe exporter component based on the cxf library.</description>
 
-	<version>0.1.2-SNAPSHOT</version>
-
 	<!-- All the version number should be set here-->
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
-		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
-		<cxf.version>2.3.2</cxf.version>
-		
-		<!-- Plugins version-->
-		<bundle.plugin.version>2.3.4</bundle.plugin.version>
-		<compiler.plugin.version>2.1</compiler.plugin.version>
-		<ipojo.plugin.version>1.8.0</ipojo.plugin.version>
+		<cxf.version>2.5.2</cxf.version>
+
 		
 		<!-- Source Encoding-->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -52,7 +43,7 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
-			<version>${rose.core.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
@@ -99,21 +90,21 @@
 						</Private-Package>
 						<Import-Package>
 							org.osgi.service.log;version=1.3,
-							org.ow2.chameleon.rose;version="[0.1,1)",
-							org.ow2.chameleon.rose.registry;version="[0.1,1)",
-							org.ow2.chameleon.rose.introspect;version="[0.1,1)",
-							org.ow2.chameleon.rose.util;version="[0.1,1)",
-							org.osgi.framework,
-							org.osgi.service.event,
-							org.osgi.service.http,
-							org.osgi.service.log,
-							org.osgi.service.remoteserviceadmin,
-							org.osgi.util.tracker,
+							org.ow2.chameleon.rose;version="[1,2)",
+							org.ow2.chameleon.rose.registry;version="[1,2)",
+							org.ow2.chameleon.rose.introspect;version="[1,2)",
+							org.ow2.chameleon.rose.util;version="[1,2)",
+							org.osgi.framework;version="[1.3,2)",
+							org.osgi.service.event;version="[1,2)",
+							org.osgi.service.http;version="[1,2)",
+							org.osgi.service.log;version="[1,2)",
+							org.osgi.service.remoteserviceadmin;version="[1,2)",
+							org.osgi.util.tracker;version="[1,2)",
 							javax.servlet;version="[2.5,3)",
 							javax.jws;version=0.0.0,
 							*
 						</Import-Package>
-						<Export-Package></Export-Package>
+						<Export-Package />
 					</instructions>
 				</configuration>
 			</plugin>

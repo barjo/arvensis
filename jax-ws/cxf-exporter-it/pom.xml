@@ -4,37 +4,27 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Project's parent -->
+	<!-- Project's parent --> 
 	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
+		<groupId>org.ow2.chameleon.rose</groupId>
+		<artifactId>rose-parent</artifactId>
+		<version>1.0.3-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<!-- Description of the project -->
 	<groupId>org.ow2.chameleon.rose.ws</groupId>
 	<artifactId>cxf-exporter-it</artifactId>
 	<name>OW2 Chameleon - RoSe JAX-WS Exporter[IntegrationTest]</name>
-	<version>0.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<description>OW2 Chameleon RoSe CXF Exporter Integration Test, contains the RoSe Apache Cxf exporter integration test</description>
 
 	<properties>
 		<!-- Dependencies version -->
-		<ipojo.version>1.8.0</ipojo.version>
-		<osgi.version>4.2.0</osgi.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 		<javax.servlet.version>2.5</javax.servlet.version>
 		<mockito.version>1.7</mockito.version>
 		<grizzly.version>1.9.36</grizzly.version>
-		
-		<!-- Tested version-->
-		<cxf-exporter.version>0.1.2-SNAPSHOT</cxf-exporter.version>
-		<rose.core.version>0.2.4-SNAPSHOT</rose.core.version>
 
-		<!-- Plugins version-->
-		<compiler.plugin.version>2.1</compiler.plugin.version>
-		
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -64,13 +54,17 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
+		    <id>com.springsource.repository.bundles.external</id>
+		    <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
+		    <url>http://repository.springsource.com/maven/bundles/external</url>
+		</repository>	
+		<repository>
 			<id>objectweb-release</id>
 
 			<name>ow2 Maven Repository</name>
 			<url>http://maven.ow2.org/maven2</url>
 			<releases>
 				<enabled>true</enabled>
-
 			</releases>
 			<snapshots>
 				<enabled>false</enabled>
@@ -119,7 +113,12 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
-		
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.ipojo</artifactId>
+            <version>${ipojo.version}</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.compendium</artifactId>
@@ -129,13 +128,13 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose</groupId>
 			<artifactId>rose-core</artifactId>
-			<version>${rose.core.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.ws</groupId>
 			<artifactId>cxf-exporter</artifactId>
-			<version>${cxf-exporter.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>	
 
@@ -147,9 +146,9 @@
 		</dependency>
 		
 		<dependency>
-        	<groupId>org.apache.cxf</groupId>
-       		<artifactId>org.ow2.chameleon.commons.cxf-minimal</artifactId>
-        	<version>2.3.2-0001-SNAPSHOT</version>
+        	<groupId>org.ow2.chameleon.commons.cxf</groupId>
+       		<artifactId>cxf-bundle-minimal</artifactId>
+			<version>2.5.2-0002-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -159,21 +158,18 @@
 			<version>1.2_3</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>org.apache.servicemix.bundles</groupId>
-			<artifactId>org.apache.servicemix.bundles.neethi</artifactId>
-			<version>2.0.4_3</version>
+			<groupId>org.apache.neethi</groupId>
+			<artifactId>neethi</artifactId>
+			<version>3.0.1</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>org.apache.servicemix.bundles</groupId>
-			<artifactId>org.apache.servicemix.bundles.xmlschema</artifactId>
-			<version>1.4.2_1</version>
+			<groupId>org.apache.ws.xmlschema</groupId>
+			<artifactId>xmlschema-core</artifactId>
+			<version>2.0.1</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>javax.wsdl</groupId>
 			<artifactId>com.springsource.javax.wsdl</artifactId>
@@ -208,7 +204,7 @@
 		<dependency>
 			<groupId>org.ow2.chameleon.rose.testing</groupId>
 			<artifactId>rose-helpers</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- Pax Exam API: -->
@@ -281,8 +277,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${compiler.plugin.version}</version>
 				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 			

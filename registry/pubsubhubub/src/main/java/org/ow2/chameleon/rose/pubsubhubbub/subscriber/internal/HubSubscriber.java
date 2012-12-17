@@ -5,10 +5,12 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -34,17 +36,17 @@ import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMo
  */
 public class HubSubscriber {
 
-	private final String urlHub;
 	private HttpPost postMethod;
 	private final HttpClient client;
 	private final String callBackUrl;
 	private String port;
 	private final String host;
+	private RoseMachine rose;
 
 	/**
 	 * Register a subscription.
 	 * 
-	 * @param pUrlHub
+	 * @param urlHub
 	 *            url address to Rose Hub, full path
 	 * @param pCallBackUrl
 	 *            servlet relative path
@@ -52,15 +54,15 @@ public class HubSubscriber {
 	 *            endpoint filter
 	 * @param context
 	 *            BundleContext
-	 * @param rose
+	 * @param pRose
 	 *            RoseService
 	 * @throws IOException
 	 *             exception
 	 */
-	public HubSubscriber(final String pUrlHub, final String pCallBackUrl,
+	public HubSubscriber(final String urlHub, final String pCallBackUrl,
 			final String endpointFilter, final BundleContext context,
-			final RoseMachine rose) throws IOException {
-		this.urlHub = pUrlHub;
+			final RoseMachine pRose) throws IOException {
+		this.rose = pRose;
 
 		final ServiceReference httpServiceRef = context
 				.getServiceReference(HttpService.class.getName());
@@ -77,12 +79,12 @@ public class HubSubscriber {
 			port = DEFAULT_HTTP_PORT;
 		}
 
-		this.host = rose.getHost();
+		this.host = pRose.getHost();
 
 		this.callBackUrl = "http://" + this.host + ":" + port + pCallBackUrl;
 		client = new DefaultHttpClient();
 
-		postMethod = new HttpPost(this.urlHub);
+		postMethod = new HttpPost(urlHub);
 		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
 		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
@@ -92,6 +94,8 @@ public class HubSubscriber {
 				endpointFilter));
 		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
 				this.callBackUrl));
+		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID, pRose
+				.getId()));
 
 		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		final HttpResponse response = client.execute(postMethod);
@@ -108,29 +112,36 @@ public class HubSubscriber {
 	/**
 	 * Sends unsubscription to Rose Hub.
 	 * 
+	 * @param connectedHubs
+	 * 
 	 * @throws IOException
 	 *             exception
 	 */
-	public final void unsubscribe() throws IOException {
+	public final void unsubscribe(Set<String> connectedHubs) throws IOException {
 
-		postMethod = new HttpPost(this.urlHub);
-		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
+		for (String hubUrl : connectedHubs) {
 
-		final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-				HubMode.unsubscribe.toString()));
-		nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
-				this.callBackUrl));
+			postMethod = new HttpPost(hubUrl);
+			postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
 
-		postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-		final HttpResponse response = client.execute(postMethod);
-		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+			final List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
+					HubMode.unsubscribe.toString()));
+			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
+					this.callBackUrl));
+			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_MACHINEID, rose
+					.getId()));
+
+			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+			final HttpResponse response = client.execute(postMethod);
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+				response.getEntity().getContent().close();
+				throw new ClientProtocolException(
+						"Error in unsubscription, received status from hub: "
+								+ response.getStatusLine().getStatusCode());
+			}
+			// read an empty entity and close a connection
 			response.getEntity().getContent().close();
-			throw new ClientProtocolException(
-					"Error in unsubscription, received status from hub: "
-							+ response.getStatusLine().getStatusCode());
 		}
-		// read an empty entity and close a connection
-		response.getEntity().getContent().close();
 	}
 }

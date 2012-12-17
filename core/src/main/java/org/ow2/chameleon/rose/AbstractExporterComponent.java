@@ -1,13 +1,5 @@
 package org.ow2.chameleon.rose;
 
-import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.ow2.chameleon.rose.util.RoseTools.computeEndpointExtraProperties;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.apache.felix.ipojo.ComponentFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
@@ -16,6 +8,14 @@ import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.ow2.chameleon.rose.internal.BadExportRegistration;
 import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.ow2.chameleon.rose.util.RoseTools.computeEndpointExtraProperties;
 
 /**
  * Abstract implementation of an endpoint-creator {@link ComponentFactory} which provides an {@link ExporterService}.
@@ -28,7 +28,7 @@ import org.ow2.chameleon.rose.util.ConcurrentMapOfSet;
 public abstract class AbstractExporterComponent implements ExporterService {
 	private final ConcurrentMapOfSet<ServiceReference, ExportRegistration> registrations;
 	private volatile boolean isValid = false;
-	private static String frameworkId;
+	private String frameworkId;
 	
 	
 	public  AbstractExporterComponent() {
@@ -106,12 +106,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 * @return The {@link LogService} service.
 	 */
 	protected abstract LogService getLogService();
-	
-	
-	/**
-	 * @return The {@link RoseMachine} service.
-	 */
-	protected abstract RoseMachine getRoseMachine();
+
 	
 	/*---------------------------------*
 	 *  ExporterService implementation *
@@ -122,7 +117,7 @@ public abstract class AbstractExporterComponent implements ExporterService {
 	 * @param extraProperties
 	 * @return
 	 */
-	public final ExportRegistration exportService(ServiceReference sref,Map<String,Object> extraProperties) {
+	public final ExportRegistration exportService(ServiceReference sref,Map<String,?> extraProperties) {
 		ExportRegistration xreg;
 		
 		synchronized (registrations) {
@@ -199,7 +194,6 @@ public abstract class AbstractExporterComponent implements ExporterService {
 		 * 
 		 * @param pSref
 		 * @param pEnddesc
-		 * @param context
 		 */
 		public MyExportReference(ServiceReference pSref,EndpointDescription pEnddesc) {
 			sref = pSref;

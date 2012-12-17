@@ -1,32 +1,11 @@
 package org.ow2.chameleon.rose.ws.internal;
 
-import static java.lang.Integer.valueOf;
-import static org.osgi.service.log.LogService.LOG_ERROR;
-import static org.osgi.service.log.LogService.LOG_WARNING;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.jws.WebService;
-
 import org.apache.cxf.Bus;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.frontend.ServerFactoryBean;
 import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
 import org.apache.cxf.transport.servlet.CXFNonSpringServlet;
-import org.apache.felix.ipojo.annotations.Bind;
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.annotations.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
@@ -36,6 +15,20 @@ import org.ow2.chameleon.rose.AbstractExporterComponent;
 import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.introspect.ExporterIntrospection;
+
+import javax.jws.WebService;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.Integer.valueOf;
+import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_WARNING;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_URL;
 
 /**
  * This component provides a JAX-WS, Apache CXF based implementation of an
@@ -165,11 +158,10 @@ public class CXFExporterComp extends AbstractExporterComponent implements Export
 	}
 	
 	/**
-	 * Bind the {@link HttpService} and set the {@link EndpointCreator#httpport} value.
+	 * Bind the {@link HttpService} and set the {@link CXFExporterComp#httpport} value.
 	 * @param service the {@link HttpService}
 	 * @param ref the {@link HttpService} {@link ServiceReference}.
 	 */
-	@SuppressWarnings("unused")
 	@Bind(aggregate=false,optional=false)
 	private void bindHttpService(HttpService service,ServiceReference ref){
 		httpservice = service;
@@ -269,8 +261,7 @@ public class CXFExporterComp extends AbstractExporterComponent implements Export
 	 * (non-Javadoc)
 	 * @see org.ow2.chameleon.rose.AbstractExporterComponent#getRoseMachine()
 	 */
-	@Override
-	protected RoseMachine getRoseMachine() {
+	public RoseMachine getRoseMachine() {
 		return machine;
 	}
 	
@@ -286,7 +277,7 @@ public class CXFExporterComp extends AbstractExporterComponent implements Export
 	 * If the creation of the webservice succeed then the WebService is added to the <code>webservices</code> {@link Map}.
 	 * 
 	 * @param pService, the instance of the Service to be published as a webservice
-	 * @param Clazz, optional parameter which refer to the interface of the Service and used in order to generate the wsdl.
+	 * @param clazz, optional parameter which refer to the interface of the Service and used in order to generate the wsdl.
 	 * @param endpointName, name of the webservice, used as the suffix of the webservice url.
 	 */
 	private void createAndRegisterWS(Object pService, Class<?> clazz, String endpointName) {

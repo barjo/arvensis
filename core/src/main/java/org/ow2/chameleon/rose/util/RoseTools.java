@@ -1,37 +1,28 @@
 package org.ow2.chameleon.rose.util;
 
-import static java.util.Collections.emptyList;
-import static org.osgi.framework.Constants.SERVICE_ID;
-import static org.osgi.framework.Constants.SERVICE_PID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
-import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
-import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.*;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.ow2.chameleon.rose.ExporterService;
 import org.ow2.chameleon.rose.ImporterService;
 import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest;
+import org.ow2.chameleon.rose.api.InConnection;
+import org.ow2.chameleon.rose.api.Instance;
+import org.ow2.chameleon.rose.api.Machine;
+import org.ow2.chameleon.rose.api.OutConnection;
+
+import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static org.osgi.framework.Constants.SERVICE_ID;
+import static org.osgi.framework.Constants.SERVICE_PID;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.*;
+import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
+import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
+import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.ALL;
 
 /**
  * This class contains some useful static methods.
@@ -90,7 +81,7 @@ public final class RoseTools {
 	 * @return {@link Map} containing the extra properties.
 	 */
 	public static Map<String, Object> computeEndpointExtraProperties(
-			ServiceReference sref, Map<String, Object> extraProps,
+			ServiceReference sref, Map<String, ?> extraProps,
 			List<String> configPrefix, String machineId) {
 		Map<String, Object> properties = new HashMap<String, Object>();
 
@@ -154,46 +145,6 @@ public final class RoseTools {
 		return interrest;
 	}
 
-	/**
-	 * @param context
-	 *            {@link BundleContext}
-	 * @return A Snapshot of All {@link ExporterService} available within this
-	 *         Machine.
-	 */
-	public static List<ExporterService> getAllExporter(BundleContext context) {
-
-		try {
-			return getAllExporter(context, "(" + ENDPOINT_CONFIG + "=*)");
-		} catch (InvalidSyntaxException e) {
-			assert false; // What would Dr. Gordon Freeman do ?
-		}
-
-		return emptyList();
-	}
-
-	/**
-	 * @param context
-	 *            {@link BundleContext}
-	 * @param filter
-	 * @return A Snapshot of All {@link ExporterService} available within this
-	 *         Machine which match <code>filter</code>.
-	 * @throws InvalidSyntaxException
-	 *             if <code>filter</code> is not valid.
-	 */
-	public static List<ExporterService> getAllExporter(BundleContext context,
-			String filter) throws InvalidSyntaxException {
-		List<ExporterService> exporters = new ArrayList<ExporterService>();
-
-		ServiceReference[] srefs = context.getAllServiceReferences(
-				ExporterService.class.getName(), filter);
-
-		for (ServiceReference sref : srefs) {
-			exporters.add((ExporterService) context.getService(sref));
-			context.ungetService(sref);
-		}
-
-		return exporters;
-	}
 
 	/**
 	 * @param context
@@ -316,7 +267,24 @@ public final class RoseTools {
 
 		return klass;
 	}
-	
+
+    /**
+     * Load the Class of name <code>klassname</code>
+     * TODO handle class version
+     * @param context The BundleContext
+     * @param klassname The Class name.
+     * @return The Class of name <code>klassname</code>
+     * @throws ClassNotFoundException if we can't load the Class of name <code>klassname</code>
+     */
+    public static Class<?> loadClass(BundleContext context,String klassname) throws ClassNotFoundException {
+        ServiceReference sref = context.getServiceReference(PackageAdmin.class.getName());
+        PackageAdmin padmin = (PackageAdmin) context.getService(sref);
+        String pname = klassname.substring(0, klassname.lastIndexOf(".")); // extract package name
+        ExportedPackage pkg = padmin.getExportedPackage(pname);
+
+        context.ungetService(sref);
+        return pkg.getExportingBundle().loadClass(klassname);
+    }
 	
 	/**
      * Subtracts all elements in the second list from the first list,
@@ -338,5 +306,34 @@ public final class RoseTools {
         result.removeAll(list2);
 
         return result;
+    }
+
+    public static void waitForIt(long millis){
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    public static void updateMachine(Machine machine,Collection<OutConnection> outs,Collection<InConnection> ins, Collection<Instance> instances){
+        for(InConnection in : ins)
+            in.update(machine);
+
+        for(OutConnection out : outs)
+            out.update(machine);
+
+        for(Instance instance : instances)
+            instance.update(machine);
+    }
+
+    public static void removeFromMachine(Machine machine,Collection<OutConnection> outs,Collection<InConnection> ins, Collection<Instance> instances){
+        for(OutConnection out : outs)
+            machine.remove(out);
+
+        for(InConnection in : ins)
+            machine.remove(in);
+
+        for(Instance instance : instances)
+            machine.remove(instance);
     }
 }

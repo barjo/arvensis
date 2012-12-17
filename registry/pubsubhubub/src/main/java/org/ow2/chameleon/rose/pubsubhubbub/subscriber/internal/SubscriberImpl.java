@@ -1,6 +1,7 @@
 package org.ow2.chameleon.rose.pubsubhubbub.subscriber.internal;
 
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RECONNECT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_CONTENT;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
@@ -10,7 +11,9 @@ import static org.ow2.chameleon.rose.pubsubhubbub.subscriber.Subscriber.COMPONEN
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,7 +28,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.ow2.chameleon.json.JSONService;
@@ -51,7 +53,7 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	@Requires
 	private transient HttpService httpService;
 
-	@Requires
+	@Requires(id = "roseID")
 	private transient RoseMachine rose;
 
 	@Requires
@@ -74,17 +76,25 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 	private int responseCode;
 	private List<String> endpointRegistrations;
 
+	// Uri to connected pubsubhubbubs
+	private Set<String> connectedHubs;
+
 	public SubscriberImpl(final BundleContext pContext) {
 		this.context = pContext;
 	}
 
 	@Validate
-	public final void start() throws ServletException, NamespaceException,
-			IOException {
+	public final void start() {
 		endpointRegistrations = new ArrayList<String>();
-		httpService.registerServlet(callBackUrl, this, null, null);
-		subscritpion = new HubSubscriber(hubUrl, callBackUrl, endpointFilter,
-				context, rose);
+		connectedHubs = new HashSet<String>();
+		try {
+			httpService.registerServlet(callBackUrl, this, null, null);
+			subscritpion = new HubSubscriber(hubUrl, callBackUrl,
+					endpointFilter, context, rose);
+			connectedHubs.add(hubUrl);
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
 	}
 
 	@Invalidate
@@ -92,7 +102,7 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 		httpService.unregister(callBackUrl);
 		try {
 			if (subscritpion != null) {
-				subscritpion.unsubscribe();
+				subscritpion.unsubscribe(connectedHubs);
 			}
 		} catch (IOException e) {
 			logger.log(LogService.LOG_ERROR, "Error in unsubscribe", e);
@@ -107,6 +117,15 @@ public class SubscriberImpl extends HttpServlet implements Subscriber {
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
 
+		// reconnect; connect to different pubsubhubbub;
+		if (req.getParameter(HTTP_POST_PARAMETER_RECONNECT) != null) {
+			connectedHubs.add(req.getParameter(HTTP_POST_PARAMETER_RECONNECT));
+			// send filer as a response
+			resp.getWriter().append(endpointFilter);
+			this.responseCode = HttpStatus.SC_OK;
+		}
+
+		// pubsubhubbub notification
 		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
 				|| (req.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION) == null)
 				|| (req.getParameter(HTTP_POST_UPDATE_CONTENT) == null)) {

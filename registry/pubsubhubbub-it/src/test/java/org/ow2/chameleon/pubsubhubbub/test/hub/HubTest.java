@@ -2,195 +2,45 @@ package org.ow2.chameleon.pubsubhubbub.test.hub;
 
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CREATED;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.ops4j.pax.exam.CoreOptions.felix;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.exam.CoreOptions.provision;
-import static org.osgi.framework.Constants.OBJECTCLASS;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
 import static org.ow2.chameleon.pubsubhubbub.test.clients.AbstractTestConfiguration.waitForIt;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_CONTENT;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
-import static org.ow2.chameleon.syndication.FeedReader.FEED_TITLE_PROPERTY;
 
-import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.felix.ipojo.ComponentInstance;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ops4j.pax.exam.Inject;
-import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.OptionUtils;
-import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnit4TestRunner;
-import org.ops4j.pax.exam.junit.JUnitOptions;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.http.HttpService;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.ow2.chameleon.json.JSONService;
-import org.ow2.chameleon.rose.RoseEndpointDescription;
-import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
-import org.ow2.chameleon.syndication.FeedEntry;
-import org.ow2.chameleon.syndication.FeedWriter;
-import org.ow2.chameleon.testing.helpers.IPOJOHelper;
-import org.ow2.chameleon.testing.helpers.OSGiHelper;
 
 @RunWith(JUnit4TestRunner.class)
-public class HubTest {
-
-	private static final String HUB_RELATIVE_PATH = "/hub";
-
-	private static final String HUB_INSTANCE_NAME = "Rose_Pubsubhubbub.hub";
-
-	private static final int WAIT_TIME = 100;
-
-	@Inject
-	private BundleContext context;
-
-	private HttpService http;
-
-	private OSGiHelper osgi;
-
-	private IPOJOHelper ipojo;
-
-	private String hubUrl;
-
-	private DefaultHttpClient client;
-
-	private int hubResponseCode;
-
-	private JSONService json;
-
-	private List<EndpointDescription> testEndpoints;
+public class HubTest extends AbstactHubTest {
 
 	@Before
+	@Override
 	public final void setUp() throws UnknownHostException {
-
-		osgi = new OSGiHelper(context);
-		ipojo = new IPOJOHelper(context);
-
+		super.setUp();
 		// create a hub instance
+		
+		ipojo.createComponentInstance("RoSe_machine");
+		
 		Dictionary<String, String> props = new Hashtable<String, String>();
 		props.put(Hub.INSTANCE_PROPERTY_HUB_URL, HUB_RELATIVE_PATH);
 		props.put("instance.name", HUB_INSTANCE_NAME);
 		ipojo.createComponentInstance(Hub.COMPONENT_NAME, props);
 
-		initMocks(this);
-
 		hubUrl = "http://localhost:8080" + HUB_RELATIVE_PATH;
 
-		// get http service
-		http = (HttpService) osgi.getServiceObject(HttpService.class.getName(),
-				null);
-		client = new DefaultHttpClient();
-
-		// get json service
-		json = (JSONService) osgi.getServiceObject(JSONService.class.getName(),
-				null);
-
-	}
-
-	/**
-	 * Global bundle configuration.
-	 * 
-	 * @return options for paxexam
-	 */
-	@Configuration
-	public static Option[] globalConfigure() {
-		Option[] platform = options(felix());
-
-		Option[] bundles = options(provision(
-				mavenBundle().groupId("org.apache.felix")
-						.artifactId("org.apache.felix.ipojo")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.osgi")
-						.artifactId("org.osgi.compendium").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.testing")
-						.artifactId("osgi-helpers").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.json")
-						.artifactId("json-service-json.org")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.apache.felix")
-						.artifactId("org.apache.felix.http.jetty")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.apache.httpcomponents")
-						.artifactId("httpclient-osgi").versionAsInProject(),
-				mavenBundle().groupId("org.apache.httpcomponents")
-						.artifactId("httpcore-osgi").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose")
-						.artifactId("rose-core").versionAsInProject(),
-				mavenBundle().groupId("commons-logging")
-						.artifactId("org.ow2.chameleon.commons.logging")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.syndication")
-						.artifactId("syndication-service").versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.syndication")
-						.artifactId("rome").versionAsInProject(),
-				mavenBundle().groupId("org.jdom")
-						.artifactId("com.springsource.org.jdom")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.slf4j").artifactId("slf4j-api")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
-						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose.registry")
-						.artifactId("pubsubhubbub").versionAsInProject(),
-				mavenBundle().groupId("org.apache.felix")
-						.artifactId("org.apache.felix.eventadmin")
-						.versionAsInProject()
-
-		));
-
-		Option[] r = OptionUtils.combine(platform, bundles);
-
-		return r;
-	}
-
-	/**
-	 * Mockito bundles.
-	 * 
-	 * @return options for paxexam contains mockito
-	 */
-	@Configuration
-	public static Option[] mockitoBundle() {
-		return options(JUnitOptions.mockitoBundles());
 	}
 
 	/**
@@ -217,7 +67,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 		publisher.registerPublisher();
 		// hub can not register the publisher, because of rss topic not found
 		Assert.assertEquals(SC_BAD_REQUEST, hubResponseCode);
@@ -237,7 +87,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 		publisher.createRSSTopic();
 		publisher.registerPublisher();
 
@@ -258,7 +108,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 		// create RSS topic
 		publisher.createRSSTopic();
 
@@ -291,7 +141,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -323,7 +173,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -333,7 +183,6 @@ public class HubTest {
 
 		// send publish notification to Hub
 		publisher.registerPublisher();
-		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
 
 		// endpoint add
 		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_NEW);
@@ -343,7 +192,9 @@ public class HubTest {
 
 		// endpoint remove
 		publisher.addRSSFeed(testEndpoints.get(0), FEED_TITLE_REMOVE);
-
+		waitForIt(WAIT_TIME);
+		publisher.sendUpdateToHub();
+		waitForIt(WAIT_TIME);
 		// hub unsuccessfully updated removed endpoint
 		Assert.assertEquals(HttpStatus.SC_ACCEPTED, hubResponseCode);
 		// stop publisher
@@ -362,7 +213,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create subscriber
-		subscriber = new TestSubscriber("/sub1", "()");
+		subscriber = new TestSubscriber("/sub1", "()", "sub1");
 
 		// start subscriber
 		subscriber.start();
@@ -391,7 +242,8 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
+		;
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -409,7 +261,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create subscriber
-		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)");
+		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)", "sub1");
 
 		// start subscriber
 		subscriber.start();
@@ -438,14 +290,14 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create subscriber
-		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)");
+		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)", "sub1");
 
 		// start subscriber
 		subscriber.start();
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -484,7 +336,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -510,7 +362,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create subscriber, try to get only first endpoint
-		subscriber = new TestSubscriber("/sub1", "(endpoint.id=0)");
+		subscriber = new TestSubscriber("/sub1", "(endpoint.id=0)", "sub1");
 
 		// start subscriber
 		subscriber.start();
@@ -538,7 +390,7 @@ public class HubTest {
 		waitForIt(WAIT_TIME);
 
 		// create publisher and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -573,7 +425,7 @@ public class HubTest {
 
 		// create subscriber, try to get only endpoint 0 and 2
 		subscriber = new TestSubscriber("/sub1",
-				"(|(endpoint.id=0)(endpoint.id=2))");
+				"(|(endpoint.id=0)(endpoint.id=2))", "sub1");
 
 		// start subscriber
 		subscriber.start();
@@ -611,7 +463,7 @@ public class HubTest {
 		createEndpoints();
 
 		// create publisher1 and send publish notification to Hub
-		publisher = new TestPublisher("/rss");
+		publisher = new TestPublisher("/rss", "subscriber1", "/call1");
 
 		// create RSS topic
 		publisher.createRSSTopic();
@@ -634,7 +486,7 @@ public class HubTest {
 		publisher.sendUpdateToHub();
 
 		// create publisher2 and send publish notification to Hub
-		publisher2 = new TestPublisher("/rss2");
+		publisher2 = new TestPublisher("/rss2", "subscriber2", "/call2");
 
 		// create RSS topic
 		publisher2.createRSSTopic();
@@ -648,8 +500,8 @@ public class HubTest {
 		// send update to hub
 		publisher2.sendUpdateToHub();
 
-		// create subscriber, try to get only endpoint 0 and 2
-		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)");
+		// create subscriber
+		subscriber = new TestSubscriber("/sub1", "(endpoint.id=*)", "sub1");
 
 		// start subscriber
 		subscriber.start();
@@ -657,7 +509,7 @@ public class HubTest {
 
 		// publisher2 stops
 		publisher.stop();
-		waitForIt(WAIT_TIME);
+		waitForIt(WAIT_TIME * 5);
 		// create expected updates
 		List<EndpointTitle> expectUpdates = new ArrayList<EndpointTitle>();
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(0),
@@ -670,305 +522,15 @@ public class HubTest {
 				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED));
 		expectUpdates.add(new EndpointTitle(testEndpoints.get(1),
 				HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED));
+
+		waitForIt(WAIT_TIME * 5);
 		// check expected update and got ones
 		Assert.assertTrue(subscriber.checkUpdates(expectUpdates));
-
+		waitForIt(WAIT_TIME);
 		// stop subscriber and publisher
 		subscriber.stop();
 		publisher2.stop();
 
-	}
-
-	/**
-	 * Fill testEndpoints with simple @EndpointDescription.
-	 */
-	private void createEndpoints() {
-		Map<String, Object> endpProps = new HashMap<String, Object>();
-		EndpointDescription endp;
-		int index;
-		final int endpointsNb = 3;
-
-		testEndpoints = new ArrayList<EndpointDescription>();
-		for (index = 0; index < endpointsNb; index++) {
-			endpProps.put(OBJECTCLASS, new String[] { "testObject" });
-			endpProps.put(ENDPOINT_ID, String.valueOf(index));
-			endpProps.put(SERVICE_IMPORTED_CONFIGS,
-					new String[] { "import configs" });
-			endp = new EndpointDescription(endpProps);
-			testEndpoints.add(index, endp);
-		}
-	}
-
-	/**
-	 * Subscriber for testing purpose.
-	 * 
-	 * @author Bartek
-	 * 
-	 */
-	private final class TestSubscriber extends HttpServlet {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private String subscriberRelativeUrl;
-
-		private String filter;
-		private String subscriberFullUrl;
-		private List<EndpointTitle> postParameters;
-
-		private TestSubscriber(final String pSubscriberRelativeUrl,
-				final String pFilter) {
-			this.subscriberRelativeUrl = pSubscriberRelativeUrl;
-			this.filter = pFilter;
-			this.postParameters = new ArrayList<HubTest.EndpointTitle>();
-			try {
-				// creating full url address to rss topic
-				this.subscriberFullUrl = "http://"
-						+ InetAddress.getLocalHost().getHostAddress() + ":8080"
-						+ pSubscriberRelativeUrl;
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-				Assert.fail("Subscriber creation error");
-			}
-		}
-
-		private void start() {
-			try {
-				http.registerServlet(subscriberRelativeUrl, this, null, null);
-				// preparing POST parameters
-				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-				nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-						HubMode.subscribe.toString()));
-				nvps.add(new BasicNameValuePair(
-						HTTP_POST_PARAMETER_URL_CALLBACK,
-						this.subscriberFullUrl));
-				nvps.add(new BasicNameValuePair(
-						HTTP_POST_PARAMETER_ENDPOINT_FILTER, this.filter));
-
-				sendPOST(nvps);
-			} catch (Exception e) {
-				e.printStackTrace();
-				Assert.fail();
-			}
-		}
-
-		private void stop() {
-			http.unregister(subscriberRelativeUrl);
-			// preparing POST parameters
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-					HubMode.unsubscribe.toString()));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_URL_CALLBACK,
-					this.subscriberFullUrl));
-
-			sendPOST(nvps);
-
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		protected void doPost(final HttpServletRequest req,
-				final HttpServletResponse resp) throws ServletException,
-				IOException {
-			try {
-				postParameters.add(new EndpointTitle(RoseEndpointDescription
-						.getEndpointDescription(json.fromJSON(req
-								.getParameter(HTTP_POST_UPDATE_CONTENT))), req
-						.getParameter(HTTP_POST_UPDATE_SUBSTRIPCTION_OPTION)));
-			} catch (ParseException e) {
-				e.printStackTrace();
-				Assert.fail();
-			}
-			resp.setStatus(HttpStatus.SC_OK);
-		}
-
-		/**
-		 * Check last update.
-		 * 
-		 * @param expected
-		 *            expected @EndpointDescription with title to check
-		 * @return true if expected values are equal
-		 */
-		private boolean checkUpdate(final EndpointTitle expected) {
-
-			// check if got any update
-			Assert.assertEquals("Subscriber didnt get update from hub", 1,
-					postParameters.size());
-			// check title and content
-			if (postParameters.get(0).equals(expected)) {
-				return true;
-			}
-
-			return false;
-		}
-
-		/**
-		 * Check list of updates.
-		 * 
-		 * @param expectUpdates
-		 *            list of expected @EndpointDescription with title
-		 * 
-		 * @return true if and only if expected values are equal
-		 */
-		private boolean checkUpdates(final List<EndpointTitle> expectUpdates) {
-
-			// check if expected and received are the same, order doesn`t count
-			if ((new HashSet<EndpointTitle>(postParameters))
-					.equals(new HashSet<EndpointTitle>(expectUpdates))) {
-				return true;
-			}
-			return false;
-		}
-	}
-
-	private class TestPublisher {
-
-		private String fullRssUrl;
-		private String relativeRssUrl;
-		private FeedWriter writer;
-
-		public TestPublisher(final String pRelativeRssUrl) {
-			this.relativeRssUrl = pRelativeRssUrl;
-			
-			// creating full url address to rss topic
-			this.fullRssUrl = "http://localhost:8080"+ pRelativeRssUrl;
-		}
-
-		public void addRSSFeed(final EndpointDescription endpointDescription,
-				final String feedTitleNew) {
-			FeedEntry feed;
-
-			feed = writer.createFeedEntry();
-			feed.title(feedTitleNew);
-			feed.content(json.toJSON(endpointDescription.getProperties()));
-			try {
-				writer.addEntry(feed);
-			} catch (Exception e) {
-				e.printStackTrace();
-				Assert.fail("Feed not send");
-			}
-
-		}
-
-		private void createRSSTopic() {
-			// create RSS topic
-			Dictionary<String, String> rssServletProps = new Hashtable<String, String>();
-			rssServletProps.put(FEED_TITLE_PROPERTY, "RoseRss");
-			rssServletProps.put(
-					"org.ow2.chameleon.syndication.feed.servlet.alias",
-					relativeRssUrl);
-			// get writer service
-			ComponentInstance instance = ipojo.createComponentInstance(
-					"org.ow2.chameleon.syndication.rome.servlet",
-					rssServletProps);
-			waitForIt(WAIT_TIME);
-			writer = (FeedWriter) osgi.getServiceObject(
-					FeedWriter.class.getName(),
-					"(instance.name=" + instance.getInstanceName() + ")");
-
-		}
-
-		private void registerPublisher() {
-			// preparing POST parameters
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-					HubMode.publish.toString()));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
-					this.fullRssUrl));
-
-			sendPOST(nvps);
-		}
-
-		private void stop() {
-			// preparing POST parameters
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-					HubMode.unpublish.toString()));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
-					this.fullRssUrl));
-			sendPOST(nvps);
-		}
-
-		private void sendUpdateToHub() {
-			// preparing POST parameters
-			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_HUB_MODE,
-					HubMode.update.toString()));
-			nvps.add(new BasicNameValuePair(HTTP_POST_PARAMETER_RSS_TOPIC_URL,
-					this.fullRssUrl));
-
-			sendPOST(nvps);
-		}
-
-	}
-
-	public final void sendPOST(final List<NameValuePair> nvps) {
-
-		HttpPost postMethod = new HttpPost(hubUrl);
-		postMethod.setHeader("Content-Type", HTTP_POST_HEADER_TYPE);
-
-		try {
-			postMethod.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
-			HttpResponse response = client.execute(postMethod);
-			hubResponseCode = response.getStatusLine().getStatusCode();
-			response.getEntity().getContent().close();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			Assert.fail();
-		}
-
-	}
-
-	/**
-	 * Stores Endpoint and Title of update, used in subscriber updates
-	 * expectations.
-	 * 
-	 * @author Bartek
-	 * 
-	 */
-	private static class EndpointTitle {
-		private EndpointDescription endp;
-		private String title;
-
-		public EndpointTitle(final EndpointDescription pEndp,
-				final String pTitle) {
-			super();
-			this.endp = pEndp;
-			this.title = pTitle;
-		}
-
-		public EndpointDescription getEndp() {
-			return endp;
-		}
-
-		public String getTitle() {
-			return title;
-		}
-
-		@Override
-		public boolean equals(final Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (obj instanceof EndpointTitle) {
-				final EndpointTitle toCheck = (EndpointTitle) obj;
-				if (this.getEndp().equals(toCheck.getEndp())
-						&& this.getTitle().equals(toCheck.getTitle())) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			return this.getEndp().hashCode() + this.getTitle().hashCode();
-		}
 	}
 
 }

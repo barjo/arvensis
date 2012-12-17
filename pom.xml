@@ -1,26 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2009 OW2 Chameleon Licensed under the Apache License,
+    Version 2.0 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+    applicable law or agreed to in writing, software distributed under the
+    License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+    CONDITIONS OF ANY KIND, either express or implied. See the License for
+    the specific language governing permissions and limitations under the
+    License.
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
-	<!-- Project's parent -->
-	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
-	</parent>
-	
+
 	<groupId>org.ow2.chameleon.rose</groupId>
-	<artifactId>rose-reactor</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>Rose Reactor</name>
-	<packaging>pom</packaging>	
-	<modules>
-		<module>core</module>
-		<module>configurator/configurator-json</module>
-		<module>jax-rs/jersey-exporter</module>
-		<module>jax-ws/cxf-exporter</module>
-		<module>json-rpc/jabsorb-exporter</module>
-		<module>json-rpc/jabsorb-importer</module>
-	</modules>
+	<artifactId>rose-parent</artifactId>
+	<version>1.0.3-SNAPSHOT</version>
+	<name>Rose Parent</name>
+	<packaging>pom</packaging>
+
+	<properties>
+		<!-- Dependencies version -->
+		<ipojo.version>1.8.2</ipojo.version>
+		<ipojo.plugin.version>1.8.4</ipojo.plugin.version>
+		<osgi.version>4.3.1</osgi.version>
+        <osgi.ent.version>4.2.0</osgi.ent.version>
+		<bundle.plugin.version>2.3.7</bundle.plugin.version>
+		<compiler.plugin.version>2.5.1</compiler.plugin.version>
+		<javadoc.plugin.version>2.8.1</javadoc.plugin.version>
+        <jersey.version>1.9</jersey.version>
+        <grizzly.version>1.9.36</grizzly.version>
+
+		<!-- Test dependencies version -->
+		<mockito.version>1.9.5</mockito.version>
+		<junit.version>4.9</junit.version>
+		<pax-exam.version>2.6.0</pax-exam.version>
+		<pax-url.version>1.4.2</pax-url.version>
+		<pax-runner.version>1.7.6</pax-runner.version>
+        <felix.version>4.0.2</felix.version>
+
+        <!-- Encoding -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<profiles>
 
@@ -30,6 +53,7 @@
 			<modules>
 				<module>core</module>
 				<module>configurator/configurator-json</module>
+				<module>testing</module>
 			</modules>
 		</profile>
 
@@ -39,22 +63,133 @@
 			<modules>
 				<module>jax-rs/jersey-exporter</module>
 				<module>jax-ws/cxf-exporter</module>
+				<module>jax-ws/cxf-importer</module>
 				<module>json-rpc/jabsorb-exporter</module>
 				<module>json-rpc/jabsorb-importer</module>
-				<module>registry/zookeeper-registry</module>
 			</modules>
 		</profile>
+		
+		<!-- Profile used to build commons bundles-->
+		<profile>
+			<id>commons</id>
+			<modules>
+				<module>commons/cxf-minimal</module>
+			</modules>
+		</profile>
+		
+		<!-- Profile used to build the web user interface-->
+		<profile>
+			<id>wui</id>
+			<modules>
+				<module>wui/wui</module>
+			</modules>
+		</profile>
+		<!-- Profile used to build distribition -->
+		<profile>
+			<id>dist</id>
+			<modules>
+				<module>distribution/rose-web</module>
+			</modules>
+		</profile>
+
 
 		<!-- Profile used in order to run the integration tests -->
 		<profile>
 			<id>test</id>
 			<modules>
-				<module>testing</module>
+				<module>jax-rs/jersey-exporter-it</module>
 				<module>jax-ws/cxf-exporter-it</module>
 				<module>json-rpc/jabsorb-exporter-it</module>
-				<module>json-rpc/jabsorb-importer-it</module>
+				<module>wui/wui-it</module>
+				<!-- <module>json-rpc/jabsorb-importer-it</module> Pb with last version of OSGi class Version in framework-->
 			</modules>
 		</profile>
 	</profiles>
+
+	<scm>
+		<connection>scm:git:git@github.com:barjo/arvensis.git</connection>
+		<url>scm:git:git@github.com:barjo/arvensis.git</url>
+		<developerConnection>scm:git:git@github.com:barjo/arvensis.git</developerConnection>
+	  <tag>HEAD</tag>
+  </scm>
+
+	<distributionManagement>
+		<repository>
+			<id>cloudbees-release</id>
+			<name>Cloudbees Private Repository</name>
+			<url>dav:https://repository-barjo.forge.cloudbees.com/release</url>
+		</repository>
+	</distributionManagement>
+
+	<!-- Maven Repo -->
+	<repositories>
+		<!-- OW2 Repo -->
+		<repository>
+			<id>objectweb-public</id>
+			<name>ow2 Maven Repository</name>
+			<url>http://repository.ow2.org/nexus/content/repositories/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>objectweb-old-release</id>
+			<name>ow2 Maven Repository [OLD]</name>
+			<url>http://maven.ow2.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<!-- cloudbee repo -->
+		<repository>
+			<id>cloudbees-rose-release</id>
+			<name>Cloudbees Private Repository - RoSe - Release </name>
+			<url>https://repository-barjo.forge.cloudbees.com/release/</url>
+		</repository>
+		<repository>
+			<id>cloudbees-rose-snapshot</id>
+			<name>Cloudbees Private Repository - RoSe - Snapshot</name>
+			<url>https://repository-barjo.forge.cloudbees.com/snapshot/</url>
+		</repository>
+		<!-- Java.net repo -->
+		<repository>
+			<id>java.net-Public</id>
+			<name>Maven Java Net Snapshots and Releases</name>
+			<url>https://maven.java.net/content/groups/public</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.3.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-javadoc-plugin</artifactId>
+		    	<version>${javadoc.plugin.version}</version>
+				<configuration>
+					<excludePackageNames>*.internal,*.internal.*</excludePackageNames>
+				</configuration>
+			</plugin>
+		</plugins>
+	
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-webdav-jackrabbit</artifactId>
+				<version>2.2</version>
+			</extension>
+		</extensions>
+	</build>
+
 </project>
 

@@ -1,15 +1,16 @@
 package org.ow2.chameleon.rose.pubsubhubbub.hub.internal;
 
+import static org.osgi.service.log.LogService.LOG_ERROR;
+import static org.osgi.service.log.LogService.LOG_INFO;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_NEW;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_HEADER_TYPE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_ENDPOINT_FILTER;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED;
-import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HUB_UPDATE_TOPIC_DELETE;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.DEFAULT_HTTP_PORT;
 import static org.ow2.chameleon.rose.pubsubhubbub.hub.Hub.COMPONENT_NAME;
 
 import java.io.IOException;
@@ -29,12 +30,10 @@ import org.apache.felix.ipojo.Factory;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Property;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -45,7 +44,9 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.json.JSONService;
+import org.ow2.chameleon.rose.RoseMachine;
 import org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HubMode;
+import org.ow2.chameleon.rose.pubsubhubbub.distributedhub.DistributedHub;
 import org.ow2.chameleon.rose.pubsubhubbub.hub.Hub;
 import org.ow2.chameleon.rose.util.DefaultLogService;
 import org.ow2.chameleon.syndication.FeedEntry;
@@ -59,6 +60,7 @@ import org.ow2.chameleon.syndication.FeedReader;
  * 
  */
 @Component(name = COMPONENT_NAME)
+@Provides
 public class HubImpl extends HttpServlet implements Hub {
 
 	/**
@@ -71,11 +73,17 @@ public class HubImpl extends HttpServlet implements Hub {
 			+ "=org.apache.felix.ipojo.Factory)(factory.name=org.ow2.chameleon.syndication.rome.reader))";
 	private static final String READER_SERVICE_CLASS = "org.ow2.chameleon.syndication.FeedReader";
 
+	@SuppressWarnings("unused")
 	private static final int FEED_PERIOD = 10;
+
+	private static final boolean FEED_POLLING = false;
 
 	@Requires
 	private transient HttpService httpService;
-	
+
+	@Requires(id = "roseID")
+	private transient RoseMachine rose;
+
 	@Requires
 	private transient JSONService json;
 
@@ -83,7 +91,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	private transient LogService logger;
 
 	@Requires(filter = FEED_READER_FACTORY_FILTER)
-	private Factory feedReaderFactory;
+	private transient Factory feedReaderFactory;
 
 	@Property(name = INSTANCE_PROPERTY_HUB_URL, mandatory = true)
 	private String hubServlet;
@@ -92,15 +100,14 @@ public class HubImpl extends HttpServlet implements Hub {
 	private int responseCode;
 
 	// store instances of RSS reader for different topics
-	private Map<Object, FeedReader> readers;
+	private Map<Object, ReaderWithFeedIndex> readers;
 	private Dictionary<String, Object> instanceDictionary;
-	private transient SendSubscription subscription;
 	private transient ServiceTracker feedReaderTracker;
+	private transient ServiceTracker distributedHubTracker;
+	private transient DistributedHub distributedHub;
 	private transient BundleContext context;
-	private transient Registrations registrations;
-
-	// client to send notification to subscribers;
-	private transient HttpClient client;
+	private transient RegistrationsImpl registrations;
+	private transient String hubURI;
 
 	public HubImpl(final BundleContext pContext) {
 		this.context = pContext;
@@ -108,26 +115,239 @@ public class HubImpl extends HttpServlet implements Hub {
 
 	@Validate
 	public final void start() {
+		String port = null;
+		ServiceReference httpServiceRef;
+
 		try {
 			httpService.registerServlet(hubServlet, this, null, null);
-			registrations = new Registrations();
-			readers = new HashMap<Object, FeedReader>();
-			client = new DefaultHttpClient(new ThreadSafeClientConnManager());
+			readers = new HashMap<Object, ReaderWithFeedIndex>();
+			registrations = new RegistrationsImpl(json, logger);
 
 			// start tracking for all feed readers
 			feedReaderTracker = new ServiceTracker(context,
 					FeedReader.class.getName(), new FeedReaderTracker());
 			feedReaderTracker.open();
 
+			// star tracking distributed pubsubhubbub
+			distributedHubTracker = new ServiceTracker(context,
+					DistributedHub.class.getName(), new DistributedHubTracker());
+			distributedHubTracker.open();
+
+			// get Pubsubhubbub full URI
+			httpServiceRef = context
+					.getServiceReference(HttpService.class.getName());
+			if (httpServiceRef != null) {
+				port = (String) httpServiceRef
+						.getProperty("org.osgi.service.http.port");
+			}
+			if (port == null) {
+				port = context.getProperty("org.osgi.service.http.port");
+			}
+
+			// set default port number
+			if (port == null) {
+				port = DEFAULT_HTTP_PORT;
+			}
+
+			hubURI = "http://" + rose.getHost() + ":" + port
+					+ hubServlet;
+
+			logger.log(LOG_INFO, "Pubsubhubbub successfully starts");
+
 		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Error in starting a hub", e);
+			logger.log(LOG_ERROR, "Error in starting a hub", e);
 		}
 	}
 
 	@Invalidate
 	public final void stop() {
 		feedReaderTracker.close();
+		distributedHubTracker.close();
+		// unregister hubServlet (subscriber/publisher purpose)
 		httpService.unregister(hubServlet);
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
+	 * , javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected final void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
+
+		String rssUrl;
+		String endpointFilter;
+		String callBackUrl;
+		String machineID;
+		FeedEntry feed;
+		int feedIndex = 0;
+		int feedIndexDigit = 0;
+
+		// check the content type, must be application/x-www-form-urlencoded
+		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
+				|| (req.getParameter(HTTP_POST_PARAMETER_HUB_MODE) == null)) {
+			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
+			return;
+		}
+		rssUrl = req.getParameter(HTTP_POST_PARAMETER_RSS_TOPIC_URL);
+		endpointFilter = req.getParameter(HTTP_POST_PARAMETER_ENDPOINT_FILTER);
+		callBackUrl = req.getParameter(HTTP_POST_PARAMETER_URL_CALLBACK);
+		machineID = req.getParameter(HTTP_POST_PARAMETER_MACHINEID);
+		// check the hub mode
+		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
+		case publish:
+
+			if ((rssUrl != null)
+					&& (machineID != null && (callBackUrl != null))
+					&& (createReader(rssUrl))) {
+				registrations.addTopic(rssUrl, machineID, callBackUrl);
+				responseCode = HttpStatus.SC_CREATED;
+				logger.log(LOG_INFO, "Successfully register publisher from: "
+						+ rssUrl);
+
+				// send notification to distributedhubs
+				if (distributedHub != null) {
+					distributedHub.addBackupPublisher(machineID, callBackUrl);
+				}
+			} else {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+			}
+			break;
+
+		case unpublish:
+
+			if (rssUrl != null && machineID != null) {
+				// remove a topic
+				registrations.removeTopic(rssUrl);
+				readers.remove(rssUrl);
+				responseCode = HttpStatus.SC_ACCEPTED;
+				logger.log(LOG_INFO, "Successfully removed publisher from: "
+						+ rssUrl);
+
+				// send notification to distributedhubs
+				if (distributedHub != null) {
+					distributedHub.removeBackupPublisher(machineID);
+				}
+			} else {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+			}
+			break;
+
+		case update:
+			if ((rssUrl == null) || (readers.get(rssUrl) == null)) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
+			feed = readers.get(rssUrl).getFeedReader().getLastEntry();
+			if (feed == null) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
+			// retrieve feed index from feed content
+			feedIndexDigit = getFeedIndexDigit(feed.content());
+			feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
+			while (readers.get(rssUrl).getFeedIndex() != feedIndex) {
+				try {
+					// wait 10 milliseconds until next read
+					Thread.sleep(10);
+					// try to get newest feed
+					feed = readers.get(rssUrl).getFeedReader().getLastEntry();
+					// update index from new feed
+					feedIndexDigit = getFeedIndexDigit(feed.content());
+					feedIndex = getFeedIndex(feed.content(), feedIndexDigit);
+				} catch (InterruptedException e) {
+					logger.log(LOG_ERROR, e.getMessage(), e);
+				}
+			}
+			try {
+				@SuppressWarnings("unchecked")
+				EndpointDescription edp = getEndpointDescriptionFromJSON(json
+						.fromJSON(feed.content().substring(feedIndexDigit + 1,
+								feed.content().length())));
+				logger.log(LOG_INFO, "Received update from " + rssUrl + ", "
+						+ feed.title() + " : " + edp);
+				if (feed.title().equals(FEED_TITLE_NEW)) {
+					registrations.addEndpointByTopicRssUrl(rssUrl, edp);
+					// send notification to distributedhubs
+					if (distributedHub != null) {
+						distributedHub.addEndpoint(edp, registrations
+								.getPublisherMachineIdByRssUrl(rssUrl));
+					}
+				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
+					registrations.removeEndpointByTopicRssUrl(rssUrl, edp);
+					// send notification to distributedhubs
+					if (distributedHub != null) {
+						distributedHub.removeEndpoint(edp.getServiceId(),
+								registrations
+										.getPublisherMachineIdByRssUrl(rssUrl));
+					}
+				}
+				readers.get(rssUrl).increaseIndex();
+				responseCode = HttpStatus.SC_ACCEPTED;
+			} catch (ParseException e) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				logger.log(LOG_ERROR, "Update false", e);
+			}
+			break;
+
+		case subscribe:
+			if ((endpointFilter == null) || (callBackUrl == null)
+					|| (machineID == null)) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+			} else {
+				registrations.addSubscriber(callBackUrl, endpointFilter,
+						machineID);
+				responseCode = HttpStatus.SC_CREATED;
+
+				// send notification to distributedhubs
+				if (distributedHub != null) {
+					distributedHub.addBackupSubscriber(machineID, callBackUrl);
+				}
+				logger.log(LOG_INFO, "Successfully register subscriber from  "
+						+ callBackUrl + "with filer: " + endpointFilter);
+			}
+
+			break;
+
+		case unsubscribe:
+			if (callBackUrl == null || (machineID == null)) {
+				responseCode = HttpStatus.SC_BAD_REQUEST;
+				break;
+			}
+			registrations.removeSubscriber(callBackUrl);
+			responseCode = HttpStatus.SC_ACCEPTED;
+
+			// send notification to distributedhubs
+			if (distributedHub != null) {
+				distributedHub.removeBackupSubscriber(machineID);
+			}
+
+			logger.log(LOG_INFO, "Successfully removed subscriber from  "
+					+ callBackUrl);
+
+			break;
+
+		case getAllEndpoints:
+			// for Rose Pubsuhhubbub webconsole purpose
+			resp.setContentType("text/html");
+			for (EndpointDescription endpoint : registrations.getAllEndpoints()
+					.keySet()) {
+				resp.getWriter().append(endpoint.toString() + "<br><br>");
+			}
+			responseCode = HttpStatus.SC_ACCEPTED;
+			break;
+
+		// hub.mode not found
+		default:
+			responseCode = HttpStatus.SC_BAD_REQUEST;
+			break;
+		}
+		resp.setStatus(responseCode);
 	}
 
 	/**
@@ -157,22 +377,25 @@ public class HubImpl extends HttpServlet implements Hub {
 				// create instance
 				instanceDictionary = new Hashtable<String, Object>();
 				instanceDictionary.put("feed.url", rssUrl);
-				instanceDictionary.put("feed.period", FEED_PERIOD);
-				feedReaderFactory.createComponentInstance(instanceDictionary);
+				// instanceDictionary.put("feed.period", FEED_PERIOD);
+				instanceDictionary.put("feed.pooling", FEED_POLLING);
 
+				feedReaderFactory.createComponentInstance(instanceDictionary);
 				sref = context.getServiceReferences(READER_SERVICE_CLASS,
 						readerFilter);
 
 			}
 			// store reader
-			readers.put(rssUrl, (FeedReader) context.getService(sref[0]));
-			
-			//release reference
+			readers.put(
+					rssUrl,
+					new ReaderWithFeedIndex((FeedReader) context
+							.getService(sref[0])));
+
+			// release reference
 			context.ungetService(sref[0]);
 
 		} catch (Exception e) {
-			logger.log(LogService.LOG_ERROR, "Can not create reader for "
-					+ rssUrl, e);
+			logger.log(LOG_ERROR, "Can not create reader for " + rssUrl, e);
 			return false;
 		}
 
@@ -188,7 +411,7 @@ public class HubImpl extends HttpServlet implements Hub {
 	 * @return proper endpoint description
 	 */
 	@SuppressWarnings("unchecked")
-	private EndpointDescription getEndpointDescriptionFromJSON(
+	public final EndpointDescription getEndpointDescriptionFromJSON(
 			final Map<String, Object> map) {
 
 		if (map.get(Constants.OBJECTCLASS) instanceof ArrayList<?>) {
@@ -204,143 +427,38 @@ public class HubImpl extends HttpServlet implements Hub {
 		return new EndpointDescription(map);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Gets feed index digit from feed content.
 	 * 
-	 * @see
-	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
-	 * , javax.servlet.http.HttpServletResponse)
+	 * @param pContent
+	 *            feed content
+	 * @return number of digits in index
 	 */
-	@Override
-	protected final void doPost(final HttpServletRequest req,
-			final HttpServletResponse resp) throws ServletException,
-			IOException {
+	private int getFeedIndexDigit(String pContent) {
+		return Integer.parseInt(pContent.substring(0, 1));
 
-		String rssUrl;
-		String endpointFilter;
-		String callBackUrl;
-		FeedEntry feed;
-
-		// check the content type, must be application/x-www-form-urlencoded
-		if ((!(req.getHeader("Content-Type").equals(HTTP_POST_HEADER_TYPE)))
-				|| (req.getParameter(HTTP_POST_PARAMETER_HUB_MODE) == null)) {
-			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
-			return;
-		}
-		rssUrl = req.getParameter(HTTP_POST_PARAMETER_RSS_TOPIC_URL);
-		endpointFilter = req.getParameter(HTTP_POST_PARAMETER_ENDPOINT_FILTER);
-		callBackUrl = req.getParameter(HTTP_POST_PARAMETER_URL_CALLBACK);
-		// check the hub mode
-		switch (HubMode.valueOf(req.getParameter(HTTP_POST_PARAMETER_HUB_MODE))) {
-		case publish:
-
-			if ((rssUrl != null) && (createReader(rssUrl))) {
-				// register a topic
-				registrations.addTopic(rssUrl);
-				responseCode = HttpStatus.SC_CREATED;
-			} else {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-			}
-			break;
-
-		case unpublish:
-
-			if (rssUrl != null) {
-				// remove a topic
-				subscription = new SendSubscription(client, rssUrl,
-						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this,
-						HUB_UPDATE_TOPIC_DELETE);
-				subscription.start();
-				responseCode = HttpStatus.SC_ACCEPTED;
-			} else {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-			}
-			break;
-
-		case update:
-			if ((rssUrl == null) || (readers.get(rssUrl) == null)) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				break;
-			}
-			feed = readers.get(rssUrl).getLastEntry();
-			if (feed == null) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				break;
-			}
-			try {
-				@SuppressWarnings("unchecked")
-				EndpointDescription edp = getEndpointDescriptionFromJSON(json
-						.fromJSON(feed.content()));
-				if (feed.title().equals(FEED_TITLE_NEW)) {
-					registrations.addEndpoint(rssUrl, edp);
-					subscription = new SendSubscription(client, edp,
-							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
-					subscription.start();
-				} else if (feed.title().equals(FEED_TITLE_REMOVE)) {
-					registrations.removeEndpoint(rssUrl, edp);
-					subscription = new SendSubscription(client, edp,
-							HUB_SUBSCRIPTION_UPDATE_ENDPOINT_REMOVED, this);
-					subscription.start();
-				}
-				responseCode = HttpStatus.SC_ACCEPTED;
-			} catch (ParseException e) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				logger.log(LogService.LOG_ERROR, "Update false", e);
-			}
-			break;
-
-		case subscribe:
-			if ((endpointFilter == null) || (callBackUrl == null)) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-			} else {
-				registrations.addSubscrition(callBackUrl, endpointFilter);
-				responseCode = HttpStatus.SC_CREATED;
-				// check if already register an endpoint which matches the
-				// filter
-
-				subscription = new SendSubscription(client, callBackUrl,
-						HUB_SUBSCRIPTION_UPDATE_ENDPOINT_ADDED, this);
-				subscription.start();
-			}
-
-			break;
-
-		case unsubscribe:
-			if (callBackUrl == null) {
-				responseCode = HttpStatus.SC_BAD_REQUEST;
-				break;
-			}
-			registrations.removeSubscribtion(callBackUrl);
-			responseCode = HttpStatus.SC_ACCEPTED;
-			break;
-
-		case getAllEndpoints:
-			// for Rose Pubsuhhubbub webconsole purpose
-			resp.setContentType("text/html");
-			for (EndpointDescription endpoint : registrations.getAllEndpoints()) {
-				resp.getWriter().append(endpoint.toString() + "<br><br>");
-			}
-			responseCode = HttpStatus.SC_ACCEPTED;
-			break;
-
-		// hub.mode not found
-		default:
-			responseCode = HttpStatus.SC_BAD_REQUEST;
-			break;
-		}
-		resp.setStatus(responseCode);
 	}
 
-	public final JSONService json() {
-		return json;
+	/**
+	 * Gets feed index from feed content.
+	 * 
+	 * @param pContent
+	 *            feed content
+	 * @param pFeedIndexDigit
+	 *            number of digits in index number
+	 * @return feed index
+	 */
+	private int getFeedIndex(String pContent, int pFeedIndexDigit) {
+		return Integer.parseInt(pContent.substring(1, pFeedIndexDigit + 1));
 	}
 
-	public final Registrations registrations() {
+	public final RegistrationsImpl getRegistrations() {
 		return registrations;
 	}
 
-	public final LogService logger() {
-		return logger;
+	public String getUrl() {
+
+		return hubURI;
 	}
 
 	/**
@@ -357,14 +475,14 @@ public class HubImpl extends HttpServlet implements Hub {
 					.getProperty(FeedReader.FEED_URL_PROPERTY)))) {
 				readers.put(
 						reference.getProperty(FeedReader.FEED_URL_PROPERTY),
-						reader);
+						new ReaderWithFeedIndex(reader));
 			}
 			return reader;
 		}
 
 		public void modifiedService(final ServiceReference reference,
 				final Object service) {
-
+			return;
 		}
 
 		public void removedService(final ServiceReference reference,
@@ -372,5 +490,51 @@ public class HubImpl extends HttpServlet implements Hub {
 			readers.remove(reference.getProperty(FeedReader.FEED_URL_PROPERTY));
 
 		}
+	}
+
+	/**
+	 * Contains FeedREader with feed index.
+	 * 
+	 * @author Bartek
+	 * 
+	 */
+	private static class ReaderWithFeedIndex {
+		private FeedReader feedReader;
+		private int feedIndex;
+
+		public ReaderWithFeedIndex(FeedReader pFeedReader) {
+			this.feedReader = pFeedReader;
+			feedIndex = 1;
+		}
+
+		public FeedReader getFeedReader() {
+			return feedReader;
+		}
+
+		public int getFeedIndex() {
+			return feedIndex;
+		}
+
+		public void increaseIndex() {
+			feedIndex++;
+		}
+	}
+
+	private class DistributedHubTracker implements ServiceTrackerCustomizer {
+
+		public Object addingService(ServiceReference reference) {
+			distributedHub = (DistributedHub) context.getService(reference);
+			return distributedHub;
+		}
+
+		public void modifiedService(ServiceReference reference, Object service) {
+			distributedHub = (DistributedHub) context.getService(reference);
+
+		}
+
+		public void removedService(ServiceReference reference, Object service) {
+			distributedHub = null;
+		}
+
 	}
 }

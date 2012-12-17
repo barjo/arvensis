@@ -16,9 +16,9 @@
 
 	<!-- Project's parent -->
 	<parent>
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
+		<groupId>org.ow2.chameleon.rose</groupId>
+		<artifactId>rose-parent</artifactId>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>rose.example.jaxrs</groupId>

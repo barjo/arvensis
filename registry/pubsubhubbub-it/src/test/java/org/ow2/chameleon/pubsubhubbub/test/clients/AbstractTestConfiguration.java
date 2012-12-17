@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.ops4j.pax.exam.Inject;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.OptionUtils;
+import org.ops4j.pax.exam.container.def.options.VMOption;
 import org.ops4j.pax.exam.junit.Configuration;
 import org.ops4j.pax.exam.junit.JUnitOptions;
 import org.osgi.framework.BundleContext;
@@ -83,7 +84,6 @@ public abstract class AbstractTestConfiguration {
 		// run rose
 		ipojo.createComponentInstance("RoSe_machine");
 
-
 	}
 
 	/**
@@ -122,9 +122,6 @@ public abstract class AbstractTestConfiguration {
 						.versionAsInProject(),
 				mavenBundle().groupId("org.slf4j").artifactId("slf4j-simple")
 						.versionAsInProject(),
-				mavenBundle().groupId("org.jabsorb")
-						.artifactId("org.ow2.chameleon.commons.jabsorb")
-						.versionAsInProject(),
 				mavenBundle().groupId("org.apache.felix")
 						.artifactId("org.apache.felix.eventadmin")
 						.versionAsInProject(),
@@ -135,15 +132,23 @@ public abstract class AbstractTestConfiguration {
 				mavenBundle().groupId("org.jdom")
 						.artifactId("com.springsource.org.jdom")
 						.versionAsInProject(),
-				mavenBundle().groupId("org.ow2.chameleon.rose.jsonrpc")
-						.artifactId("jabsorb-exporter").versionAsInProject(),
+				mavenBundle().groupId("com.sun.jersey")
+						.artifactId("jersey-client")
+						.versionAsInProject(),
+				mavenBundle().groupId("com.sun.jersey")
+						.artifactId("jersey-server")
+						.versionAsInProject(),
+				mavenBundle().groupId("com.sun.jersey")
+						.artifactId("jersey-core")
+						.versionAsInProject(),
 				mavenBundle().groupId("org.ow2.chameleon.rose.registry")
 						.artifactId("pubsubhubbub").versionAsInProject()
 
 		));
 
 		Option[] r = OptionUtils.combine(platform, bundles);
-
+		//for debugging purpose
+		Option[] r2  = OptionUtils.combine(r, new VMOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006")); 
 		return r;
 	}
 

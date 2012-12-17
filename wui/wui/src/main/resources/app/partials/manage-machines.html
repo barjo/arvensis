@@ -1,0 +1,33 @@
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span2">
+            <!--Sidebar content-->
+			Search: <input ng-model="query">
+        </div>
+        <div class="span10">
+            <!--Body content-->
+			<ul class="breadcrumb">
+				<li class="active">Machines</li>
+			</ul>
+
+            <ul class="unstyled">
+				<li ng-repeat="m in machines | filter:query">
+				<a href="#manage-machine/{{m.id}}">{{m.id}}</a>
+				</li>
+			</ul>
+
+			<br>
+
+			<form class="form-inline">
+					<fieldset>
+						<!--		<legend>Create machine</legend> -->
+					<input ng-model="machine.id" class="span2" type="text" id="inputId" placeholder="Machine Id">
+					<input ng-model="machine.host" class="span2"type="text" id="inputHost">
+					<button type="submit" class="btn" ng-click="createMachine()">New</button>
+					</fieldset>
+			</form>
+
+        </div>
+    </div>
+</div>
+

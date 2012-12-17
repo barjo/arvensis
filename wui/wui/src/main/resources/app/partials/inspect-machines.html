@@ -1,0 +1,26 @@
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span2">
+            <!--Sidebar content-->
+
+            <p class="lead">Inspect Machines</p>
+            Search: <input ng-model="query">
+            Sort by:
+            <select ng-model="orderProp">
+                <option value="id">Alphabetical</option>
+                <option value="date">Date</option>
+            </select>
+        </div>
+        <div class="span10">
+            <!--Body content-->
+
+            <ul class="machines">
+				<li ng-repeat="machine in machines | filter:query | orderBy:orderProp">
+				<strong>{{machine.id}}</strong> ({{machine.host}}) {{getDate(machine).toTimeString()}}
+				</li>
+            </ul>
+
+        </div>
+    </div>
+</div>
+

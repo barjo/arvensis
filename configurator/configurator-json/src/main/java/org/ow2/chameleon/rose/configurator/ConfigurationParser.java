@@ -1,142 +1,79 @@
 package org.ow2.chameleon.rose.configurator;
 
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
-import static org.ow2.chameleon.rose.RoseMachine.ROSE_MACHINE_HOST;
-import static org.ow2.chameleon.rose.RoseMachine.ROSE_MACHINE_ID;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ComponentToken.factory;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfToken.component;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfToken.connection;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfToken.machine;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConnectionToken.in;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConnectionToken.out;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.InToken.endpoint_filter;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.InToken.importer_filter;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.MachineToken.host;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.OutToken.exporter_filter;
-import static org.ow2.chameleon.rose.configurator.ConfigurationParser.OutToken.service_filter;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.service.log.LogService;
+import org.ow2.chameleon.rose.api.InConnection.InBuilder;
+import org.ow2.chameleon.rose.api.Instance.InstanceBuilder;
+import org.ow2.chameleon.rose.api.Machine;
+import org.ow2.chameleon.rose.api.Machine.MachineBuilder;
+import org.ow2.chameleon.rose.api.OutConnection.OutBuilder;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.felix.ipojo.parser.ParseException;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.ow2.chameleon.rose.DynamicExporter;
-import org.ow2.chameleon.rose.DynamicImporter;
+import static org.osgi.service.log.LogService.LOG_DEBUG;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
+import static org.ow2.chameleon.rose.RoseMachine.RoSe_MACHINE_ID;
+import static org.ow2.chameleon.rose.api.InConnection.InBuilder.in;
+import static org.ow2.chameleon.rose.api.OutConnection.OutBuilder.out;
+import static org.ow2.chameleon.rose.configurator.ConfigurationParser.ConfType.*;
 
 /**
  * Create a RoseConfiguration object for a given Map based configuration. 
  **/
 public class ConfigurationParser {	
-	private static final String MACHINE_COMPONENT = "RoSe_machine";
-	
 	private final BundleContext context;
+	private final LogService logger;
 	
-	public ConfigurationParser(BundleContext pContext) {
+	public ConfigurationParser(BundleContext pContext,LogService pLogger) {
 		context = pContext;
+		logger = pLogger;
 	}
 	
-	public enum ConfToken {
+	
+	public enum ConfType{
 		machine,
 		component,
-		connection;
-		
-		public Object getValue(Map<String,Object> values){
-			return values.get(this.toString());
-		}
-		
-		public boolean isIn(Map<String, Object> json) {
-			return json.containsKey(this.toString());
-		}
-	}
-	
-	public enum MachineToken{
+        instance,
+		connection,
 		id,
-		host;
-		
-		public String getValue(Map<String,Object> values){
-			return (String) values.remove(this.toString());
-		}
-
-		public boolean isIn(Map<String, Object> json) {
-			return json.containsKey(this.toString());
-		}
-	}
-	
-	public enum ComponentToken{
+		host,
 		factory,
-		properties;
-		
-		public Object getValue(Map<String,Object> values){
-			return values.remove(this.toString());
-		}
-		
-		public boolean isIn(Map<String, Object> json) {
-			return json.containsKey(this.toString());
-		}
-	}
-	
-	public enum ConnectionToken{
+		properties,
 		in,
-		out;
-		
-		public boolean isIn(Map<String, Object> json) {
-			return json.containsKey(this.toString());
-		}
-		
-		public Map<String, Object> getValue(Map<String,Object> values){
-			return (Map<String, Object>) values.remove(this.toString());
-		}
-	}
-	
-	public enum InToken {
+		out,
 		endpoint_filter,
 		importer_filter,
-		protocol,
-		customizer,
-		properties;
-		
-		public Object getValue(Map<String,Object> values){
-			return values.remove(this.toString());
-		}
-		
-		public boolean isIn(Map<String, Object> json) {
-			return json.containsKey(this.toString());
-		}
-	}
-	
-	public enum OutToken {
 		service_filter,
 		exporter_filter,
 		protocol,
-		customizer_filter,
-		properties;
+		customizer;
 		
 		public Object getValue(Map<String,Object> values){
 			return values.remove(this.toString());
 		}
-		
+
 		public boolean isIn(Map<String, Object> json) {
 			return json.containsKey(this.toString());
 		}
 	}
 
-	private void parseMachine(Object obj, GlobalRoseConfiguration conf) throws InvalidSyntaxException, ParseException {
-		
+	private Machine parseMachine(Object obj) throws InvalidSyntaxException {
+		Machine rosemachine;
 		if ( !(obj instanceof Map)){
-			throw new ParseException(machine+" must contains a valid machine description: "+obj+" is not a valid jsonobject");
+			throw new IllegalArgumentException(machine+" must contains a valid machine description: "+obj+" is not a valid jsonobject");
 		}
 		
+		@SuppressWarnings("unchecked")
 		Map<String,Object> json = (Map<String,Object>) obj;
 		
-		Hashtable<String, Object> properties = new Hashtable<String, Object>();
-		String id = MachineToken.id.getValue(json);
+		String id = (String) ConfType.id.getValue(json);
 		
 		//Get & Set id
 		if (id == null){
-			id = context.getProperty(ROSE_MACHINE_ID);
+			id = context.getProperty(RoSe_MACHINE_ID);
 		}
 		
 		if (id == null){
@@ -147,138 +84,139 @@ public class ConfigurationParser {
 			id = UUID.randomUUID().toString();
 		}
 		
-		properties.put(ROSE_MACHINE_ID, id);
-		properties.put("instance.name", MACHINE_COMPONENT+"_"+id);
+		MachineBuilder mbuilder = MachineBuilder.machine(context, id);
 		
 		//Get & Set host
 		if (host.isIn(json)){
-			properties.put(ROSE_MACHINE_HOST, host.getValue(json));
+			mbuilder.host((String) host.getValue(json));
 		}
+		rosemachine = mbuilder.create();
 		
-		//Ok Add the machine
-		conf.add(new FactoryTrackerConfiguration(context,MACHINE_COMPONENT,properties,null));
+		//Parse, the connections
+		if (connection.isIn(json)){
+			parseConnection(connection.getValue(json), rosemachine);
+		}
+
+        //Parse the instance/component conf
+		if (component.isIn(json)){
+			parseComponent(component.getValue(json), rosemachine);
+		}
+
+        if (instance.isIn(json)){
+            parseComponent(instance.getValue(json),rosemachine);
+        }
 		
-		//Check other conf
-		conf.add(parse(json, id));
-		
+		return rosemachine;
 	}
 
-	
-	private void parseComponent(Object obj, String machineId,GlobalRoseConfiguration conf) throws InvalidSyntaxException, ParseException {
-		if ( !(obj instanceof List)){
-			throw new ParseException(component+" must contains a valid component description: "+obj+" is not a valid jsonobject");
+	/**
+	 * FIXME
+	 */
+	@SuppressWarnings({ "unchecked" })
+	private void parseComponent(Object list, Machine machine) throws InvalidSyntaxException {
+		if ( !(list instanceof List)){
+			throw new IllegalArgumentException(component+" must contains a valid component description: "+list+" is not a valid jsonobject");
 		}
 		
-		List<Map> jsons = (List) obj;
+		logger.log(LOG_DEBUG, "Parse component instances of machine: " +machine.getId());
+
 		
-		for (Map json : jsons) {
-			Hashtable<String, Object> properties = new Hashtable<String, Object>();
+		InstanceBuilder ibuilder;
 		
+		List<Map<String,Object>> jsons = (List<Map<String, Object>>) list;
+		
+		for (Map<String, Object> json : jsons) {
 			//mandatory
 			String component = (String) factory.getValue(json);
 			
-			//Set a machine related instance name if in a machine
-			if (machineId != null){
-				properties.put("instance.name", component+"_"+machineId);
-			}
-		
+			ibuilder = InstanceBuilder.instance(machine, component).name(component+"_"+machine.getId());
+			
 			//Optional
-			if (ComponentToken.properties.isIn(json)){
-				properties.putAll((Map) ComponentToken.properties.getValue(json));
+			if (ConfType.properties.isIn(json)){
+				ibuilder.withProperties((Map<String, Object>)properties.getValue(json));
 			}
 		
-			conf.add(new FactoryTrackerConfiguration(context,component,properties,machineId));
+			ibuilder.create();
 		}
 	}
 
-	private void parseConnection(Object obj, String machineId,GlobalRoseConfiguration conf) throws InvalidSyntaxException, ParseException {
-		if ( !(obj instanceof List)){
-			throw new ParseException(connection+" must contains a valid connection description: "+obj+" is not a valid jsonarray ");
+	@SuppressWarnings("unchecked")
+	private void parseConnection(Object list, Machine machine) throws InvalidSyntaxException {
+		if ( !(list instanceof List)){
+			throw new IllegalArgumentException(connection+" must contains a valid connection description: "+list+" is not a valid jsonarray ");
 		}
 		
-		List<Map> jsons = (List) obj;
-		for (Map json : jsons) {
+		logger.log(LOG_DEBUG, "Parse connections of machine: " +machine.getId());
 		
-			if (in.isIn(json)){
-				Map<String,Object> inmap = in.getValue(json);
+		List<Map<String,Object>> jsons = (List<Map<String, Object>>) list;
+		for (Map<String, Object> json : jsons) {
+		
+			if (ConfType.in.isIn(json)){
+				Map<String,Object> inmap = (Map<String, Object>) ConfType.in.getValue(json);
 			
 				//Mandatory
-				String endpoint = (String) endpoint_filter.getValue(inmap);
-				DynamicImporter.Builder builder = new DynamicImporter.Builder(context, endpoint);
+				String endpoint = (String) ConfType.endpoint_filter.getValue(inmap);
+				InBuilder inBuilder = in(machine, endpoint);
 			
 				//Optional protocols
-				if (InToken.protocol.isIn(inmap)){
-					builder.protocol((List<String>) InToken.protocol.getValue(inmap));
+				if (protocol.isIn(inmap)){
+					inBuilder.protocol((List<String>) protocol.getValue(inmap));
 				}
 				
 				//Optional IMPORTER_FILTER
 				if (importer_filter.isIn(inmap)){
-				builder.importerFilter((String) importer_filter.getValue(inmap));
+				inBuilder.withImporter((String) importer_filter.getValue(inmap));
 				}
 			
 				//optional PROPERTIES
-				if(InToken.properties.isIn(inmap)){
-					builder.extraProperties((Map) InToken.properties.getValue(inmap));
+				if(properties.isIn(inmap)){
+					inBuilder.withProperties((Map<String,Object>) properties.getValue(inmap));
 				}
 				
-				conf.add(new DImporterConfiguration(builder.build()));
+				inBuilder.add(); //create the connection
 			}
 		
-			if (out.isIn(json)){
-				Map<String,Object> outmap = out.getValue(json);
+			if (ConfType.out.isIn(json)){
+				Map<String,Object> outmap = (Map<String, Object>) ConfType.out.getValue(json);
 			
 				//Mandatory
 				String service = (String) service_filter.getValue(outmap);
-				DynamicExporter.Builder builder = new DynamicExporter.Builder(context, service);
+				OutBuilder out = out(machine, service);
 			
-				if (OutToken.protocol.isIn(outmap)){
-					builder.protocol((List<String>) OutToken.protocol.getValue(outmap));
+				if (protocol.isIn(outmap)){
+					out.protocol((List<String>) protocol.getValue(outmap));
 				}
 				
 				//Optional EXPORTER_FILTER
 				if (exporter_filter.isIn(outmap)){
-					builder.exporterFilter((String) exporter_filter.getValue(outmap));
+					out.withExporter((String) exporter_filter.getValue(outmap));
 				}
 			
 				//optional PROPERTIES
-				if(OutToken.properties.isIn(outmap)){
-					builder.extraProperties((Map) OutToken.properties.getValue(outmap));
+				if(properties.isIn(outmap)){
+					out.withProperties((Map<String, Object>) properties.getValue(outmap));
 				}
 				
 				//optional Customizer
-				if (OutToken.customizer_filter.isIn(outmap)){
+				if (ConfType.customizer.isIn(outmap)){
 					//TODO
 				}
 				
-				conf.add(new DExporterConfiguration(builder.build()));
+				out.add(); //Create the connection
 			}
 		}
 	}
 
 
-	public RoseConfiguration parse(Map<String, Object> json,String machineId) throws InvalidSyntaxException, ParseException {
-		GlobalRoseConfiguration conf = new GlobalRoseConfiguration();
+	public Machine parse(Map<String, Object> json) throws InvalidSyntaxException {
 		
-		//Parse each entry
-		for (String key : json.keySet()) {
-			ConfToken type = ConfToken.valueOf(key);
-			Object obj = json.get(key);
-			
-			switch (type) {
-				
-			case machine:
-				parseMachine(obj,conf);
-				break;
-			case connection:
-				parseConnection(obj,machineId,conf);
-				break;
-			case component:
-				parseComponent(obj,machineId,conf);
-		  }
+		if (machine.isIn(json)){
+			return parseMachine(machine.getValue(json));
 		}
-		
-		
-		return conf;
+		else {
+			throw new IllegalArgumentException("The configuration does not contains a valid rose machine configuration");
+		}
 	}
-	
+
+
 }

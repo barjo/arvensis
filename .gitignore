@@ -6,6 +6,12 @@
 *.settings
 .externalToolBuilders
 
+# IntelliJ #
+############
+
+*.iml
+.idea
+
 # maven #
 #########
 maven-eclipse.xml

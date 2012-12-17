@@ -5,6 +5,8 @@ import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstant
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.FEED_TITLE_REMOVE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_HUB_MODE;
 import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_RSS_TOPIC_URL;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_MACHINEID;
+import static org.ow2.chameleon.rose.pubsubhubbub.constants.PubsubhubbubConstants.HTTP_POST_PARAMETER_URL_CALLBACK;
 
 import java.net.UnknownHostException;
 import java.text.ParseException;
@@ -61,9 +63,9 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 	@Override
 	public final void setUp() throws UnknownHostException {
-		
+
 		super.setUp();
-		
+
 		osgi = super.getOsgi();
 		ipojo = super.getIpojo();
 		hub = super.getHub();
@@ -144,11 +146,12 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 		// check POST parameters
 		parameters = hub.getReqParams();
+
+		// check if received all parameters
+		Assert.assertTrue(parameters.size() == 4);
+
 		for (String parameter : parameters.keySet()) {
-			if (parameter.equals("Content-Type")) {
-				Assert.assertTrue(parameters.get("Content-Type").equals(
-						"application/x-www-form-urlencoded"));
-			} else if (parameter.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
+			if (parameter.equals(HTTP_POST_PARAMETER_HUB_MODE)) {
 				Assert.assertTrue(((String[]) parameters
 						.get(HTTP_POST_PARAMETER_HUB_MODE))[0]
 						.equals("publish"));
@@ -156,6 +159,14 @@ public class PublisherTest extends AbstractTestConfiguration {
 				Assert.assertTrue(((String[]) parameters
 						.get(HTTP_POST_PARAMETER_RSS_TOPIC_URL))[0]
 						.equals(publisherRssUrl));
+			} else if (parameter.equals(HTTP_POST_PARAMETER_MACHINEID)) {
+				Assert.assertNotNull(((String[]) parameters
+						.get(HTTP_POST_PARAMETER_MACHINEID))[0]);
+			} else if (parameter.equals(HTTP_POST_PARAMETER_URL_CALLBACK)) {
+				System.out.println(parameter
+						.equals(HTTP_POST_PARAMETER_URL_CALLBACK));
+				Assert.assertNotNull(((String[]) parameters
+						.get(HTTP_POST_PARAMETER_MACHINEID))[0]);
 			}
 
 		}
@@ -207,6 +218,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 		EndpointListener endpLis;
 		EndpointDescription feedEndp;
+		String jsonEndpoint;
 
 		FeedEntry feed;
 
@@ -217,15 +229,18 @@ public class PublisherTest extends AbstractTestConfiguration {
 
 		feed = reader.getLastEntry();
 		Assert.assertTrue(feed.title().equals(FEED_TITLE_NEW));
+		// remove logical clock from feed content
+		jsonEndpoint = feed.content().substring(2);
 
 		try {
 			// get endpoint description feed RSS)
 			feedEndp = RoseEndpointDescription.getEndpointDescription(json
-					.fromJSON(feed.content()));
+					.fromJSON(jsonEndpoint));
 			// check discovered endpoint and published in RSS
 			Assert.assertTrue(endp.equals(feedEndp));
 		} catch (ParseException e) {
 			e.printStackTrace();
+			Assert.fail();
 		}
 
 	}
@@ -278,6 +293,7 @@ public class PublisherTest extends AbstractTestConfiguration {
 		FeedEntry feed;
 		EndpointListener endpLis;
 		EndpointDescription feedEndp;
+		String jsonEndpoint;
 
 		feed = reader.getLastEntry();
 
@@ -292,14 +308,18 @@ public class PublisherTest extends AbstractTestConfiguration {
 		feed = reader.getLastEntry();
 		Assert.assertTrue(feed.title().equals(FEED_TITLE_REMOVE));
 
+		// remove logical clock from feed content
+		jsonEndpoint = feed.content().substring(2);
+
 		try {
 			// get endpoint description feed RSS
 			feedEndp = RoseEndpointDescription.getEndpointDescription(json
-					.fromJSON(feed.content()));
+					.fromJSON(jsonEndpoint));
 			// check discovered endpoint and published in RSS
 			Assert.assertTrue(endp.equals(feedEndp));
 		} catch (ParseException e) {
 			e.printStackTrace();
+			Assert.fail();
 		}
 
 	}

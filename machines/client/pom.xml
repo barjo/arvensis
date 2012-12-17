@@ -3,9 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<!-- Project's parent -->
 	<parent> 
-		<groupId>org.ow2.chameleon</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>0.3.2</version>
+		<groupId>org.ow2.chameleon.rose</groupId>
+		<artifactId>rose-parent</artifactId>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.ow2.chameleon.rose.machine</groupId>
@@ -15,8 +15,8 @@
 
 	<properties>
 		<chameleon.version>0.4.1-SNAPSHOT</chameleon.version>
-		<rose.version>0.2.4-SNAPSHOT</rose.version>
-		<jabsorb-importer.version>0.1.0-SNAPSHOT</jabsorb-importer.version>
+		<rose.version>1.0.1-SNAPSHOT</rose.version>
+		<jabsorb-importer.version>1.0.1-SNAPSHOT</jabsorb-importer.version>
 
 		<machine.dir>${project.build.directory}/machine-client</machine.dir>
 		<runtime.dir>${machine.dir}/runtime</runtime.dir>

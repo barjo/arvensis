@@ -4,10 +4,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.osgi.service.remoteserviceadmin.ImportReference;
-import org.osgi.service.remoteserviceadmin.ImportRegistration;
+import org.osgi.service.remoteserviceadmin.*;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.ow2.chameleon.rose.ExporterService;
@@ -21,6 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 import static org.osgi.framework.FrameworkUtil.createFilter;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
 import static org.ow2.chameleon.rose.RoSeConstants.ENDPOINT_CONFIG;
 import static org.ow2.chameleon.rose.RoseMachine.ENDPOINT_LISTENER_INTEREST;
 import static org.ow2.chameleon.rose.RoseMachine.EndpointListerInterrest.REMOTE;
@@ -108,7 +106,7 @@ public final class InConnection {
 	public static class InBuilder {
 		// required
 		private final Machine machine;
-		private final Filter dfilter;
+		private Filter dfilter;
 
 		// optional
 		private Filter imfilter = createFilter(DEFAULT_IMPORTER_FILTER);
@@ -140,6 +138,19 @@ public final class InConnection {
 			}
 			sb.append("))");
 			imfilter = createFilter(sb.toString());
+
+            StringBuilder sbdfilt = new StringBuilder("(&");
+            sbdfilt.append(dfilter.toString());
+            sbdfilt.append("(|");
+            for (String string : protocols) {
+                sbdfilt.append("(");
+                sbdfilt.append(SERVICE_IMPORTED_CONFIGS);
+                sbdfilt.append("=");
+                sbdfilt.append(string);
+                sbdfilt.append(")");
+            }
+            sbdfilt.append("))");
+            dfilter = createFilter(sbdfilt.toString());
 			return this;
 		}
 

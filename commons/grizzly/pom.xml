@@ -1,0 +1,86 @@
+<!--
+	Copyright 2009-2010 OW2 Chameleon
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	   http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		<parent>
+				<artifactId>rose-parent</artifactId>
+				<groupId>org.ow2.chameleon.rose</groupId>
+				<version>1.0.3-SNAPSHOT</version>
+				<relativePath>../../pom.xml</relativePath>
+		</parent>
+
+		<modelVersion>4.0.0</modelVersion>
+		<groupId>org.ow2.chameleon.commons.grizzly</groupId>
+		<artifactId>grizzly-bundle</artifactId>
+		<version>2.3-0001-SNAPSHOT</version>
+		<packaging>bundle</packaging>
+		<name>OW2 Chameleon - Grizzly OSGi HttpService bundle (RoSe version)</name>
+		<description>
+				Bundle wrapping the Grizzly http-service bundle.
+		</description>
+
+		<properties>
+				<servlet-version>3.1-b05</servlet-version>
+				<gmbal.version>3.2.0-b003</gmbal.version>
+
+				<!-- Encoding -->
+				<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		</properties>
+
+		<licenses>
+				<license>
+						<name>CDDL+GPL</name>
+						<url>http://glassfish.java.net/public/CDDL+GPL.html</url>
+				</license>
+		</licenses>
+
+		<dependencies>
+				<dependency>
+						<groupId>org.glassfish.grizzly.osgi</groupId>
+						<artifactId>grizzly-httpservice-bundle</artifactId>
+						<version>${grizzly.version}</version>
+				</dependency>
+		</dependencies>
+
+		<build>
+				<plugins>
+						<plugin>
+								<groupId>org.apache.felix</groupId>
+								<artifactId>maven-bundle-plugin</artifactId>
+								<version>${bundle.plugin.version}</version>
+								<extensions>true</extensions>
+								<configuration>
+										<instructions>
+												<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+												<Export-Package>
+														org.glassfish.grizzly.*;version=${grizzly.version};-split-package:=merge-first,
+														javax.servlet.*;-split-package:=merge-first;version=${servlet-version}
+												</Export-Package>
+												<Import-Package>
+														org.glassfish.gmbal*;version=${gmbal.version};resolution:=optional,
+														*
+												</Import-Package>
+												<Include-Resource>
+														@grizzly-httpservice-bundle-${grizzly.version}.jar,
+														{maven-resources}
+												</Include-Resource>
+												<Export-Service>
+														org.osgi.service.http.HttpService;version=1.2
+												</Export-Service>
+										</instructions>
+								</configuration>
+						</plugin>
+				</plugins>
+		</build>
+</project>

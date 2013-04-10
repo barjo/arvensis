@@ -142,11 +142,18 @@
 									<overWrite>true</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>
-								<!-- HttpService (jetty) -->
+								<!-- HttpService (Grizzly) -->
 								<artifactItem>
-									<groupId>org.apache.felix</groupId>
-									<artifactId>org.apache.felix.http.jetty</artifactId>
-									<version>2.2.0</version>
+									<groupId>org.glassfish.grizzly.osgi</groupId>
+									<artifactId>grizzly-httpservice</artifactId>
+									<version>${grizzly.version}</version>
+									<overWrite>true</overWrite>
+									<outputDirectory>${runtime.dir}</outputDirectory>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.ow2.chameleon.commons.grizzly</groupId>
+									<artifactId>grizzly-bundle</artifactId>
+									<version>${grizzly.version}-0001-SNAPSHOT</version>
 									<overWrite>true</overWrite>
 									<outputDirectory>${runtime.dir}</outputDirectory>
 								</artifactItem>

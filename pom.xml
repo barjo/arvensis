@@ -26,12 +26,12 @@
 		<ipojo.version>1.8.2</ipojo.version>
 		<ipojo.plugin.version>1.8.4</ipojo.plugin.version>
 		<osgi.version>4.3.1</osgi.version>
-        <osgi.ent.version>4.2.0</osgi.ent.version>
+    <osgi.ent.version>4.2.0</osgi.ent.version>
 		<bundle.plugin.version>2.3.7</bundle.plugin.version>
 		<compiler.plugin.version>2.5.1</compiler.plugin.version>
 		<javadoc.plugin.version>2.8.1</javadoc.plugin.version>
-        <jersey.version>1.9</jersey.version>
-        <grizzly.version>1.9.36</grizzly.version>
+    <jersey.version>1.9</jersey.version>
+    <grizzly.version>2.3</grizzly.version>
 
 		<!-- Test dependencies version -->
 		<mockito.version>1.9.5</mockito.version>
@@ -74,9 +74,10 @@
 			<id>commons</id>
 			<modules>
 				<module>commons/cxf-minimal</module>
+				<module>commons/grizzly</module>
 			</modules>
 		</profile>
-		
+
 		<!-- Profile used to build the web user interface-->
 		<profile>
 			<id>wui</id>

@@ -22,7 +22,6 @@
 	<properties>
 		<!-- Dependencies version -->
 		<mockito.version>1.7</mockito.version>
-		<grizzly.version>1.9.36</grizzly.version>
 
 		<!-- Encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -74,10 +73,16 @@
             <version>${jersey.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.grizzly.osgi</groupId>
+            <artifactId>grizzly-httpservice</artifactId>
+            <version>${grizzly.version}</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
-			<groupId>com.sun.grizzly.osgi</groupId>
-			<artifactId>grizzly-httpservice-bundle</artifactId>
-			<version>${grizzly.version}</version>
+			<groupId>org.ow2.chameleon.commons.grizzly</groupId>
+			<artifactId>grizzly-bundle</artifactId>
+			<version>${grizzly.version}-0001-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- Pax Exam API: -->

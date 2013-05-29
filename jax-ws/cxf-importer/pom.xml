@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>org.ow2.chameleon.rose</groupId>
 		<artifactId>rose-parent</artifactId>
-		<version>1.0.3-SNAPSHOT</version>
+		<version>1.0.4</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -125,4 +125,8 @@
 			</plugin>
 		</plugins>
 	</build>
+
+  <scm>
+    <tag>rose-arvensis-1.0.4</tag>
+  </scm>
 </project>
